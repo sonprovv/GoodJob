@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_nhat"
+    tools:context=".ui.chat.taskerfavorite.InfoTaskerFavoriteActivity">
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/card_view_button_info"
+        app:layout_constraintHeight="0dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:id="@+id/iv_header"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_header_info_tasker_favorite"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/iv_close"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_margin="20dp"
+                android:src="@drawable/ic_close_bold"
+                app:layout_constraintStart_toStartOf="@id/iv_header"
+                app:layout_constraintTop_toTopOf="@id/iv_header" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_content_what_is_tasker_favorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/iv_header">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_title_what_is_tasker_favorite"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tasker yêu thích là gì?"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_down_what_is_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowdown" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_up_what_is_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowup"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/view_what_is_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="8dp"
+                        android:background="@color/black"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_description_what_is_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Tasker yêu thích là những Tasker đã từng làm công việc của bạn và được bạn đánh giá 5 sao; hoặc là những Tasker được bạn thêm vào danh sách yêu thích sau khi công việc hoàn thành."
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_content_why_tasker_favorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_view_content_what_is_tasker_favorite">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_title_why_tasker_favorite"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tại sao tôi cần Tasker yêu thích?"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_down_why_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowdown" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_up_why_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowup"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/view_why_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="8dp"
+                        android:background="@color/black"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_description_why_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hệ thống sẽ ưu tiên gửi công việc của bạn cho các Tasker trong danh sách yêu thích trước; khi các Tasker yêu thích của bạn đều bận, hệ thống mới gửi cho những Tasker khác. \n GoodJob khuyển khích bạn nên có thật nhiều Tasker trong danh sách yêu thích, khi đó công việc của bạn sẽ luôn được nhận bởi những người làm mà bạn ưng ý. \n Ngoài ra, bạn còn có thể trò chuyện trực tiếp với các Tasker yêu thích và thao tác đặt lịch lại với Tasker đó một cách nhanh chóng và tiện lợi."
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_content_what_is_date_tasker_favorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_view_content_why_tasker_favorite">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_title_what_is_date_tasker_favorite"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Đặt lịch với Tasker yêu thích là gì?"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_down_what_is_date_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowdown" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_up_what_is_date_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowup"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/view_what_is_date_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="8dp"
+                        android:background="@color/black"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_description_what_is_date_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hiện nay, bạn đã có thể đặt lịch lại với các Tasker mà mình yêu thích. \n Để có thể biết được lịch rảnh Tasker mà mình yêu thích, bạn có thể chủ động liên hệ, trao đổi trực tiếp với các Tasker qua tính năng Chat ngay trên ứng dụng GoodJob. \n Ngoài ra ứng dụng còn hiển thị lịch rảnh của Tasker để bạn có thể chủ động lựa chọn khung giờ làm phù hợp. không như cách đặt công việc lẻ thông thường, bạn có thể chọn và gửi cho Tasker nhiều khung giờ phù hợp (tối đa 03) để Tasker có thể chủ động sắp xếp thời gian và nhận việc cho bạn một cách tiện lợi hơn. \n Tính năng này giúp bạn tiết kiệm thời gian và đảm bảo rằng bạn luôn được phục vụ bởi người mà bạn tin tưởng và hài lòng nhất."
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_view_content_how_use_tasker_favorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/card_view_content_what_is_date_tasker_favorite">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tv_title_how_use_tasker_favorite"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Làm sao để cập nhật danh sách Tasker yêu thích?"
+                            android:textColor="@color/black"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_down_how_use_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowdown" />
+
+                        <ImageView
+                            android:id="@+id/iv_narrow_up_how_use_tasker_favorite"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_narrowup"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/view_how_use_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="8dp"
+                        android:background="@color/black"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tv_description_how_use_tasker_favorite"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Bạn mở ứng dụng GoodJob và chọn 'Tài khoản', sau đó nhấn chọn mục 'Tasker yêu thích' để xem danh sách Tasker yêu thích của mình. Tại đây bạn có thể thao tác tùy chỉnh thêm hoặc xóa danh sách yêu thích của mình."
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_view_button_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="20dp"
+        app:cardBackgroundColor="#2FA862"
+        app:cardCornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tv_btn_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="16dp"
+            android:text="Đã hiểu"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Drawable khi item được chọn/check -->
+    <item android:drawable="@drawable/ic_chatactive" android:state_checked="true" />
+    <!-- Drawable khi item ở trạng thái kích hoạt (ví dụ: khi tab hiện tại là tab này) -->
+    <item android:drawable="@drawable/ic_chatactive" android:state_activated="true" />
+    <!-- Drawable khi item được nhấn -->
+    <item android:drawable="@drawable/ic_chatactive" android:state_pressed="true" />
+    <!-- Drawable khi item được focus -->
+    <item android:drawable="@drawable/ic_chatactive" android:state_focused="true" />
+    <!-- Drawable mặc định (khi không có trạng thái nào ở trên khớp) -->
+    <item android:drawable="@drawable/ic_chat" />
+</selector>

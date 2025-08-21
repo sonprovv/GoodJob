@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/home" android:checked="true" android:title="Trang chủ" android:icon="@drawable/ic_home_selector"/>
+    <item android:id="@+id/activity" android:title="Hoạt động" android:icon="@drawable/ic_activity_selector"/>
+    <item android:id="@+id/chat" android:title="Tin nhắn" android:icon="@drawable/ic_chat_selector"/>
+    <item android:id="@+id/profile" android:title="Tài khoản" android:icon="@drawable/ic_account_selector"/>
+
+</menu>
