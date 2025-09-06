@@ -1,0 +1,12 @@
+<resources>
+    <!-- Căn lề màn hình -->
+    <dimen name="screen_margin">16dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="viewpager_padding">100dp</dimen>
+    <!-- Kích thước của phần xem trước ảnh tiếp theo -->
+    <dimen name="viewpager_next_item_visible">80dp</dimen>
+    <!-- Khoảng cách giữa ảnh chính và ảnh xem trước -->
+    <dimen name="viewpager_margin">-40dp</dimen>
+    <!-- Lề ngang cho item hiện tại -->
+    <dimen name="viewpager_current_item_horizontal_margin">16dp</dimen>
+</resources>

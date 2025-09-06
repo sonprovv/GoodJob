@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -96,6 +98,9 @@ dependencies {
     implementation("com.google.firebase:firebase-database-ktx:21.0.0")
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.2")
+    
+    // Lottie Animation
+    implementation("com.airbnb.android:lottie:6.4.0")
 
     // Google Sign In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
@@ -112,5 +117,13 @@ dependencies {
 
     // Kotlin serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+
+    // google map
+    implementation("com.mapbox.maps:android:10.16.0")
+    implementation("com.mapbox.navigationcore:android:3.12.0-beta.1")
+
+    // json
+    implementation("org.json:json:20230227")
+
 
 }

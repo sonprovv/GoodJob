@@ -1,5 +1,25 @@
 package com.project.job.utils
 
-object Utils {
-    const val WEB_CLIENT_ID = "982452710221-c5pev1iv7f4g2a4gv3jg6js1ju84mmbt.apps.googleusercontent.com"
+import android.annotation.SuppressLint
+import android.view.MotionEvent
+import android.view.View
+
+@SuppressLint("ClickableViewAccessibility")
+fun View.addFadeClickEffect(
+    fadeAlpha: Float = 0.5f,
+    onClick: (() -> Unit)? = null
+) {
+    this.setOnTouchListener { v, event ->
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> v.alpha = fadeAlpha
+            MotionEvent.ACTION_UP -> {
+                v.alpha = 1f
+                onClick?.invoke() // gọi callback click riêng
+            }
+
+            MotionEvent.ACTION_CANCEL -> v.alpha = 1f
+        }
+        true
+    }
 }
+

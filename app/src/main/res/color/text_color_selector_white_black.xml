@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Màu khi View được nhấn (pressed) -->
+    <item android:color="@android:color/white" android:state_pressed="true" />
+    <!-- Màu khi View được chọn (selected) - thường dùng cho trạng thái active/checked -->
+    <item android:color="@android:color/white" android:state_selected="true" />
+    <!-- Màu khi View được check (checked) -->
+    <item android:color="@android:color/white" android:state_checked="true" />
+    <!-- Màu khi View được focus -->
+    <item android:color="@android:color/white" android:state_focused="true" />
+    <!-- Màu mặc định (khi không có trạng thái nào ở trên khớp) -->
+    <item android:color="@android:color/black" />
+</selector>

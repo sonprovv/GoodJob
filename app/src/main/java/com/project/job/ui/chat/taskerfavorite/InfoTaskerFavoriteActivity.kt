@@ -5,6 +5,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.project.job.R
 import com.project.job.databinding.ActivityInfoTaskerFavoriteBinding
+import com.project.job.utils.addFadeClickEffect
 
 class InfoTaskerFavoriteActivity : AppCompatActivity() {
     private lateinit var binding: ActivityInfoTaskerFavoriteBinding
@@ -15,7 +16,7 @@ class InfoTaskerFavoriteActivity : AppCompatActivity() {
         binding = ActivityInfoTaskerFavoriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.ivClose.setOnClickListener {
+        binding.ivClose.addFadeClickEffect {
             onBackPressedDispatcher.onBackPressed()
         }
         binding.cardViewButtonInfo.setOnClickListener {

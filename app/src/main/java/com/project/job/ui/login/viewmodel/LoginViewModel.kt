@@ -1,13 +1,9 @@
-package com.project.job.ui.login
+package com.project.job.ui.login.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.model.User
 import com.project.job.data.repository.UserRepository
-import com.project.job.data.source.remote.api.response.AuthResponse
 import com.project.job.data.source.remote.api.response.UserResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

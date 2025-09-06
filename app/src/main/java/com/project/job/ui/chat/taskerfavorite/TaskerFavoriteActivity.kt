@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.project.job.R
 import com.project.job.databinding.ActivityTaskerFavoriteBinding
 import com.project.job.ui.login.LoginFragment
+import com.project.job.utils.addFadeClickEffect
 
 class TaskerFavoriteActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTaskerFavoriteBinding
@@ -19,10 +20,10 @@ class TaskerFavoriteActivity : AppCompatActivity() {
         binding = ActivityTaskerFavoriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.ivBack.setOnClickListener {
+        binding.ivBack.addFadeClickEffect {
             onBackPressedDispatcher.onBackPressed()
         }
-        binding.ivInfo.setOnClickListener {
+        binding.ivInfo.addFadeClickEffect {
             val intent = Intent(this, InfoTaskerFavoriteActivity::class.java)
             startActivity(intent)
         }

@@ -8,6 +8,8 @@ import androidx.core.view.WindowInsetsCompat
 import com.project.job.R
 import com.project.job.databinding.ActivityHistoryBinding
 import com.project.job.ui.login.LoginFragment
+import com.project.job.utils.addFadeClickEffect
+
 
 class HistoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHistoryBinding
@@ -18,13 +20,16 @@ class HistoryActivity : AppCompatActivity() {
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.ivBack.setOnClickListener {
+        binding.ivBack.addFadeClickEffect {
             onBackPressedDispatcher.onBackPressed()
         }
         binding.cardViewButtonLogin.setOnClickListener {
             val loginFragment = LoginFragment.newInstance()
             loginFragment.show(supportFragmentManager, "LoginFragment")
         }
+
+        // Sau khi dăng nhập thành công, cập nhật giao diện người dùng
+
 
     }
 }

@@ -12,6 +12,7 @@ import com.project.job.databinding.FragmentChatBinding
 import com.project.job.ui.chat.messagetab.MessageFragment
 import com.project.job.ui.chat.notificationtab.NotificationMesFragment
 import com.project.job.ui.chat.taskerfavorite.TaskerFavoriteActivity
+import com.project.job.utils.addFadeClickEffect
 
 
 class ChatFragment : Fragment() {
@@ -40,7 +41,7 @@ class ChatFragment : Fragment() {
                 else -> "Thông báo"
             }
         }.attach()
-        binding.llFavTasker.setOnClickListener {
+        binding.llFavTasker.addFadeClickEffect {
             val intent = Intent(requireContext(), TaskerFavoriteActivity::class.java)
             startActivity(intent)
         }

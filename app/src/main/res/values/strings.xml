@@ -2,4 +2,16 @@
     <string name="app_name">GoodJob</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="tiet_kiem_thoi_gian"><b>Tiết kiệm thời gian: </b>Nhanh chóng có ngay người giúp việc chỉ với vài thao tác đặt lịch đơn giản trên ứng dụng, không tốn thời gian để chờ đợi.</string>
+    <string name="gia_ca_minh_bach"><b>Giá cả minh bạch, rõ ràng: </b>Giá dịch vụ được hiển thị rõ ràng, minh bạch trên ứng dụng, bạn không cần phải thanh toán thêm bất kỳ chi phí nào.</string>
+    <string name="cong_tac_vien_uy_tin"><b>Cộng tác viên uy tín: </b>Đội ngũ Cộng tác viên của Goodjob đã được lựa chọn và đào tạo kỹ lưỡng, đảm bảo chất lượng công việc và tính chuyên nghiệp.</string>
+    <string name="linh_dong_da_dang"><b>Linh động, đa dạng: </b>Googjob cung cấp nhiều phương án làm việc, giờ giấc linh hoạt có thể đáp ứng được các nhu cầu và thói quen sinh hoạt của Khách hàng.</string>
+    <string name="password_not_match">Mật khẩu không khớp. Vui lòng nhập lại</string>
+    <string name="empty_field">Vui lòng không để trống</string>
+
 </resources>

@@ -4,5 +4,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="chudao">#641BB4</color>
     <color name="cam">#FF9800</color>
+    <color name="xanh">#16B75A</color>
     <color name="gray_nhat">#FAFAFA</color>
+    
+    <!-- Button and interactive element colors -->
+    <color name="primary_color">@color/xanh</color>
+    <color name="gray_light">#E0E0E0</color>
 </resources>

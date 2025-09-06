@@ -14,6 +14,7 @@ import com.project.job.ui.activity.history.HistoryActivity
 import com.project.job.ui.activity.monthlytab.MonthlyFragment
 import com.project.job.ui.activity.scheduletab.ScheduleFragment
 import com.project.job.ui.activity.upcomingtab.UpcomingFragment
+import com.project.job.utils.addFadeClickEffect
 import java.time.Month
 
 class ActivityFragment : Fragment() {
@@ -46,7 +47,7 @@ class ActivityFragment : Fragment() {
             }
         }.attach()
 
-        binding.tvHistory.setOnClickListener {
+        binding.tvHistory.addFadeClickEffect {
             val intent = Intent(requireContext(), HistoryActivity::class.java)
             startActivity(intent)
         }

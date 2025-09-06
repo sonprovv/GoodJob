@@ -12,7 +12,20 @@
           "package_name": "com.project.job"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "982452710221-17000t192avsa5ao9fc4fhp2ebka0r55.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.project.job",
+            "certificate_hash": "b6a6da84b42f98cb58bed066cfc4f28d5167ba89"
+          }
+        },
+        {
+          "client_id": "982452710221-c5pev1iv7f4g2a4gv3jg6js1ju84mmbt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBlZtwgm6HLPlQr2We2s_IzX-bmM-sag0A"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "982452710221-c5pev1iv7f4g2a4gv3jg6js1ju84mmbt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
