@@ -2,27 +2,29 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    android:id="@+id/cleaning_nav_graph"
+    app:startDestination="@id/selectTimeFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.project.job.ui.login.FirstFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
-
-        <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+        android:id="@+id/selectTimeFragment"
+        android:name="com.project.job.ui.service.cleaningservice.SelectTimeFragment"
+        android:label="SelectTimeFragment"
+        tools:layout="@layout/fragment_select_time"
+        android:tag="selectTimeFragment">
+        <argument
+            android:name="totalHours"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="totalFee"
+            app:argType="integer"
+            android:defaultValue="0" />
     </fragment>
+
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.project.job.ui.login.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
-
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-    </fragment>
+        android:id="@+id/confirmAndCheckoutFragment"
+        android:name="com.project.job.ui.service.cleaningservice.ConfirmAndCheckoutFragment"
+        android:label="ConfirmAndCheckoutFragment"
+        tools:layout="@layout/fragment_confirm_and_checkout"
+        android:tag="confirmAndCheckoutFragment" />
 </navigation>

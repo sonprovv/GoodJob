@@ -2,6 +2,7 @@ package com.project.job.ui.map
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,6 +14,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -29,9 +31,13 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
 import com.project.job.R
+import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityMapBinding
+import com.project.job.ui.service.cleaningservice.SelectServiceActivity
 import com.project.job.utils.Constant
 import com.project.job.utils.addFadeClickEffect
 import okhttp3.Call
@@ -54,6 +60,12 @@ class MapActivity : ComponentActivity(), LocationListener {
     private var currentLocation: Point? = null
     private lateinit var pointAnnotationManager: PointAnnotationManager
     private var isLocationUpdatesActive = false
+    private lateinit var preferencesManager: PreferencesManager
+    private var hasMovedToCurrentLocation = false
+
+    // Biến lưu vị trí và địa chỉ được chọn bằng cách kéo thả/chạm
+    private var selectedLocation: Point? = null
+    private var selectedAddress: String? = null
 
     // Activity result launcher for location permissions
     private val locationPermissionRequest = registerForActivityResult(
@@ -84,9 +96,7 @@ class MapActivity : ComponentActivity(), LocationListener {
             finish()
             return
         }
-        binding?.ivBack?.addFadeClickEffect {
-            finish()
-        }
+        preferencesManager = PreferencesManager(this)
 
         // Log thời gian khởi tạo
         val dateFormat = SimpleDateFormat("hh:mm a zzz, EEEE, dd MMMM yyyy", Locale.getDefault())
@@ -97,10 +107,14 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         setupUI()
         checkLocationPermissions()
-
     }
 
     private fun setupUI() {
+        // Nút back
+        binding?.ivBack?.addFadeClickEffect {
+            finish()
+        }
+
         // Xử lý sự kiện tìm kiếm
         binding?.searchBar?.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
@@ -117,12 +131,121 @@ class MapActivity : ComponentActivity(), LocationListener {
             }
         }
 
-
         // Xử lý nút quay về vị trí hiện tại
         binding?.returnToMyLocationButton?.addFadeClickEffect {
             Log.d(TAG, "Return to current location clicked")
             moveToCurrentLocation()
         }
+
+        // Xử lý nút xác nhận chọn vị trí - CHỨC NĂNG CHÍNH
+        binding?.cardViewButtonConfirm?.addFadeClickEffect {
+            confirmSelectedLocation()
+        }
+
+        // Ban đầu ẩn nút confirm
+        hideConfirmButton()
+    }
+
+    // Xử lý xác nhận chọn vị trí
+    private fun confirmSelectedLocation() {
+        val location = getSelectedLocation()
+        val address = getSelectedAddress()
+
+        when {
+            location == null -> {
+                Toast.makeText(this, "⚠️ Vui lòng chọn một vị trí trên bản đồ!", Toast.LENGTH_LONG).show()
+                return
+            }
+            address.isNullOrEmpty() -> {
+                // Nếu không có địa chỉ cụ thể, sử dụng tọa độ
+                val coords = formatCoordinates(location)
+                handleLocationSelection(location, coords)
+            }
+            else -> {
+                // Có địa chỉ cụ thể
+                handleLocationSelection(location, address)
+            }
+        }
+    }
+
+    // Xử lý chọn vị trí dựa trên source
+    private fun handleLocationSelection(location: Point, addressInfo: String) {
+        val source = intent.getStringExtra("source")
+        
+        when (source) {
+            "update_profile" -> {
+                // Trả kết quả về UpdateProfileActivity
+                returnLocationToProfile(location, addressInfo)
+            }
+            else -> {
+                // Mặc định chuyển sang SelectServiceActivity
+                proceedToSelectService(location, addressInfo)
+            }
+        }
+    }
+
+    // Trả kết quả về UpdateProfileActivity
+    private fun returnLocationToProfile(location: Point, addressInfo: String) {
+        Log.d(TAG, "Returning location to UpdateProfileActivity: $addressInfo")
+        
+        val resultIntent = Intent().apply {
+            putExtra("selected_latitude", location.latitude())
+            putExtra("selected_longitude", location.longitude())
+            putExtra("selected_address", addressInfo)
+            putExtra("location_source", "map_selection")
+            putExtra("timestamp", System.currentTimeMillis())
+        }
+        
+        // Hiển thị thông báo xác nhận
+        Toast.makeText(
+            this,
+            "✅ Đã chọn vị trí:\n$addressInfo",
+            Toast.LENGTH_SHORT
+        ).show()
+        
+        setResult(RESULT_OK, resultIntent)
+        finish()
+    }
+
+    // Chuyển sang SelectServiceActivity với thông tin vị trí
+    private fun proceedToSelectService(location: Point, addressInfo: String) {
+        Log.d(TAG, "Proceeding to SelectServiceActivity with: $addressInfo")
+        preferencesManager.saveAddress(addressInfo)
+
+        val intent = Intent(this, SelectServiceActivity::class.java).apply {
+            // Truyền tọa độ
+            putExtra("selected_latitude", location.latitude())
+            putExtra("selected_longitude", location.longitude())
+
+            // Truyền địa chỉ
+            putExtra("selected_address", addressInfo)
+
+            // Truyền thông tin bổ sung
+            putExtra("location_source", "map_selection")
+            putExtra("timestamp", System.currentTimeMillis())
+        }
+
+        // Hiển thị thông báo xác nhận
+        Toast.makeText(
+            this,
+            "✅ Đã chọn vị trí:\n$addressInfo",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        startActivity(intent)
+        finish() // Đóng MapActivity
+    }
+
+    // Hiển thị nút confirm
+    private fun showConfirmButton() {
+        binding?.cardViewButtonConfirm?.visibility = View.VISIBLE
+        Log.d(TAG, "Confirm button shown")
+    }
+
+    // Ẩn nút confirm
+    private fun hideConfirmButton() {
+        binding?.cardViewButtonConfirm?.visibility = View.GONE
+        Log.d(TAG, "Confirm button hidden")
     }
 
     private fun checkLocationPermissions() {
@@ -155,10 +278,11 @@ class MapActivity : ComponentActivity(), LocationListener {
             // Khởi tạo MapView
             mapView = binding?.map ?: throw IllegalStateException("MapView not found")
 
-            // Set camera mặc định tại Hà Nội
+            // Set camera tại vị trí đã lưu hoặc mặc định tại Hà Nội
+            val initialLocation = getInitialLocation()
             mapView.mapboxMap.setCamera(
                 CameraOptions.Builder()
-                    .center(Point.fromLngLat(105.8542, 21.0285))
+                    .center(initialLocation)
                     .zoom(15.0)
                     .build()
             )
@@ -174,6 +298,9 @@ class MapActivity : ComponentActivity(), LocationListener {
                 enabled = true
             }
 
+            // Thêm listener cho việc chạm/kéo thả trên map
+            setupMapClickListener()
+
             // Bắt đầu theo dõi vị trí
             startLocationTracking()
 
@@ -181,6 +308,276 @@ class MapActivity : ComponentActivity(), LocationListener {
             Log.e(TAG, "Error initializing map components", e)
             Toast.makeText(this, "Lỗi khởi tạo map: ${e.message}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Thiết lập listener cho việc chạm vào map
+    private fun setupMapClickListener() {
+        mapView.mapboxMap.addOnMapClickListener(OnMapClickListener { point ->
+            // Lưu vị trí được chọn
+            selectedLocation = point
+
+            val lat = point.latitude()
+            val lng = point.longitude()
+
+            Log.d(TAG, "Map clicked at: Lat=$lat, Lng=$lng")
+
+            // Hiển thị nút confirm ngay lập tức
+            showConfirmButton()
+
+            // Thực hiện reverse geocoding để lấy địa chỉ
+            reverseGeocode(lat, lng)
+
+            // Trả về true để tiêu thụ sự kiện click
+            true
+        })
+    }
+
+    // Chuyển đổi tọa độ thành địa chỉ (Reverse Geocoding)
+    private fun reverseGeocode(latitude: Double, longitude: Double) {
+        Log.d(TAG, "Starting reverse geocoding for: $latitude, $longitude")
+
+        if (Constant.API_KEY_MAP.isEmpty()) {
+            Toast.makeText(this, "API Key không được cấu hình", Toast.LENGTH_SHORT).show()
+            showFallbackLocation(latitude, longitude)
+            return
+        }
+
+        // Thử nhiều phương pháp để lấy địa chỉ chi tiết
+        tryDetailedGeocodingApproaches(latitude, longitude)
+    }
+
+    private fun tryDetailedGeocodingApproaches(latitude: Double, longitude: Double) {
+        // Approach 1: Sử dụng SerpAPI với type=place để lấy địa chỉ chi tiết
+        val serpApiKey = Constant.API_KEY_MAP
+        val url = "https://serpapi.com/search.json?engine=google_maps&q=$latitude,$longitude&location=Vietnam&hl=vi&gl=vn&api_key=$serpApiKey&type=place"
+
+        Log.d(TAG, "Detailed reverse geocoding URL: $url")
+
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(TAG, "Detailed reverse geocoding failed, trying fallback", e)
+                // Fallback to basic approach
+                tryBasicReverseGeocoding(latitude, longitude)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val json = response.body?.string()
+                Log.d(TAG, "Detailed reverse geocoding response: $json")
+
+                try {
+                    val jsonObject = JSONObject(json ?: "")
+                    var detailedAddress: String? = null
+
+                    // Thử lấy địa chỉ chi tiết từ các nguồn khác nhau
+                    detailedAddress = extractDetailedAddress(jsonObject)
+
+                    runOnUiThread {
+                        if (!detailedAddress.isNullOrEmpty()) {
+                            selectedAddress = detailedAddress
+                            showAddressResult(latitude, longitude, detailedAddress)
+                            addMarkerAtSelectedLocation(selectedLocation!!, detailedAddress)
+                        } else {
+                            // Fallback to basic approach
+                            tryBasicReverseGeocoding(latitude, longitude)
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing detailed geocoding response", e)
+                    runOnUiThread {
+                        tryBasicReverseGeocoding(latitude, longitude)
+                    }
+                }
+            }
+        })
+    }
+
+    private fun extractDetailedAddress(jsonObject: JSONObject): String? {
+        var address: String? = null
+
+        // 1. Thử lấy từ place_results với nhiều field
+        val placeResults = jsonObject.optJSONObject("place_results")
+        if (placeResults != null) {
+            // Thử lấy address đầy đủ
+            address = placeResults.optString("address", null)
+            
+            if (address.isNullOrEmpty()) {
+                // Thử kết hợp title + plus_code để tạo địa chỉ có ý nghĩa
+                val title = placeResults.optString("title", null)
+                val plusCode = placeResults.optString("plus_code", null)
+                
+                if (!plusCode.isNullOrEmpty()) {
+                    // Parse plus_code để lấy thông tin khu vực
+                    address = parseAddressFromPlusCode(plusCode, title)
+                }
+            }
+        }
+
+        // 2. Thử lấy từ local_results
+        if (address.isNullOrEmpty()) {
+            val localResults = jsonObject.optJSONArray("local_results")
+            if (localResults != null && localResults.length() > 0) {
+                for (i in 0 until localResults.length()) {
+                    val result = localResults.getJSONObject(i)
+                    val resultAddress = result.optString("address", null)
+                    val resultTitle = result.optString("title", null)
+                    
+                    if (!resultAddress.isNullOrEmpty()) {
+                        address = resultAddress
+                        break
+                    } else if (!resultTitle.isNullOrEmpty() && resultTitle.contains(",")) {
+                        // Nếu title có dấu phẩy, có thể là địa chỉ
+                        address = resultTitle
+                        break
+                    }
+                }
+            }
+        }
+
+        return address
+    }
+
+    private fun parseAddressFromPlusCode(plusCode: String, title: String?): String? {
+        // Parse plus_code format: "98PV+MGG Vũ Thư, Thái Bình, Việt Nam"
+        if (plusCode.contains(" ")) {
+            val parts = plusCode.split(" ", limit = 2)
+            if (parts.size >= 2) {
+                val locationPart = parts[1] // "Vũ Thư, Thái Bình, Việt Nam"
+                
+                // Tạo địa chỉ có ý nghĩa hơn
+                return if (!title.isNullOrEmpty() && title != parts[0]) {
+                    "$title, $locationPart"
+                } else {
+                    locationPart
+                }
+            }
+        }
+        return plusCode
+    }
+
+    private fun tryBasicReverseGeocoding(latitude: Double, longitude: Double) {
+        val serpApiKey = Constant.API_KEY_MAP
+        val url = "https://serpapi.com/search.json?engine=google_maps&q=$latitude,$longitude&location=Vietnam&hl=vi&gl=vn&api_key=$serpApiKey&type=search"
+
+        Log.d(TAG, "Basic reverse geocoding URL: $url")
+
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e(TAG, "Basic reverse geocoding failed", e)
+                runOnUiThread {
+                    Toast.makeText(this@MapActivity, "Không thể lấy địa chỉ: ${e.message}", Toast.LENGTH_SHORT).show()
+                    showFallbackLocation(latitude, longitude)
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val json = response.body?.string()
+                Log.d(TAG, "Basic reverse geocoding response: $json")
+
+                try {
+                    val jsonObject = JSONObject(json ?: "")
+                    val address = extractDetailedAddress(jsonObject)
+
+                    runOnUiThread {
+                        if (!address.isNullOrEmpty()) {
+                            selectedAddress = address
+                            showAddressResult(latitude, longitude, address)
+                            addMarkerAtSelectedLocation(selectedLocation!!, address)
+                        } else {
+                            showFallbackLocation(latitude, longitude)
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing basic geocoding response", e)
+                    runOnUiThread {
+                        Toast.makeText(this@MapActivity, "Lỗi xử lý dữ liệu địa chỉ", Toast.LENGTH_SHORT).show()
+                        showFallbackLocation(latitude, longitude)
+                    }
+                }
+            }
+        })
+    }
+
+    // Hiển thị kết quả địa chỉ
+    private fun showAddressResult(latitude: Double, longitude: Double, address: String) {
+        val message = """
+            📍 Địa chỉ được chọn:
+            $address
+            
+            👆 Nhấn "Chọn vị trí này" để tiếp tục
+        """.trimIndent()
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        Log.d(TAG, "Address found: $address")
+    }
+
+    // Hiển thị thông tin dự phòng khi không tìm được địa chỉ
+    private fun showFallbackLocation(latitude: Double, longitude: Double) {
+        selectedAddress = null // Clear địa chỉ
+
+        val message = """
+            📍 Vị trí đã chọn:
+            ${formatCoordinates(selectedLocation!!)}
+            
+            👆 Nhấn "Chọn vị trí này" để tiếp tục
+        """.trimIndent()
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        selectedLocation?.let {
+            addMarkerAtSelectedLocation(it, "Vị trí đã chọn")
+        }
+    }
+
+    // Thêm marker tại vị trí được chọn
+    private fun addMarkerAtSelectedLocation(location: Point, title: String) {
+        try {
+            // Xóa các marker cũ
+            pointAnnotationManager.deleteAll()
+
+            val bitmap = getBitmapFromVectorDrawable(this, R.drawable.ic_location_marker)
+            if (bitmap != null) {
+                mapView.mapboxMap.getStyle { style ->
+                    style.addImage("selected-marker-icon", bitmap)
+
+                    val pointAnnotation = PointAnnotationOptions()
+                        .withPoint(location)
+                        .withIconImage("selected-marker-icon")
+                        .withTextField(title)
+
+                    pointAnnotationManager.create(pointAnnotation)
+                    Log.d(TAG, "Marker added at selected location")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error adding marker at selected location", e)
+        }
+    }
+
+    // Hàm để lấy vị trí đã chọn
+    fun getSelectedLocation(): Point? {
+        return selectedLocation
+    }
+
+    // Hàm để lấy địa chỉ đã chọn
+    fun getSelectedAddress(): String? {
+        return selectedAddress
+    }
+
+    // Hàm để lấy thông tin đầy đủ về vị trí đã chọn
+    fun getSelectedLocationInfo(): Pair<Point?, String?> {
+        return Pair(selectedLocation, selectedAddress)
+    }
+
+    // Hàm để format tọa độ thành string đẹp
+    private fun formatCoordinates(point: Point): String {
+        return "Lat: ${String.format("%.6f", point.latitude())}, Lng: ${String.format("%.6f", point.longitude())}"
     }
 
     private fun startLocationTracking() {
@@ -286,6 +683,12 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         // Cập nhật location provider
         navigationLocationProvider.changePosition(mapboxLocation, emptyList())
+        
+        // Chỉ tự động di chuyển camera nếu không có tọa độ đã lưu từ profile
+        if (!hasMovedToCurrentLocation && preferencesManager.getLocationCoordinates() == null) {
+            moveToCurrentLocationAutomatically()
+            hasMovedToCurrentLocation = true
+        }
     }
 
     // LocationListener implementation
@@ -301,6 +704,44 @@ class MapActivity : ComponentActivity(), LocationListener {
     override fun onProviderDisabled(provider: String) {
         Log.d(TAG, "Provider disabled: $provider")
         Toast.makeText(this, "Đã tắt $provider", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun getInitialLocation(): Point {
+        // Lấy tọa độ đã lưu từ preferences
+        val savedCoordinates = preferencesManager.getLocationCoordinates()
+        
+        if (savedCoordinates != null) {
+            val (lat, lng) = savedCoordinates
+            Log.d(TAG, "Using saved coordinates from profile: Lat=$lat, Lng=$lng")
+            return Point.fromLngLat(lng, lat)
+        }
+        
+        // Lấy location text từ intent nếu có (từ UpdateProfileActivity)
+        val savedLocation = intent.getStringExtra("current_location")
+        if (!savedLocation.isNullOrEmpty() && savedLocation != "Chưa cập nhật") {
+            Log.d(TAG, "Has saved location text but no coordinates: $savedLocation")
+        }
+        
+        // Mặc định tại Hà Nội nếu không có location đã lưu
+        Log.d(TAG, "Using default location: Hanoi")
+        return Point.fromLngLat(105.8542, 21.0285)
+    }
+
+    private fun moveToCurrentLocationAutomatically() {
+        currentLocation?.let { location ->
+            Log.d(TAG, "Auto-moving to current location: ${location.latitude()}, ${location.longitude()}")
+
+            mapView.mapboxMap.setCamera(
+                CameraOptions.Builder()
+                    .center(location)
+                    .zoom(16.0)
+                    .build()
+            )
+
+            Log.d(TAG, "Camera moved to current location automatically")
+        } ?: run {
+            Log.w(TAG, "Cannot auto-move to current location: location is null")
+        }
     }
 
     private fun moveToCurrentLocation() {
@@ -348,13 +789,6 @@ class MapActivity : ComponentActivity(), LocationListener {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return
             }
             locationManager.getCurrentLocation(
@@ -441,11 +875,16 @@ class MapActivity : ComponentActivity(), LocationListener {
             val lng = gpsCoordinates.optDouble("longitude", Double.NaN)
             if (!lat.isNaN() && !lng.isNaN()) {
                 val location = Point.fromLngLat(lng, lat)
-                runOnUiThread { showLocationOnMap(location, title) }
+                runOnUiThread {
+                    showLocationOnMap(location, title)
+                    // Tự động set làm vị trí đã chọn
+                    selectedLocation = location
+                    selectedAddress = title
+                    showConfirmButton()
+                }
             }
         }
     }
-
 
     private fun showLocationOnMap(location: Point, title: String) {
         // Di chuyển camera đến vị trí
@@ -487,6 +926,7 @@ class MapActivity : ComponentActivity(), LocationListener {
             Toast.makeText(this@MapActivity, "Lỗi thêm marker: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
     private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap? {
         val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
         val bitmap = Bitmap.createBitmap(
@@ -499,7 +939,6 @@ class MapActivity : ComponentActivity(), LocationListener {
         drawable.draw(canvas)
         return bitmap
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -529,5 +968,12 @@ class MapActivity : ComponentActivity(), LocationListener {
         private const val TAG = "MapActivity"
         private const val MIN_TIME_BETWEEN_UPDATES = 5000L // 5 giây
         private const val MIN_DISTANCE_CHANGE_FOR_UPDATES = 10f // 10 mét
+
+        // Keys cho Intent extras
+        const val EXTRA_SELECTED_LATITUDE = "selected_latitude"
+        const val EXTRA_SELECTED_LONGITUDE = "selected_longitude"
+        const val EXTRA_SELECTED_ADDRESS = "selected_address"
+        const val EXTRA_LOCATION_SOURCE = "location_source"
+        const val EXTRA_TIMESTAMP = "timestamp"
     }
 }

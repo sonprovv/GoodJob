@@ -171,7 +171,7 @@ class RegisterActivity : AppCompatActivity() {
             // Collect user data
             launch {
                 viewModel.user.collectLatest { user ->
-                    Log.e("LoginActivity", "User: $user")
+                    Log.e("RegisterActivity", "User: $user")
 
                     if (user != null) {
                         // Lưu user vào SharedPreferences

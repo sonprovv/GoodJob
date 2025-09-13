@@ -117,13 +117,17 @@
             android:visibility="gone">
 
             <ScrollView
+                android:background="@drawable/bg_edt_white"
+                android:scrollbars="none"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rcv_history"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/item_job_history"
+                    />
             </ScrollView>
         </LinearLayout>
     </LinearLayout>

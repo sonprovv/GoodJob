@@ -6,21 +6,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.google.android.material.tabs.TabLayoutMediator
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.R
+import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentActivityBinding
+import com.project.job.ui.activity.adapter.JobAdapter
 import com.project.job.ui.activity.history.HistoryActivity
-import com.project.job.ui.activity.monthlytab.MonthlyFragment
-import com.project.job.ui.activity.scheduletab.ScheduleFragment
-import com.project.job.ui.activity.upcomingtab.UpcomingFragment
 import com.project.job.utils.addFadeClickEffect
-import java.time.Month
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class ActivityFragment : Fragment() {
 
     private var _binding: FragmentActivityBinding? = null
     private val binding get() = _binding!!
+    private lateinit var viewModel : ActivityViewModel
+    private lateinit var preferencesManager: PreferencesManager
+    private lateinit var jobAdapter: JobAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,43 +36,73 @@ class ActivityFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel = ActivityViewModel()
+        preferencesManager = PreferencesManager(requireContext())
 
-        // Set up ViewPager2 with adapter
-        val adapter = ViewPagerAdapter(this)
-        binding.viewPagerActivity.adapter = adapter
+        // Initialize adapter with empty list
+        jobAdapter = JobAdapter(emptyList())
 
-        // Connect TabLayout with ViewPager2
-        TabLayoutMediator(binding.tabLayoutActivity, binding.viewPagerActivity) { tab, position ->
-            tab.text = when (position) {
-                0 -> "Chờ làm"
-                1 -> "Lặp lại"
-                else -> "Gói tháng"
-            }
-        }.attach()
+        // Setup RecyclerView
+        binding.rcvListJob.adapter = jobAdapter
+        binding.rcvListJob.layoutManager = LinearLayoutManager(requireContext())
+
+        val token = preferencesManager.getAuthToken() ?: ""
+        val uid = preferencesManager.getUserData()["user_id"] ?: ""
+
+        // Kiểm tra xem token có tồn tại hay không
+        if (token != "") {
+            viewModel.getListJob(token = token, uid = uid)
+            binding.llLoginSuccessNoData.visibility = View.VISIBLE
+            binding.llNoLogin.visibility = View.GONE
+        } else {
+            binding.llLoginSuccessNoData.visibility = View.GONE
+            binding.llNoLogin.visibility = View.VISIBLE
+        }
 
         binding.tvHistory.addFadeClickEffect {
             val intent = Intent(requireContext(), HistoryActivity::class.java)
             startActivity(intent)
         }
 
+        observeViewModel()
+    }
+
+    private fun observeViewModel(){
+        lifecycleScope.launch {
+            // Collect loading
+            launch {
+                viewModel.loading.collectLatest { isLoading ->
+                    // Xử lý trạng thái loading tại đây
+                    if (isLoading) {
+                        // Hiển thị ProgressBar hoặc trạng thái loading
+                        binding.flLottieLoader.visibility = View.VISIBLE
+                        binding.llListJob.visibility = View.GONE
+                    } else {
+                        // Ẩn ProgressBar khi không còn loading
+                        binding.flLottieLoader.visibility = View.GONE
+                        binding.llListJob.visibility = View.VISIBLE
+                    }
+                }
+            }
+            // Collect jobs and update adapter
+            launch {
+                viewModel.jobs.collectLatest { listJob ->
+                    if(listJob == null || listJob.isEmpty()){
+                        binding.llLoginSuccessNoData.visibility = View.VISIBLE
+                        binding.llListJob.visibility = View.GONE
+                    }
+                    else {
+                        binding.llLoginSuccessNoData.visibility = View.GONE
+                        binding.llListJob.visibility = View.VISIBLE
+                        jobAdapter.updateList(listJob) // Assuming JobAdapter has an updateList method
+                    }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null // Avoid memory leaks
-    }
-
-    // ViewPager2 adapter to manage fragments
-    private inner class ViewPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-        override fun getItemCount(): Int = 3 // Number of tabs
-
-        override fun createFragment(position: Int): Fragment {
-            return when (position) {
-                0 -> UpcomingFragment() // Replace with your fragment for Tab 1
-                1 -> ScheduleFragment() // Replace with your fragment for Tab 2
-                2 -> MonthlyFragment()
-                else -> UpcomingFragment() // Fallback
-            }
-        }
     }
 }

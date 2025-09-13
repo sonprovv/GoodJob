@@ -1,15 +1,21 @@
 package com.project.job.ui.home
 
-import android.app.Dialog
+import com.google.firebase.messaging.FirebaseMessaging
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.gms.tasks.OnCompleteListener
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentHomeBinding
@@ -18,12 +24,22 @@ import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.map.MapActivity
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
+import com.project.job.utils.UserDataBroadcastManager
 
 class HomeFragment : Fragment(), LoginResultListener {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
 
+    private val userDataUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == UserDataBroadcastManager.ACTION_USER_DATA_UPDATED) {
+                val name = intent.getStringExtra(UserDataBroadcastManager.EXTRA_USER_NAME) ?: ""
+                val phone = intent.getStringExtra(UserDataBroadcastManager.EXTRA_USER_PHONE) ?: ""
+                updateUserDataInUI(name, phone)
+            }
+        }
+    }
 
     private val photoList = listOf(
         R.drawable.img_banner_1,
@@ -54,6 +70,10 @@ class HomeFragment : Fragment(), LoginResultListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        // Register broadcast receiver
+        registerUserDataReceiver()
+        
         // Handle login button click
         binding.cardViewButtonLogin.setOnClickListener {
             val loginFragment = LoginFragment()
@@ -68,9 +88,21 @@ class HomeFragment : Fragment(), LoginResultListener {
 
         // Xử lý click Google Map
         binding.llItemService1.setOnClickListener {
-//            val intent = Intent(requireContext(), MapActivity::class.java)
-            val intent = Intent(requireContext(), SelectServiceActivity::class.java)
-            startActivity(intent)
+            val location = preferencesManager.getUserData()["user_location"]
+            if(location == "" || location == null || location == "Chưa cập nhật"){
+                val intent = Intent(requireContext(), MapActivity::class.java)
+                startActivity(intent)
+                return@setOnClickListener
+            }
+            else {
+                val intent = Intent(requireContext(), SelectServiceActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
+        // Get FCM Token
+        binding.llItemService2.setOnClickListener {
+            getFCMToken()
         }
         checkLoginStatus()
     }
@@ -207,9 +239,39 @@ class HomeFragment : Fragment(), LoginResultListener {
         }
     }
 
+    private fun registerUserDataReceiver() {
+        val filter = IntentFilter(UserDataBroadcastManager.ACTION_USER_DATA_UPDATED)
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(userDataUpdateReceiver, filter)
+    }
+    
+    private fun updateUserDataInUI(name: String, phone: String) {
+        // Update the header text with new user name
+        binding.tvHeaderText.text = "Xin chào $name"
+        Log.d("HomeFragment", "User data updated: Name=$name, Phone=$phone")
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         handler.removeCallbacks(runnable)
+        
+        // Unregister broadcast receiver
+        try {
+            LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(userDataUpdateReceiver)
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Error unregistering receiver", e)
+        }
+        
         _binding = null
+    }
+
+    private fun getFCMToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                Log.w("FirebaseLogs", "Fetching FCM registration token failed", task.exception)
+                return@OnCompleteListener
+            }
+            val token = task.result
+            Log.d("thienham", "FCM Token: $token")
+        })
     }
 }

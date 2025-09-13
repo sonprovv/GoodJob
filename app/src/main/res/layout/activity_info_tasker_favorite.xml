@@ -69,7 +69,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Tasker yêu thích là gì?"
+                            android:text="Worker yêu thích là gì?"
                             android:textColor="@color/black"
                             android:textSize="16sp" />
 
@@ -99,7 +99,7 @@
                         android:id="@+id/tv_description_what_is_tasker_favorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Tasker yêu thích là những Tasker đã từng làm công việc của bạn và được bạn đánh giá 5 sao; hoặc là những Tasker được bạn thêm vào danh sách yêu thích sau khi công việc hoàn thành."
+                        android:text="Worker yêu thích là những Worker đã từng làm công việc của bạn và được bạn đánh giá 5 sao; hoặc là những Worker được bạn thêm vào danh sách yêu thích sau khi công việc hoàn thành."
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:visibility="gone" />
@@ -136,7 +136,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Tại sao tôi cần Tasker yêu thích?"
+                            android:text="Tại sao tôi cần Worker yêu thích?"
                             android:textColor="@color/black"
                             android:textSize="16sp" />
 
@@ -166,7 +166,7 @@
                         android:id="@+id/tv_description_why_tasker_favorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Hệ thống sẽ ưu tiên gửi công việc của bạn cho các Tasker trong danh sách yêu thích trước; khi các Tasker yêu thích của bạn đều bận, hệ thống mới gửi cho những Tasker khác. \n GoodJob khuyển khích bạn nên có thật nhiều Tasker trong danh sách yêu thích, khi đó công việc của bạn sẽ luôn được nhận bởi những người làm mà bạn ưng ý. \n Ngoài ra, bạn còn có thể trò chuyện trực tiếp với các Tasker yêu thích và thao tác đặt lịch lại với Tasker đó một cách nhanh chóng và tiện lợi."
+                        android:text="Hệ thống sẽ ưu tiên gửi công việc của bạn cho các Worker trong danh sách yêu thích trước; khi các Worker yêu thích của bạn đều bận, hệ thống mới gửi cho những Worker khác. \n GoodJob khuyển khích bạn nên có thật nhiều Worker trong danh sách yêu thích, khi đó công việc của bạn sẽ luôn được nhận bởi những người làm mà bạn ưng ý. \n Ngoài ra, bạn còn có thể trò chuyện trực tiếp với các Worker yêu thích và thao tác đặt lịch lại với Worker đó một cách nhanh chóng và tiện lợi."
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:visibility="gone" />
@@ -202,7 +202,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Đặt lịch với Tasker yêu thích là gì?"
+                            android:text="Đặt lịch với Worker yêu thích là gì?"
                             android:textColor="@color/black"
                             android:textSize="16sp" />
 
@@ -232,7 +232,7 @@
                         android:id="@+id/tv_description_what_is_date_tasker_favorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Hiện nay, bạn đã có thể đặt lịch lại với các Tasker mà mình yêu thích. \n Để có thể biết được lịch rảnh Tasker mà mình yêu thích, bạn có thể chủ động liên hệ, trao đổi trực tiếp với các Tasker qua tính năng Chat ngay trên ứng dụng GoodJob. \n Ngoài ra ứng dụng còn hiển thị lịch rảnh của Tasker để bạn có thể chủ động lựa chọn khung giờ làm phù hợp. không như cách đặt công việc lẻ thông thường, bạn có thể chọn và gửi cho Tasker nhiều khung giờ phù hợp (tối đa 03) để Tasker có thể chủ động sắp xếp thời gian và nhận việc cho bạn một cách tiện lợi hơn. \n Tính năng này giúp bạn tiết kiệm thời gian và đảm bảo rằng bạn luôn được phục vụ bởi người mà bạn tin tưởng và hài lòng nhất."
+                        android:text="Hiện nay, bạn đã có thể đặt lịch lại với các Worker mà mình yêu thích. \n Để có thể biết được lịch rảnh Worker mà mình yêu thích, bạn có thể chủ động liên hệ, trao đổi trực tiếp với các Worker qua tính năng Chat ngay trên ứng dụng GoodJob. \n Ngoài ra ứng dụng còn hiển thị lịch rảnh của Worker để bạn có thể chủ động lựa chọn khung giờ làm phù hợp. không như cách đặt công việc lẻ thông thường, bạn có thể chọn và gửi cho Worker nhiều khung giờ phù hợp (tối đa 03) để Worker có thể chủ động sắp xếp thời gian và nhận việc cho bạn một cách tiện lợi hơn. \n Tính năng này giúp bạn tiết kiệm thời gian và đảm bảo rằng bạn luôn được phục vụ bởi người mà bạn tin tưởng và hài lòng nhất."
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:visibility="gone" />
@@ -268,7 +268,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Làm sao để cập nhật danh sách Tasker yêu thích?"
+                            android:text="Làm sao để cập nhật danh sách Worker yêu thích?"
                             android:textColor="@color/black"
                             android:textSize="16sp" />
 
@@ -298,7 +298,7 @@
                         android:id="@+id/tv_description_how_use_tasker_favorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Bạn mở ứng dụng GoodJob và chọn 'Tài khoản', sau đó nhấn chọn mục 'Tasker yêu thích' để xem danh sách Tasker yêu thích của mình. Tại đây bạn có thể thao tác tùy chỉnh thêm hoặc xóa danh sách yêu thích của mình."
+                        android:text="Bạn mở ứng dụng GoodJob và chọn 'Tài khoản', sau đó nhấn chọn mục 'Worker yêu thích' để xem danh sách Worker yêu thích của mình. Tại đây bạn có thể thao tác tùy chỉnh thêm hoặc xóa danh sách yêu thích của mình."
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:visibility="gone" />

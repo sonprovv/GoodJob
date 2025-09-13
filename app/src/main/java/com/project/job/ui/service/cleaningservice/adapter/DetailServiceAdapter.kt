@@ -1,28 +1,50 @@
 package com.project.job.ui.service.cleaningservice.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
 
-class DetailServiceAdapter(private val detailJob: Array<String>) : RecyclerView.Adapter<DetailServiceAdapter.ViewHolder>() {
-    class ViewHolder(view: ViewGroup) : RecyclerView.ViewHolder(view) {
-        val tvDetailService: TextView = view.findViewById(R.id.tv_content_detail_job)
-    }
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): DetailServiceAdapter.ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_detail_service, parent, false) as ViewGroup
-        return ViewHolder(view)
+class DetailServiceAdapter(private val tasks: List<String>) :
+    RecyclerView.Adapter<DetailServiceAdapter.TaskViewHolder>() {
+    
+    private var isSelected = false
+    
+    fun setSelected(selected: Boolean) {
+        isSelected = selected
+        notifyDataSetChanged()
     }
 
-    override fun onBindViewHolder(holder: DetailServiceAdapter.ViewHolder, position: Int) {
-        val content = detailJob[position]
-        holder.tvDetailService.text = content
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(
+            R.layout.item_detail_service,
+            parent,
+            false
+        )
+        return TaskViewHolder(view)
     }
 
-    override fun getItemCount(): Int = detailJob.size
+    override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
+        holder.bind(tasks[position])
+    }
 
+    override fun getItemCount(): Int = tasks.size
+
+    inner class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val textView: TextView = itemView.findViewById(R.id.tv_content_detail_job)
+        private val starImageView: ImageView = itemView.findViewById(R.id.iv_star_detail_job)
+
+        fun bind(task: String) {
+            textView.text = task
+            // Update star icon based on selection state
+            if (isSelected) {
+                starImageView.setImageResource(R.drawable.ic_star)
+            } else {
+                starImageView.setImageResource(R.drawable.ic_star_no_select)
+            }
+        }
+    }
 }

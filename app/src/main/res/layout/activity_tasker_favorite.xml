@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
             android:layout_weight="1"
-            android:text="Tasker yêu thích"
+            android:text="Worker yêu thích"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -70,7 +70,7 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Khi bạn đánh giá 5 sao cho Tasker, hệ thống sẽ đưa Tasker đó vào danh sách yêu thích của bạn. Bạn có thể thêm hoặc xóa Tasker yêu thích bất kỳ lúc nào bạn muốn. Khi đăng việc, hệ thống sẽ ưu tiên gửi công việc của bạn cho Tasker yêu thích. Chúng tôi khuyến khích khách hàng trải nghiệm thêm nhiều Tasker yêu thích. Khi bạn có khoảng 5-10 Tasker yêu thích, công việc của bạn sẽ luôn luôn được một trong những người này nhận và bạn không phải phụ thuộc vào Tasker nào."
+                android:text="Khi bạn đánh giá 5 sao cho Worker, hệ thống sẽ đưa Worker đó vào danh sách yêu thích của bạn. Bạn có thể thêm hoặc xóa Worker yêu thích bất kỳ lúc nào bạn muốn. Khi đăng việc, hệ thống sẽ ưu tiên gửi công việc của bạn cho Worker yêu thích. Chúng tôi khuyến khích khách hàng trải nghiệm thêm nhiều Worker yêu thích. Khi bạn có khoảng 5-10 Worker yêu thích, công việc của bạn sẽ luôn luôn được một trong những người này nhận và bạn không phải phụ thuộc vào Worker nào."
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
@@ -115,7 +115,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tasker yêu thích" />
+                android:text="Worker yêu thích" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -123,7 +123,7 @@
                 android:layout_gravity="center"
                 android:layout_marginHorizontal="16dp"
                 android:gravity="center"
-                android:text="GoodJob khuyến khích bạn nên có nhiều Tasker trong danh sách yêu thích để công việc luôn được thực hiện bởi những người làm mà bạn ưng ý." />
+                android:text="GoodJob khuyến khích bạn nên có nhiều Worker trong danh sách yêu thích để công việc luôn được thực hiện bởi những người làm mà bạn ưng ý." />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_view_button_book_now"

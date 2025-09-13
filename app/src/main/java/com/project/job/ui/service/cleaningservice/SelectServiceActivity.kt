@@ -3,21 +3,42 @@ package com.project.job.ui.service.cleaningservice
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import com.project.job.R
+import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.databinding.ActivitySelectServiceBinding
 import com.project.job.ui.intro.CleaningIntroActivity
 import com.project.job.ui.map.MapActivity
+import com.project.job.ui.service.cleaningservice.adapter.DurationAdapter
+import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.SelectedRoomManager
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class SelectServiceActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySelectServiceBinding
-    private var selectedOptionId: Int = R.id.ll_h_1 // Default selected option
-    private var selectedExtraServiceId: Int = -1 // No default selection for extra services
+    private val selectedExtraServices = mutableSetOf<Int>()
+    private val EXTRA_SERVICE_FEE = 50000 // Extra service fee in VND
+    private var currentBasePrice: Int = 0 // To store the base price without extra services
+    private lateinit var viewModel: CleaningServiceViewModel
+    private lateinit var durationAdapter: DurationAdapter
+    private var cleaningService: List<CleaningService?> = emptyList()
+    private var selectedDuration: CleaningDuration? = null
+    private lateinit var navController: NavController
+    private lateinit var preferencesManager: PreferencesManager
+    private var totalHours = 0
+    private var totalFee = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,19 +51,67 @@ class SelectServiceActivity : AppCompatActivity() {
         window.statusBarColor = Color.TRANSPARENT
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
+        preferencesManager = PreferencesManager(this)
+
+        viewModel = ViewModelProvider(this).get(CleaningServiceViewModel::class.java)
+        viewModel.getServiceCleaning()
+
         // Set up radio button click listeners
-        setupRadioGroup()
         setupExtraServicesRadioGroup()
+
+        // Xử lý hiển thị địa chỉ - loại bỏ tọa độ và chỉ hiển thị địa chỉ
+        val location = preferencesManager.getUserData()["user_location"] ?: ""
+        val displayLocation = when {
+            location.isEmpty() -> ""
+            // Kiểm tra nếu chỉ có tọa độ không có địa chỉ
+            location.matches(Regex("^\\d+(\\.\\d+)?,\\s*Lng:\\s*\\d+(\\.\\d+)?.*")) || // Format: 386665, Lng: 106,343867
+            location.matches(Regex("^\\d+(\\.\\d+)?,\\s*\\d+(\\.\\d+)?$")) -> { // Format: 20.123, 106.456
+                "Chưa có địa chỉ cụ thể"
+            }
+            location.contains("°") && location.contains(",") -> {
+                // Nếu có tọa độ kèm địa chỉ, lấy phần sau dấu phẩy đầu tiên
+                val firstCommaIndex = location.indexOf(",")
+                if (firstCommaIndex != -1 && firstCommaIndex < location.length - 1) {
+                    location.substring(firstCommaIndex + 1).trim()
+                } else {
+                    location
+                }
+            }
+            location.contains(",") -> {
+                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
+                location.substringAfter(",").trim()
+            }
+            else -> location
+        }
+        
+        binding.tvLocation.text = displayLocation
 
         // Handle back button click
         binding.ivBack.addFadeClickEffect {
             finish()
         }
 
+        // Initialize duration adapter with callback
+        durationAdapter = DurationAdapter().apply {
+            onDurationSelected = { duration ->
+                selectedDuration = duration
+                updatePrice(duration.fee)
+            }
+        }
+        binding.rcvDuration.adapter = durationAdapter
+
+        // Then observe ViewModel
+        observeViewModel()
+
         // Handle job detail card click
         binding.cardViewJobDetail.setOnClickListener {
-            val cleaningServiceDetailFragment = CleaningServiceDetailFragment()
-            cleaningServiceDetailFragment.show(supportFragmentManager, "CleaningServiceDetailFragment")
+            // Show CleaningServiceDetailFragment
+            val cleaningServiceDetailFragment = CleaningServiceDetailFragment(cleaningService)
+            Log.d("SelectServiceActivity", "Cleaning Service Data: $cleaningService")
+            cleaningServiceDetailFragment.show(
+                supportFragmentManager,
+                "CleaningServiceDetailFragment"
+            )
         }
 
         // Handle info button click
@@ -56,48 +125,93 @@ class SelectServiceActivity : AppCompatActivity() {
             val intent = Intent(this, MapActivity::class.java)
             startActivity(intent)
         }
+        binding.cardViewButtonNext.setOnClickListener {
+            // Get selected extra services
+            val extraServices = mutableListOf<String>()
+            if (selectedExtraServices.contains(R.id.ll_extra_cooking)) {
+                extraServices.add("Nấu ăn")
+            }
+            if (selectedExtraServices.contains(R.id.ll_extra_ironing)) {
+                extraServices.add("Ủi đồ")
+            }
+            
+            // Get selected rooms data
+            val selectedRooms = SelectedRoomManager.getSelectedRooms()
+            val selectedRoomNames = ArrayList(selectedRooms.map { it.serviceName })
+            val selectedRoomCount = SelectedRoomManager.getSelectedRoomsCount()
+            
+            // Debug logging
+            Log.d("SelectServiceActivity", "Selected rooms count: $selectedRoomCount")
+            Log.d("SelectServiceActivity", "Selected room names: ${selectedRoomNames.joinToString(", ")}")
+            Log.d("SelectServiceActivity", "Selected rooms: $selectedRooms")
+            
+            // Navigate to SelectTimeFragment using fragment transaction
+            val fragment = SelectTimeFragment().apply {
+                arguments = Bundle().apply {
+                    putInt("totalHours", totalHours)
+                    putInt("totalFee", totalFee)
+                    putString("durationDescription", selectedDuration?.description ?: "")
+                    putInt("durationWorkingHour", selectedDuration?.workingHour ?: 0)
+                    putInt("durationFee", selectedDuration?.fee ?: 0)
+                    putString("durationId", selectedDuration?.uid ?: "")
+                    putStringArrayList("extraServices", ArrayList(extraServices))
+                    putStringArrayList("selectedRoomNames", selectedRoomNames)
+                    putInt("selectedRoomCount", selectedRoomCount)
+                }
+            }
+            
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.main, fragment)
+                .addToBackStack(null)
+                .commit()
+        }
+
     }
 
-    private fun setupRadioGroup() {
-        // Set initial selection
-        updateRadioButtonAppearance(selectedOptionId, true)
 
-        // Set click listeners for each option
-        binding.llH1.setOnClickListener { handleOptionClick(R.id.ll_h_1) }
-        binding.llH2.setOnClickListener { handleOptionClick(R.id.ll_h_2) }
-        binding.llH3.setOnClickListener { handleOptionClick(R.id.ll_h_3) }
-    }
-
-    private fun handleOptionClick(selectedId: Int) {
-        if (selectedOptionId != selectedId) {
-            // Reset previous selection
-            updateRadioButtonAppearance(selectedOptionId, false)
-            // Set new selection
-            selectedOptionId = selectedId
-            updateRadioButtonAppearance(selectedOptionId, true)
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            // Collect loading
+            launch {
+                viewModel.loading.collectLatest { isLoading ->
+                    // Xử lý trạng thái loading tại đây
+                    if (isLoading) {
+                        // Hiển thị ProgressBar hoặc trạng thái loading
+                        binding.ivBack.isEnabled = false
+                        binding.ivInfo.isEnabled = false
+                        binding.llContentHeader.isEnabled = false
+                        binding.lottieLoader.visibility = View.VISIBLE
+                        binding.cardViewJobDetail.isEnabled = false
+                        binding.cardViewButtonNext.visibility = View.GONE
+                        binding.llExtraCooking.isEnabled = false
+                        binding.llExtraIroning.isEnabled = false
+                    } else {
+                        // Ẩn ProgressBar khi không còn loading
+                        binding.ivBack.isEnabled = true
+                        binding.ivInfo.isEnabled = true
+                        binding.llContentHeader.isEnabled = true
+                        binding.lottieLoader.visibility = View.GONE
+                        binding.cardViewJobDetail.isEnabled = true
+                        binding.cardViewButtonNext.visibility = View.VISIBLE
+                        binding.llExtraCooking.isEnabled = true
+                        binding.llExtraIroning.isEnabled = true
+                    }
+                }
+            }
+            launch {
+                viewModel.durations.collectLatest { durations ->
+                    durationAdapter.submitList(durations)
+                    // The adapter will handle the first selection and callbacks
+                }
+            }
+            launch {
+                viewModel.cleaningdata.collectLatest { cleaningData ->
+                    cleaningService = cleaningData
+                }
+            }
         }
     }
 
-    private fun updateRadioButtonAppearance(viewId: Int, isSelected: Boolean) {
-        val backgroundRes = if (isSelected) R.drawable.bg_edt_orange else R.drawable.bg_edt_white
-        val textColorRes = if (isSelected) R.color.cam else R.color.black
-
-        when (viewId) {
-            R.id.ll_h_1 -> {
-                binding.llH1.setBackgroundResource(backgroundRes)
-                binding.tvH1.setTextColor(ContextCompat.getColor(this, textColorRes))
-            }
-            R.id.ll_h_2 -> {
-                binding.llH2.setBackgroundResource(backgroundRes)
-                binding.tvH2.setTextColor(ContextCompat.getColor(this, textColorRes))
-            }
-            R.id.ll_h_3 -> {
-                binding.llH3.setBackgroundResource(backgroundRes)
-                binding.tvH3.setTextColor(ContextCompat.getColor(this, textColorRes))
-            }
-        }
-    }
-    
     private fun setupExtraServicesRadioGroup() {
         // Set click listeners for extra services
         binding.rgServiceExtras.findViewById<View>(R.id.ll_extra_cooking).setOnClickListener {
@@ -107,36 +221,60 @@ class SelectServiceActivity : AppCompatActivity() {
             handleExtraServiceClick(R.id.ll_extra_ironing, R.id.tv_iron)
         }
     }
-    
+
     private fun handleExtraServiceClick(layoutId: Int, textViewId: Int) {
-        if (selectedExtraServiceId != layoutId) {
-            // Reset previous selection if any
-            if (selectedExtraServiceId != -1) {
-                updateExtraServiceAppearance(selectedExtraServiceId, false)
-            }
-            // Set new selection
-            selectedExtraServiceId = layoutId
-            updateExtraServiceAppearance(selectedExtraServiceId, true)
+        if (selectedExtraServices.contains(layoutId)) {
+            // Toggle off if already selected
+            selectedExtraServices.remove(layoutId)
+            updateExtraServiceAppearance(layoutId, false)
         } else {
-            // Toggle off if clicking the same item
-            updateExtraServiceAppearance(selectedExtraServiceId, false)
-            selectedExtraServiceId = -1
+            // Add to selected services
+            selectedExtraServices.add(layoutId)
+            updateExtraServiceAppearance(layoutId, true)
         }
+        updateTotalPrice()
     }
-    
+
+    private fun updatePrice(price: Int) {
+        currentBasePrice = price
+        updateTotalPrice()
+    }
+
+    private fun updateTotalPrice() {
+        val extraServiceFee = selectedExtraServices.size * EXTRA_SERVICE_FEE
+        val totalPrice = currentBasePrice + extraServiceFee
+
+        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN"))
+            .format(totalPrice)
+        val baseHours = selectedDuration?.workingHour ?: 1
+        val totalHours = baseHours + selectedExtraServices.size // Add 1 hour per extra service
+        this.totalHours = totalHours
+        this.totalFee = totalPrice
+        binding.tvPrice.text = "$formattedPrice VND/${totalHours}h"
+    }
+
     private fun updateExtraServiceAppearance(layoutId: Int, isSelected: Boolean) {
         val backgroundRes = if (isSelected) R.drawable.bg_edt_orange else R.drawable.bg_edt_white
         val textColorRes = if (isSelected) R.color.cam else R.color.black
-        
+
         when (layoutId) {
             R.id.ll_extra_cooking -> {
                 binding.llExtraCooking.setBackgroundResource(backgroundRes)
                 binding.tvPan.setTextColor(ContextCompat.getColor(this, textColorRes))
             }
+
             R.id.ll_extra_ironing -> {
                 binding.llExtraIroning.setBackgroundResource(backgroundRes)
                 binding.tvIron.setTextColor(ContextCompat.getColor(this, textColorRes))
             }
+        }
+    }
+    
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        } else {
+            super.onBackPressed()
         }
     }
 }

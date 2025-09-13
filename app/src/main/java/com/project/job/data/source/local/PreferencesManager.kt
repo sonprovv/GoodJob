@@ -11,6 +11,34 @@ class PreferencesManager(context: Context) {
         context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     private val gson = Gson()
 
+    fun saveNameAndPhone(name: String, phone: String) {
+        sharedPreferences.edit().putString(KEY_USER_NAME, name).apply()
+        sharedPreferences.edit().putString(KEY_USER_PHONE, phone).apply()
+    }
+
+    fun saveAddress(address: String) {
+        sharedPreferences.edit().putString(KEY_USER_LOCATION, address).apply()
+    }
+
+    fun saveLocationCoordinates(latitude: Double, longitude: Double) {
+        sharedPreferences.edit().apply {
+            putFloat(KEY_USER_LATITUDE, latitude.toFloat())
+            putFloat(KEY_USER_LONGITUDE, longitude.toFloat())
+            apply()
+        }
+    }
+
+    fun getLocationCoordinates(): Pair<Double, Double>? {
+        val latitude = sharedPreferences.getFloat(KEY_USER_LATITUDE, Float.NaN)
+        val longitude = sharedPreferences.getFloat(KEY_USER_LONGITUDE, Float.NaN)
+        
+        return if (!latitude.isNaN() && !longitude.isNaN()) {
+            Pair(latitude.toDouble(), longitude.toDouble())
+        } else {
+            null
+        }
+    }
+
     // Lưu token xác thực
     fun saveAuthToken(token: String) {
         sharedPreferences.edit().putString(KEY_AUTH_TOKEN, token).apply()
@@ -36,7 +64,7 @@ class PreferencesManager(context: Context) {
             putString(KEY_USER_GENDER, user.gender ?: "")
             putString(KEY_USER_BIRTHDATE, user.dob ?: "")
             putString(KEY_USER_PHONE, user.tel ?: "")
-            putString(KEY_USER_PROVIDER, user.google.toString())
+            putString(KEY_USER_PROVIDER, user.provider ?: "")
             apply()
         }
     }
@@ -92,5 +120,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_USER_BIRTHDATE = "user_birthdate"
         private const val KEY_USER_PHONE = "user_phone"
         private const val KEY_USER_PROVIDER = "user_provider"
+        private const val KEY_USER_LATITUDE = "user_latitude"
+        private const val KEY_USER_LONGITUDE = "user_longitude"
     }
 }

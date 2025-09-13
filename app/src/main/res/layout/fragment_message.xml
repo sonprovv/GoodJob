@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    tools:context=".ui.activity.scheduletab.ScheduleFragment">
+    tools:context=".ui.chat.messagetab.MessageFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,7 +25,7 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Nhanh chóng kết nối với Tasker yêu thích để trao đổi trước khi đặt công việc!"
+            android:text="Nhanh chóng kết nối với Worker yêu thích để trao đổi trước khi đặt công việc!"
             android:textColor="@color/black"
             android:textSize="16sp" />
 
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:padding="12dp"
-                android:text="Chat cùng Tasker yêu thích"
+                android:text="Chat cùng Worker yêu thích"
                 android:textColor="#2FA862"
                 android:textSize="16sp"
                 android:textStyle="bold" />

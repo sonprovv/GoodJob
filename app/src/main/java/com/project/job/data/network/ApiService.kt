@@ -1,18 +1,34 @@
 package com.project.job.data.network
 
 import com.project.job.data.source.remote.api.request.ChangePasswordRequest
+import com.project.job.data.source.remote.api.request.ChoiceWorkerRequest
+import com.project.job.data.source.remote.api.request.CreateJobRequest
 import com.project.job.data.source.remote.api.request.ForgotPasswordRequest
 import com.project.job.data.source.remote.api.request.LoginRequest
 import com.project.job.data.source.remote.api.request.RegisterRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
+import com.project.job.data.source.remote.api.request.UpdateUserRequest
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
+import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
+import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
+import com.project.job.data.source.remote.api.response.ServiceCleaningResponse
+import com.project.job.data.source.remote.api.response.UpdateAvatarResponse
+import com.project.job.data.source.remote.api.response.UpdateUserResponse
+import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.UserResponse
+import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface ApiService {
     @POST("api/users/me")
@@ -24,7 +40,7 @@ interface ApiService {
     suspend fun register(
         @Body request: RegisterRequest
     ): Response<UserResponse>
-    
+
     @POST("api/users/loginGG")
     suspend fun googleSignIn(
         @Body request: Map<String, String>
@@ -38,11 +54,55 @@ interface ApiService {
     @PUT("api/users/forgot-password")
     suspend fun forgotPassword(
         @Body request: ForgotPasswordRequest
-    ) : Response<ForgotPasswordResponse>
+    ): Response<ForgotPasswordResponse>
 
     @PUT("api/users/change-password")
     suspend fun changePassword(
+        @Header("Authorization") token: String,
         @Body request: ChangePasswordRequest
-    ) : Response<ChangePasswordResponse>
+    ): Response<ChangePasswordResponse>
 
+    @PUT("api/users/update")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Body request: UpdateUserRequest
+    ): Response<UpdateUserResponse>
+
+    @Multipart
+    @POST("api/images/upload")
+    suspend fun updateAvatar(
+        @Header("Authorization") token: String,
+        @Part image: MultipartBody.Part
+    ): Response<UpdateAvatarResponse>
+
+
+    @GET("api/services/cleaning")
+    suspend fun getCleaningServices(): Response<ServiceCleaningResponse>
+
+    @POST("api/jobs/cleaning")
+    suspend fun postJobCleaning(
+        @Header("Authorization") token: String,
+        @Body request: CreateJobRequest
+    ): Response<CreateJobResponse>
+
+    // get list job posted by user
+    @GET("api/jobs/user/{uid}/job")
+    suspend fun getUserPostJobs(
+        @Header("Authorization") token: String,
+        @Path("uid") uid: String
+    ): Response<UserPostJobsResponse>
+
+    // get list worker in 1 job
+    @GET("api/orders/{jobID}")
+    suspend fun getWorkerInJob(
+        @Header("Authorization") token: String,
+        @Path("jobID") jobID: String
+    ): Response<WorkerOrderJobResponse>
+
+    // choice worker (accept or reject)
+    @PUT("api/orders/update")
+    suspend fun choiceWorker(
+        @Header("Authorization") token: String,
+        @Body request: ChoiceWorkerRequest
+    ) : Response<ChoiceWorkerResponse>
 }

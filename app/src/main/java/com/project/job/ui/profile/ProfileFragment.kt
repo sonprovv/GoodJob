@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -25,6 +26,15 @@ class ProfileFragment : Fragment(), LoginResultListener {
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
 
+    private val updateProfileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            // Profile was updated, refresh UI
+            updateUI()
+        }
+    }
+
     private fun updateUI() {
         val isLoggedIn = preferencesManager.getAuthToken() != null
         
@@ -33,8 +43,8 @@ class ProfileFragment : Fragment(), LoginResultListener {
             val sharedPref = preferencesManager.sharedPreferences
             val avatarUrl = sharedPref.getString("user_avatar", null)
             val userName = sharedPref.getString("user_name", "Người dùng")
-            val userProvider = sharedPref.getString("user_provider", false.toString())
-            if(userProvider == "false"){
+            val userProvider = sharedPref.getString("user_provider", "")
+            if(userProvider == "normal"){
                 binding.llChangePass.visibility = View.VISIBLE
             }
             else {
@@ -57,6 +67,7 @@ class ProfileFragment : Fragment(), LoginResultListener {
         } else {
             // Show login UI
             binding.apply {
+                llChangePass.visibility = View.GONE
                 llLogout.visibility = View.GONE
                 tvWelcome.visibility = View.VISIBLE
                 cardViewButtonLogin.visibility = View.VISIBLE
@@ -118,9 +129,10 @@ class ProfileFragment : Fragment(), LoginResultListener {
         }
 
         binding.tvViewProfile.addFadeClickEffect {
-            val intent = Intent(requireContext(), ProfileDetailActivity::class.java)
-            startActivity(intent)
+            val intent = Intent(requireContext(), UpdateProfileActivity::class.java)
+            updateProfileLauncher.launch(intent)
         }
     }
+
 
 }

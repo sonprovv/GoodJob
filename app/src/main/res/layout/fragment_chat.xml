@@ -39,7 +39,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tasker yêu thích"
+                android:text="Worker yêu thích"
                 android:textColor="#2FA862"
                 android:textSize="20sp" />
         </LinearLayout>

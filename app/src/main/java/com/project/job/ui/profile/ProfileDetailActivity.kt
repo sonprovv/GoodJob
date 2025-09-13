@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,6 +21,16 @@ import com.project.job.utils.addFadeClickEffect
 class ProfileDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileDetailBinding
     private lateinit var preferencesManager: PreferencesManager
+
+    private val updateProfileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            // Profile was updated, refresh UI and pass result back
+            refreshUserData()
+            setResult(RESULT_OK)
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -52,8 +63,22 @@ class ProfileDetailActivity : AppCompatActivity() {
         binding.tvUpdate.addFadeClickEffect {
             // Handle update button click
             val intent = Intent(this, UpdateProfileActivity::class.java)
-            startActivity(intent)
+            updateProfileLauncher.launch(intent)
         }
 
+    }
+
+
+    private fun refreshUserData() {
+        val userName = preferencesManager.getUserData()["user_name"] ?: "User"
+        val urlImage = preferencesManager.getUserData()["user_avatar"] ?: ""
+        val location = preferencesManager.getUserData()["user_location"] ?: ""
+        
+        binding.tvFullName.text = userName
+        Glide.with(this)
+            .load(urlImage)
+            .placeholder(R.drawable.img_profile_picture_defaul)
+            .apply(RequestOptions().transform(RoundedCorners(20)))
+            .into(binding.ivProfilePicture)
     }
 }

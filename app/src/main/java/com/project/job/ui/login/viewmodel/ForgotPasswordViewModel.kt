@@ -25,6 +25,7 @@ class ForgotPasswordViewModel: ViewModel() {
 
     fun sendMailForgotPassword(email: String) {
         viewModelScope.launch {
+            _success.value = false
             _loading.value = true
             _error.value = null
             try {
@@ -36,6 +37,7 @@ class ForgotPasswordViewModel: ViewModel() {
                     if (userResponse != null && userResponse.success) {
                         _error.value = null
                         _code.value = userResponse.code
+                        _success.value = true
                         Log.d("ForgotPasswordViewModel", "ForgotPassword successful: $userResponse")
                     } else {
                         _error.value = userResponse?.message ?: "ForgotPassword failed"

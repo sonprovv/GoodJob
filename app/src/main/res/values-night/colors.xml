@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary brand color. -->
+    <color name="colorPrimary">@color/xanh</color>
+    <color name="colorPrimaryDark">#0E7A3D</color>
+    <color name="colorAccent">#4CAF50</color>
+</resources>
