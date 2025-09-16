@@ -21,6 +21,7 @@ import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -63,6 +64,7 @@ class LoginActivity : AppCompatActivity() {
             val email = binding.edtEmail.text.toString().trim()
             val password = binding.edtPassword.text.toString().trim()
             viewModel.fetchLogin(email, password)
+
         }
         binding.tvRegister.addFadeClickEffect {
             // Xử lý sự kiện chuyển sang màn hình đăng ký
@@ -163,6 +165,8 @@ class LoginActivity : AppCompatActivity() {
                     if (user != null) {
                         // Lưu user vào SharedPreferences
                         preferencesManager.saveUser(user)
+                        val fcmtoken = getFCMToken().toString()
+                        viewModel.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
                     }
                 }
             }

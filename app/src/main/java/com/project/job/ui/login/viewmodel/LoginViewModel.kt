@@ -104,4 +104,38 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+    fun postFCMToken(clientID: String, fcmToken: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+
+            try {
+                val response = userRepository.postFcmToken(clientID, fcmToken)
+                Log.d("LoginViewModel", "Post FCM Token response: $response")
+
+                if (response.isSuccessful) {
+                    val fcmResponse = response.body()
+                    if (fcmResponse != null && fcmResponse.success) {
+                        _error.value = null
+                        Log.d("LoginViewModel", "Post FCM Token successful: $fcmResponse")
+                    } else {
+                        _error.value = fcmResponse?.message ?: "Posting FCM token failed"
+                        Log.e("LoginViewModel", "Post FCM Token failed: ${fcmResponse?.message}")
+                    }
+                } else {
+                    _error.value = response.message() ?: "Posting FCM token failed"
+                    Log.e("LoginViewModel", "Post FCM Token error: ${response.code()} - ${response.message()}")
+                }
+
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Post FCM Token error: ${e.message}")
+                _error.value = e.message
+            } finally {
+                Log.e("LoginViewModel", "Post FCM Token finally")
+                _loading.value = false
+            }
+
+        }
+    }
+
 }

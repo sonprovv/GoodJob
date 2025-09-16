@@ -1,6 +1,5 @@
 package com.project.job.ui.home
 
-import com.google.firebase.messaging.FirebaseMessaging
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,7 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.gms.tasks.OnCompleteListener
+import com.airbnb.lottie.utils.Utils
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentHomeBinding
@@ -24,7 +23,9 @@ import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.map.MapActivity
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
+import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActivity
 import com.project.job.utils.UserDataBroadcastManager
+import com.project.job.utils.getFCMToken
 
 class HomeFragment : Fragment(), LoginResultListener {
     private var _binding: FragmentHomeBinding? = null
@@ -90,7 +91,9 @@ class HomeFragment : Fragment(), LoginResultListener {
         binding.llItemService1.setOnClickListener {
             val location = preferencesManager.getUserData()["user_location"]
             if(location == "" || location == null || location == "Chưa cập nhật"){
-                val intent = Intent(requireContext(), MapActivity::class.java)
+                val intent = Intent(requireContext(), MapActivity::class.java).apply {
+                    putExtra("source", "cleaning_service")
+                }
                 startActivity(intent)
                 return@setOnClickListener
             }
@@ -100,8 +103,22 @@ class HomeFragment : Fragment(), LoginResultListener {
             }
         }
 
-        // Get FCM Token
+
         binding.llItemService2.setOnClickListener {
+            val location = preferencesManager.getUserData()["user_location"]
+            if(location == "" || location == null || location == "Chưa cập nhật"){
+                val intent = Intent(requireContext(), MapActivity::class.java).apply {
+                    putExtra("source", "healthcare_service")
+                }
+                startActivity(intent)
+                return@setOnClickListener
+            }
+            else {
+                val intent = Intent(requireContext(), SelectServiceHealthCareActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        binding.llItemService3.setOnClickListener {
             getFCMToken()
         }
         checkLoginStatus()
@@ -196,7 +213,9 @@ class HomeFragment : Fragment(), LoginResultListener {
 
             // Xu ly click gg map
             binding.llItemService1.setOnClickListener {
-                val intent = Intent(requireContext(), MapActivity::class.java)
+                val intent = Intent(requireContext(), MapActivity::class.java).apply {
+                    putExtra("source", "cleaning_service")
+                }
                 startActivity(intent)
             }
         }
@@ -262,16 +281,5 @@ class HomeFragment : Fragment(), LoginResultListener {
         }
         
         _binding = null
-    }
-
-    private fun getFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FirebaseLogs", "Fetching FCM registration token failed", task.exception)
-                return@OnCompleteListener
-            }
-            val token = task.result
-            Log.d("thienham", "FCM Token: $token")
-        })
     }
 }

@@ -1,11 +1,14 @@
 package com.project.job.ui.service.cleaningservice
 
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.EditText
 import android.widget.NumberPicker
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
@@ -72,7 +75,39 @@ class CustomTimePickerDialog : DialogFragment() {
         npMinute.setOnValueChangedListener { _, _, newVal ->
             selectedMinute = newVal
         }
+
+        setNumberPickerTextColor(npHour, Color.BLACK)
+        setNumberPickerTextColor(npMinute, Color.BLACK)
     }
+
+    private fun setNumberPickerTextColor(numberPicker: NumberPicker, color: Int) {
+        try {
+            val selectorWheelPaintField =
+                numberPicker.javaClass.getDeclaredField("mSelectorWheelPaint")
+            selectorWheelPaintField.isAccessible = true
+            val paint = selectorWheelPaintField.get(numberPicker) as Paint
+            paint.color = color
+
+            for (i in 0 until numberPicker.childCount) {
+                val child = numberPicker.getChildAt(i)
+                if (child is EditText) {
+                    child.setTextColor(color)
+                    child.isEnabled = false      // tắt nhập trực tiếp
+                    child.isFocusable = false
+                    child.isCursorVisible = false
+                }
+            }
+
+            // refresh để áp dụng màu cho cả selector
+            numberPicker.invalidate()
+            numberPicker.requestLayout()
+            numberPicker.postInvalidate()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
 
     private fun setupClickListeners(view: View) {
         // Cancel button

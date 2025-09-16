@@ -13,10 +13,13 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
+import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.databinding.FragmentConfirmAndCheckoutBinding
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
+import com.project.job.ui.service.healthcareservice.HealthCareViewModel
 import com.project.job.utils.SelectedRoomManager
 import com.project.job.utils.UserDataBroadcastManager
 import kotlinx.coroutines.flow.collectLatest
@@ -28,11 +31,9 @@ import java.util.Locale
 class ConfirmAndCheckoutFragment : Fragment() {
     private var _binding: FragmentConfirmAndCheckoutBinding? = null
     private val binding get() = _binding!!
-    private lateinit var viewModel: CleaningServiceViewModel
+    private lateinit var viewModelCleaning: CleaningServiceViewModel
+    private lateinit var viewModelHealthCare: HealthCareViewModel
     private lateinit var preferencesManager: PreferencesManager
-    private var selectedRoomNames: List<String> = emptyList()
-    private var selectedServices: List<CleaningService> = emptyList()
-    private var selectedRoomCount: Int = 0
 
     private val userDataUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -60,7 +61,8 @@ class ConfirmAndCheckoutFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = CleaningServiceViewModel()
+        viewModelCleaning = CleaningServiceViewModel()
+        viewModelHealthCare = HealthCareViewModel()
 
         preferencesManager = PreferencesManager(requireContext())
 
@@ -75,21 +77,35 @@ class ConfirmAndCheckoutFragment : Fragment() {
 
 
         // Get data from arguments
+        val serviceType = arguments?.getString("serviceType") ?: ""
         val selectedDates = arguments?.getStringArray("selectedDates")?.toList() ?: emptyList()
         val selectedTime = arguments?.getString("selectedTime") ?: ""
         val totalHours = arguments?.getInt("totalHours") ?: 0
         val totalFee = arguments?.getInt("totalFee") ?: 0
         val durationDescription = arguments?.getString("durationDescription") ?: ""
         val serviceExtras = arguments?.getString("serviceExtras") ?: "Không"
-        val numberOfPeople = arguments?.getInt("numberOfPeople", 1) ?: 1
-        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
-        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
         val durationWorkingHour = arguments?.getInt("durationWorkingHour") ?: 0
         val durationFee = arguments?.getInt("durationFee") ?: 0
         val durationId = arguments?.getString("durationId") ?: ""
 
+        val shiftId = arguments?.getString("selectedShiftId") ?: ""
+        val shiftWorkingHour = arguments?.getInt("selectedShiftWorkingHour") ?: 0
+        val shiftFee = arguments?.getInt("selectedShiftFee") ?: 0
+        val numberOfBaby = arguments?.getInt("numberBaby", 0) ?: 0
+        val numberOfAdult = arguments?.getInt("numberAdult", 0) ?: 0
+        val numberOfElderly = arguments?.getInt("numberOld", 0) ?: 0
+        val numberOfWorker = arguments?.getInt("numberWorker", 1) ?: 1
+        
+        // Get service IDs and names from arguments
+        val babyServiceId = arguments?.getString("babyServiceId") ?: ""
+        val adultServiceId = arguments?.getString("adultServiceId") ?: ""
+        val elderlyServiceId = arguments?.getString("elderlyServiceId") ?: ""
+        val babyServiceName = arguments?.getString("babyServiceName") ?: ""
+        val adultServiceName = arguments?.getString("adultServiceName") ?: ""
+        val elderlyServiceName = arguments?.getString("elderlyServiceName") ?: ""
+
         // Get selected services from SelectedServiceManager
-        selectedServices = SelectedRoomManager.getSelectedRooms()
+//        selectedServices = SelectedRoomManager.getSelectedRooms()
 
         // Format the selected dates
         val displayFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -135,12 +151,10 @@ class ConfirmAndCheckoutFragment : Fragment() {
         // Update UI with the received data
         binding.tvTotalTime.text = "$selectedTime (${totalHours}h)"
         binding.tvTotalPrice.text = "$formattedPrice VND"
-        binding.tvTotalJobArea.text = durationDescription
         binding.tvServiceExtras.text = serviceExtras
-        binding.tvTotalNumber.text = "$numberOfPeople"
 
         // Update room count from Bundle data instead of SelectedServiceManager
-        binding.tvTotalRooms.text = "$selectedRoomCount phòng"
+//        binding.tvTotalRooms.text = "$selectedRoomCount phòng"
 
         // Debug logging for duration data
         Log.d("ConfirmCheckout", "Duration ID: $durationId")
@@ -148,7 +162,66 @@ class ConfirmAndCheckoutFragment : Fragment() {
         Log.d("ConfirmCheckout", "Duration Fee: $durationFee")
         Log.d("ConfirmCheckout", "Duration Description: $durationDescription")
 
-        displaySelectedServices()
+        Log.d("ConfirmCheckout", "Shift ID: $shiftId")
+        Log.d("ConfirmCheckout", "Shift Working Hour: $shiftWorkingHour")
+        Log.d("ConfirmCheckout", "Shift Fee: $shiftFee")
+        Log.d("ConfirmCheckout", "Number of Baby: $numberOfBaby")
+        Log.d("ConfirmCheckout", "Number of Adult: $numberOfAdult")
+        Log.d("ConfirmCheckout", "Number of Elderly: $numberOfElderly")
+        Log.d("ConfirmCheckout", "Number of Worker: $numberOfWorker")
+        Log.d("ConfirmCheckout", "Baby Service Name: '$babyServiceName'")
+        Log.d("ConfirmCheckout", "Adult Service Name: '$adultServiceName'")
+        Log.d("ConfirmCheckout", "Elderly Service Name: '$elderlyServiceName'")
+        Log.d("ConfirmCheckout", "Service Type: '$serviceType'")
+
+        if(serviceType == "healthcare") {
+            binding.llServiceExtras.visibility = View.GONE
+            binding.tvTotalNumber.text = "$numberOfWorker"
+            binding.llTotalNumber.visibility = View.VISIBLE
+
+            // Create list of selected service names using actual service names
+            val selectedServiceNames = mutableListOf<String>()
+            Log.d("ConfirmCheckout", "Checking baby: numberOfBaby=$numberOfBaby, babyServiceName='$babyServiceName'")
+            if (numberOfBaby > 0 && babyServiceName.isNotEmpty()) {
+                selectedServiceNames.add(babyServiceName + " ($numberOfBaby)")
+                Log.d("ConfirmCheckout", "Added baby service: $babyServiceName")
+            }
+            Log.d("ConfirmCheckout", "Checking adult: numberOfAdult=$numberOfAdult, adultServiceName='$adultServiceName'")
+            if (numberOfAdult > 0 && adultServiceName.isNotEmpty()) {
+                selectedServiceNames.add(adultServiceName + " ($numberOfAdult)")
+                Log.d("ConfirmCheckout", "Added adult service: $adultServiceName")
+            }
+            Log.d("ConfirmCheckout", "Checking elderly: numberOfElderly=$numberOfElderly, elderlyServiceName='$elderlyServiceName'")
+            if (numberOfElderly > 0 && elderlyServiceName.isNotEmpty()) {
+                selectedServiceNames.add(elderlyServiceName + " ($numberOfElderly)")
+                Log.d("ConfirmCheckout", "Added elderly service: $elderlyServiceName")
+            }
+
+            // If service names are empty, use fallback names
+            if (selectedServiceNames.isEmpty()) {
+                if (numberOfBaby > 0) selectedServiceNames.add("Trẻ em")
+                if (numberOfAdult > 0) selectedServiceNames.add("Người khuyết tật")
+                if (numberOfElderly > 0) selectedServiceNames.add("Người lớn tuổi")
+            }
+
+            // Format service area text
+            val serviceAreaText = if (selectedServiceNames.isNotEmpty()) {
+                "Chăm sóc " + selectedServiceNames.joinToString(", ")
+            } else {
+                "Chăm sóc"
+            }
+            binding.tvTotalJobArea.text = serviceAreaText
+
+            Log.d("ConfirmCheckout", "Selected Service Names: $selectedServiceNames")
+            Log.d("ConfirmCheckout", "Service Area Text: $serviceAreaText")
+        } else if(serviceType == "cleaning") {
+            binding.llServiceExtras.visibility = View.VISIBLE
+            binding.tvTotalJobArea.text = durationDescription
+            binding.llTotalNumber.visibility = View.GONE
+        }
+
+
+//        displaySelectedServices()
 
 
         binding.ivBack.setOnClickListener {
@@ -172,23 +245,95 @@ class ConfirmAndCheckoutFragment : Fragment() {
                 description = durationDescription
             )
 
-            val serviceSelect = selectedServices.map { service ->
-                service.copy(uid = service.uid.split("_").first())
+//            val serviceSelect = selectedServices.map { service ->
+//                service.copy(uid = service.uid.split("_").first())
+//            }
+            Log.d("ConfirmCheckout", "About to check service type conditions")
+            if(serviceType == "cleaning") {
+                Log.d("ConfirmCheckout", "Cleaning service type detected")
+                viewModelCleaning.postServiceCleaning(
+                    token = token,
+                    userID = uid,
+                    startTime = selectedTime,
+//                workerQuantity = numberOfPeople,
+                    price = totalFee,
+                    listDays = selectedDates,
+                    duration = duration,
+                    isCooking = isCooking,
+                    isIroning = isIroning,
+                    location = preferencesManager.getUserData()["user_location"] ?: ""
+//                services = serviceSelect
+                )
+            } else if(serviceType == "healthcare") {
+                Log.d("ConfirmCheckout", "Healthcare service type detected")
+                val shift = ShiftInfo(
+                    uid = shiftId,
+                    workingHour = shiftWorkingHour,
+                    fee = shiftFee
+                )
+                
+                // Create services list based on quantities
+                val services = mutableListOf<ServiceInfoHealthcare>()
+                
+                // Add baby service if quantity > 0
+                if (numberOfBaby > 0 && babyServiceId.isNotEmpty()) {
+                    services.add(ServiceInfoHealthcare(
+                        serviceID = babyServiceId,
+                        quantity = numberOfBaby
+                    ))
+                }
+                
+                // Add adult/disabled service if quantity > 0
+                if (numberOfAdult > 0 && adultServiceId.isNotEmpty()) {
+                    services.add(ServiceInfoHealthcare(
+                        serviceID = adultServiceId,
+                        quantity = numberOfAdult
+                    ))
+                }
+                
+                // Add elderly service if quantity > 0
+                if (numberOfElderly > 0 && elderlyServiceId.isNotEmpty()) {
+                    services.add(ServiceInfoHealthcare(
+                        serviceID = elderlyServiceId,
+                        quantity = numberOfElderly
+                    ))
+                }
+                
+                // Ensure we have at least one service
+                if (services.isEmpty()) {
+                    // Use elderly service as default if available, otherwise use any available service ID
+                    val defaultServiceId = if (elderlyServiceId.isNotEmpty()) {
+                        elderlyServiceId
+                    } else if (adultServiceId.isNotEmpty()) {
+                        adultServiceId
+                    } else if (babyServiceId.isNotEmpty()) {
+                        babyServiceId
+                    } else {
+                        "" // This should not happen if data is loaded properly
+                    }
+                    
+                    if (defaultServiceId.isNotEmpty()) {
+                        services.add(ServiceInfoHealthcare(
+                            serviceID = defaultServiceId,
+                            quantity = numberOfWorker
+                        ))
+                    }
+                }
+                
+                Log.d("ConfirmCheckout", "Final services list: $services")
+                
+                viewModelHealthCare.postServiceHealthcare(
+                    token = token,
+                    userID = uid,
+                    startTime = selectedTime,
+                    price = totalFee,
+                    listDays = selectedDates,
+                    shift = shift,
+                    services = services,
+                    workerQuantity = numberOfWorker,
+                    location = preferencesManager.getUserData()["user_location"] ?: ""
+                )
             }
-
-            viewModel.postServiceCleaning(
-                token = token,
-                userID = uid,
-                startTime = selectedTime,
-                workerQuantity = numberOfPeople,
-                price = totalFee,
-                listDays = selectedDates,
-                duration = duration,
-                isCooking = isCooking,
-                isIroning = isIroning,
-                location = preferencesManager.getUserData()["user_location"] ?: "",
-                services = serviceSelect
-            )
         }
 
         observeViewModel()
@@ -199,7 +344,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
         lifecycleScope.launch {
             // Collect loading
             launch {
-                viewModel.loading.collectLatest { isLoading ->
+                viewModelCleaning.loading.collectLatest { isLoading ->
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
@@ -215,7 +360,23 @@ class ConfirmAndCheckoutFragment : Fragment() {
                 }
             }
             launch {
-                viewModel.success_post.collectLatest { isSuccess ->
+                viewModelHealthCare.loading.collectLatest { isLoading ->
+                    // Xử lý trạng thái loading tại đây
+                    if (isLoading) {
+                        // Hiển thị ProgressBar hoặc trạng thái loading
+                        binding.flLoading.visibility = View.VISIBLE
+                        binding.cardViewButtonPostJob.isEnabled =
+                            false // Vô hiệu hóa nút đăng nhập
+                    } else {
+                        // Ẩn ProgressBar khi không còn loading
+                        binding.flLoading.visibility = View.GONE
+                        binding.cardViewButtonPostJob.isEnabled =
+                            true // Kích hoạt lại nút đăng nhập
+                    }
+                }
+            }
+            launch {
+                viewModelCleaning.success_post.collectLatest { isSuccess ->
                     if (isSuccess) {
                         // Clear selected rooms data
                         SelectedRoomManager.clearAllRooms()
@@ -232,35 +393,24 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     }
                 }
             }
-        }
-    }
+            launch {
+                viewModelHealthCare.success_post.collectLatest { isSuccess ->
+                    if (isSuccess) {
+                        // Clear selected rooms data
+                        SelectedRoomManager.clearAllRooms()
 
-    private fun displaySelectedServices() {
-        if (selectedServices.isNotEmpty()) {
-            val serviceNames = selectedServices.joinToString(", ") { it.serviceName }
-            val totalRooms = selectedServices.size
-            binding.tvTotalRooms.text = "$totalRooms phòng"
-            // You can display this information in your UI
-            // For example, if you have TextViews to show selected services:
-            // binding.tvSelectedRooms.text = "Phòng đã chọn: $serviceNames"
-            // binding.tvTotalRooms.text = "Tổng số phòng: $totalRooms"
+                        // Show success message
+                        android.widget.Toast.makeText(
+                            requireContext(),
+                            "Đăng công việc thành công!",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
 
-            // Log for debugging
-            Log.d("ConfirmCheckout", "Selected services: $serviceNames")
-            Log.d("ConfirmCheckout", "Total rooms from SelectedServiceManager: $totalRooms")
-            Log.d("ConfirmCheckout", "Total rooms from Bundle: $selectedRoomCount")
-            Log.d(
-                "ConfirmCheckout",
-                "Selected room names from Bundle: ${selectedRoomNames.joinToString(", ")}"
-            )
-
-            // Display detailed information about each selected service
-            selectedServices.forEach { service ->
-                Log.d("ConfirmCheckout", "Service: ${service.serviceName}")
-                Log.d("ConfirmCheckout", "Tasks: ${service.tasks.joinToString(", ")}")
+                        // Navigate back to SelectServiceActivity and finish all fragments
+                        requireActivity().finish()
+                    }
+                }
             }
-        } else {
-            Log.d("ConfirmCheckout", "No services selected")
         }
     }
 

@@ -1,11 +1,9 @@
-package com.project.job.ui.activity.jobdetail
+package com.project.job.ui.activity.jobdetail.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.job.data.repository.ServiceRepository
-import com.project.job.data.source.remote.api.response.DataJobs
-import com.project.job.data.source.remote.api.response.WorkerInfo
 import com.project.job.data.source.remote.api.response.WorkerOrder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

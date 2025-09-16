@@ -13,5 +13,11 @@
     <string name="linh_dong_da_dang"><b>Linh động, đa dạng: </b>Googjob cung cấp nhiều phương án làm việc, giờ giấc linh hoạt có thể đáp ứng được các nhu cầu và thói quen sinh hoạt của Khách hàng.</string>
     <string name="password_not_match">Mật khẩu không khớp. Vui lòng nhập lại</string>
     <string name="empty_field">Vui lòng không để trống</string>
-
+    <string name="content_manager_children">
+        <b>Người trông trẻ sẽ thực hiện các công việc:\n</b>
+        - Đảm bảo sự an toàn cho trẻ trong suốt quá trình\n
+        - Hỗ trợ chuẩn bị và cho trẻ ăn theo yêu cầu và hướng dẫn của phụ huynh (vệ sinh, làm sạch dụng cụ pha chế, nấu nướng trước và sau quá trình)\n
+        - Tổ chức các hoạt động học và vui chơi theo từng độ tuổi\n
+        - Hướng dẫn và hỗ trợ vệ sinh cá nhân cho trẻ (thay tã, tắm rửa, cho trẻ đi vệ sinh .v.v.)\n
+    </string>
 </resources>

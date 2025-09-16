@@ -6,7 +6,6 @@
     android:layout_marginBottom="4dp"
     android:background="@color/white"
     android:paddingVertical="8dp"
-    android:paddingHorizontal="12dp"
     android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,7 +16,7 @@
             android:layout_marginEnd="8dp"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_star_no_select"
+            android:src="@drawable/ic_star"
             />
         <TextView
             android:id="@+id/tv_content_detail_job"

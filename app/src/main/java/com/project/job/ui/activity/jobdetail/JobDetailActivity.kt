@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.project.job.data.source.remote.api.response.DataJobs
+import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.databinding.ActivityJobDetailBinding
 import com.project.job.ui.activity.jobdetail.adapter.TabLayoutAdapter
 
@@ -18,11 +19,16 @@ class JobDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val dataJob = intent.getParcelableExtra<DataJobs>("job")
+        val healthcareServiceList = intent.getParcelableArrayListExtra<HealthcareService>("healthcareServiceList")
         Log.d("JobDetailActivity", "dataJob: $dataJob")
+        Log.d("JobDetailActivity", "Healthcare services received: ${healthcareServiceList?.size}")
+        healthcareServiceList?.forEachIndexed { index, service ->
+            Log.d("JobDetailActivity", "Service $index: ${service.uid} - ${service.serviceName}")
+        }
 
         // Set up ViewPager2 with adapter
         dataJob?.let { job ->
-            val adapter = TabLayoutAdapter(this, job)
+            val adapter = TabLayoutAdapter(this, job, healthcareServiceList)
             binding.viewPagerActivity.adapter = adapter
         }
 

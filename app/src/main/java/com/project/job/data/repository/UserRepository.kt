@@ -1,18 +1,18 @@
 package com.project.job.data.repository
 
-import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.remote.api.request.ChangePasswordRequest
+import com.project.job.data.source.remote.api.request.FCMTokenRequest
 import com.project.job.data.source.remote.api.request.ForgotPasswordRequest
 import com.project.job.data.source.remote.api.request.LoginRequest
 import com.project.job.data.source.remote.api.request.RegisterRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
-import com.project.job.data.source.remote.api.request.UpdateUserRequest
 import com.project.job.data.source.remote.api.request.toUpdateRequest
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
+import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
 import com.project.job.data.source.remote.api.response.UpdateAvatarResponse
@@ -21,7 +21,6 @@ import com.project.job.data.source.remote.api.response.User
 import com.project.job.data.source.remote.api.response.UserResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Response
 import java.io.File
@@ -37,6 +36,10 @@ class UserRepository(private val context: Context? = null) {
         } else {
             throw IllegalStateException("Context not provided and RetrofitClient not initialized")
         }
+
+    suspend fun postFcmToken(clientID: String, fcmToken: String): Response<FCMTokenResponse> {
+        return apiService.postFcmToken(clientID, FCMTokenRequest(fcmToken))
+    }
 
     suspend fun login(email: String, password: String): Response<UserResponse> {
         return apiService.login(LoginRequest(email, password))

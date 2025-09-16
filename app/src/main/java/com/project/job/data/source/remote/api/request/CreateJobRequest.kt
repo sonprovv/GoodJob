@@ -8,12 +8,12 @@ data class CreateJobRequest(
     val userID: String,
     val serviceType: String,
     val startTime: String,
-    val workerQuantity: Int,
+//    val workerQuantity: Int,
     val price : Int,
     val listDays : List<String>,
     val duration : CleaningDuration,
     val isCooking: Boolean,
     val isIroning: Boolean,
-    val location: String,
-    val services : List<CleaningService>
+    val location: String
+//    val services : List<CleaningService>
 )

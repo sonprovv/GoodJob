@@ -28,6 +28,7 @@ import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.databinding.FragmentLoginBinding
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -191,6 +192,8 @@ class LoginFragment : BottomSheetDialogFragment() {
                         if (user != null) {
                             Log.d(TAG, "User data received: $user")
                             preferencesManager.saveUser(user)
+                            val fcmtoken = getFCMToken().toString()
+                            viewModel.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
 
                             // Dismiss the fragment when user data is received
                             if (isAdded && !isRemoving) {

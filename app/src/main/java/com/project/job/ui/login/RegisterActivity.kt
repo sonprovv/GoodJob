@@ -19,14 +19,17 @@ import com.project.job.MainActivity
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityRegisterBinding
+import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.ui.login.viewmodel.RegisterViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var viewModel: RegisterViewModel
+    private lateinit var viewModelLogin : LoginViewModel
     private lateinit var preferencesManager: PreferencesManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +54,7 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         viewModel = RegisterViewModel()
+        viewModelLogin = LoginViewModel()
         preferencesManager = PreferencesManager(this)
 
         setupPasswordToggle(binding.edtPassword)
@@ -176,6 +180,9 @@ class RegisterActivity : AppCompatActivity() {
                     if (user != null) {
                         // Lưu user vào SharedPreferences
                         preferencesManager.saveUser(user)
+
+                        val fcmtoken = getFCMToken().toString()
+                        viewModelLogin.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
                     }
                 }
             }
@@ -188,9 +195,9 @@ class RegisterActivity : AppCompatActivity() {
                         preferencesManager.saveAuthToken(token)
                         // Chuyển đến MainActivity
                         val intent =
-                            android.content.Intent(this@RegisterActivity, MainActivity::class.java)
+                            Intent(this@RegisterActivity, MainActivity::class.java)
                         intent.flags =
-                            android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
                     }

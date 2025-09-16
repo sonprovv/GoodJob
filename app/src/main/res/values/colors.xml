@@ -6,6 +6,7 @@
     <color name="cam">#FF9800</color>
     <color name="xanh">#16B75A</color>
     <color name="gray_nhat">#FAFAFA</color>
+    <color name="red">#F44336</color>
     
     <!-- Button and interactive element colors -->
     <color name="primary_color">@color/xanh</color>

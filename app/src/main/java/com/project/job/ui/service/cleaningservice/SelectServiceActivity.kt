@@ -35,7 +35,6 @@ class SelectServiceActivity : AppCompatActivity() {
     private lateinit var durationAdapter: DurationAdapter
     private var cleaningService: List<CleaningService?> = emptyList()
     private var selectedDuration: CleaningDuration? = null
-    private lateinit var navController: NavController
     private lateinit var preferencesManager: PreferencesManager
     private var totalHours = 0
     private var totalFee = 0
@@ -122,7 +121,9 @@ class SelectServiceActivity : AppCompatActivity() {
 
         // Handle location header click
         binding.llContentHeader.addFadeClickEffect {
-            val intent = Intent(this, MapActivity::class.java)
+            val intent = Intent(this, MapActivity::class.java).apply {
+                putExtra("source", "cleaning_service")
+            }
             startActivity(intent)
         }
         binding.cardViewButtonNext.setOnClickListener {
@@ -155,8 +156,7 @@ class SelectServiceActivity : AppCompatActivity() {
                     putInt("durationFee", selectedDuration?.fee ?: 0)
                     putString("durationId", selectedDuration?.uid ?: "")
                     putStringArrayList("extraServices", ArrayList(extraServices))
-                    putStringArrayList("selectedRoomNames", selectedRoomNames)
-                    putInt("selectedRoomCount", selectedRoomCount)
+                    putString("serviceType", "cleaning")
                 }
             }
             

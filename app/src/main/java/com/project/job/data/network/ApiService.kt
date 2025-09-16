@@ -2,18 +2,25 @@ package com.project.job.data.network
 
 import com.project.job.data.source.remote.api.request.ChangePasswordRequest
 import com.project.job.data.source.remote.api.request.ChoiceWorkerRequest
+import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
 import com.project.job.data.source.remote.api.request.CreateJobRequest
+import com.project.job.data.source.remote.api.request.FCMTokenRequest
 import com.project.job.data.source.remote.api.request.ForgotPasswordRequest
 import com.project.job.data.source.remote.api.request.LoginRequest
 import com.project.job.data.source.remote.api.request.RegisterRequest
+import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
 import com.project.job.data.source.remote.api.request.UpdateUserRequest
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
+import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
+import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
 import com.project.job.data.source.remote.api.response.ServiceCleaningResponse
+import com.project.job.data.source.remote.api.response.ServiceHealthcareResponse
+import com.project.job.data.source.remote.api.response.ServiceMaintenanceResponse
 import com.project.job.data.source.remote.api.response.UpdateAvatarResponse
 import com.project.job.data.source.remote.api.response.UpdateUserResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
@@ -31,6 +38,13 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface ApiService {
+    // fcm token
+    @POST("api/devices/{clientID")
+    suspend fun postFcmToken(
+        @Path("clientID") clientID: String,
+        @Body request: FCMTokenRequest
+    ): Response<FCMTokenResponse>
+
     @POST("api/users/me")
     suspend fun login(
         @Body request: LoginRequest
@@ -79,10 +93,22 @@ interface ApiService {
     @GET("api/services/cleaning")
     suspend fun getCleaningServices(): Response<ServiceCleaningResponse>
 
+    @GET("api/services/healthcare")
+    suspend fun getHealthcareServices(): Response<ServiceHealthcareResponse>
+
+    @GET("api/services/maintenance")
+    suspend fun getMaintenanceServices(): Response<ServiceMaintenanceResponse>
+
     @POST("api/jobs/cleaning")
     suspend fun postJobCleaning(
         @Header("Authorization") token: String,
         @Body request: CreateJobRequest
+    ): Response<CreateJobResponse>
+
+    @POST("api/jobs/healthcare")
+    suspend fun postJobHealthcare(
+        @Header("Authorization") token: String,
+        @Body request: CreateJobHealthcareRequest
     ): Response<CreateJobResponse>
 
     // get list job posted by user
@@ -105,4 +131,13 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body request: ChoiceWorkerRequest
     ) : Response<ChoiceWorkerResponse>
+
+    // review worker
+    @POST("api/reviews/create")
+    suspend fun reviewWorker(
+        @Header("Authorization") token: String,
+        @Body request: ReviewWorkerRequest
+    ) : Response<ReviewWorkerResponse>
+
+
 }

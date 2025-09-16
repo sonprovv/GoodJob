@@ -1,4 +1,4 @@
-package com.project.job.ui.service.cleaningservice.adapter
+package com.project.job.ui.service.healthcareservice
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,16 +7,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
+import com.project.job.ui.service.cleaningservice.adapter.DetailServiceCleaningAdapter
 
-class DetailServiceAdapter(private val tasks: List<String>) :
-    RecyclerView.Adapter<DetailServiceAdapter.TaskViewHolder>() {
-    
-    private var isSelected = false
-    
-    fun setSelected(selected: Boolean) {
-        isSelected = selected
-        notifyDataSetChanged()
-    }
+class DetailServiceHealthcareAdapter(private val duties: List<String>) :
+    RecyclerView.Adapter<DetailServiceHealthcareAdapter.TaskViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
@@ -28,23 +22,18 @@ class DetailServiceAdapter(private val tasks: List<String>) :
     }
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
-        holder.bind(tasks[position])
+        holder.bind(duties[position])
     }
 
-    override fun getItemCount(): Int = tasks.size
+    override fun getItemCount(): Int = duties.size
 
     inner class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textView: TextView = itemView.findViewById(R.id.tv_content_detail_job)
-        private val starImageView: ImageView = itemView.findViewById(R.id.iv_star_detail_job)
+        private var starImageView: ImageView = itemView.findViewById(R.id.iv_star_detail_job)
 
         fun bind(task: String) {
             textView.text = task
-            // Update star icon based on selection state
-            if (isSelected) {
-                starImageView.setImageResource(R.drawable.ic_star)
-            } else {
-                starImageView.setImageResource(R.drawable.ic_star_no_select)
-            }
+            starImageView.setImageResource(R.drawable.bg_indicator)
         }
     }
 }

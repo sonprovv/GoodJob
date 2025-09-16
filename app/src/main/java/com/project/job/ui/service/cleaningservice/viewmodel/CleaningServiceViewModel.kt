@@ -90,14 +90,12 @@ class CleaningServiceViewModel : ViewModel() {
         token: String,
         userID: String,
         startTime: String,
-        workerQuantity: Int,
         price: Int,
         listDays: List<String>,
         duration: CleaningDuration,
         isCooking: Boolean,
         isIroning: Boolean,
-        location: String,
-        services: List<CleaningService>
+        location: String
     ) {
         viewModelScope.launch {
             _loading.value = true
@@ -110,14 +108,14 @@ class CleaningServiceViewModel : ViewModel() {
                     userID = userID,
                     serviceType = "CLEANING",
                     startTime = startTime,
-                    workerQuantity = workerQuantity,
+//                    workerQuantity = workerQuantity,
                     price = price,
                     listDays = listDays,
                     duration = duration,
                     isCooking = isCooking,
                     isIroning = isIroning,
-                    location = location,
-                    services = services
+                    location = location
+//                    services = services
                 )
                 Log.d("CleaningServiceViewModel", "Raw response: $response")
 

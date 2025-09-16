@@ -38,12 +38,29 @@ class SelectTimeFragment : Fragment() {
     private lateinit var tvMonthYear: TextView
     private var servicesText = ""
     private var durationDescription = ""
+    private var serviceType = ""
     private var numberOfPeople = 1
-    private var selectedRoomNames = arrayListOf<String>()
-    private var selectedRoomCount = 0
+//    private var selectedRoomNames = arrayListOf<String>()
+//    private var selectedRoomCount = 0
     private var durationWorkingHour = 0
     private var durationFee = 0
     private var durationId = ""
+
+    private var shiftId =""
+    private var shiftWorkingHour = 0
+    private var shiftFee = 0
+    private var numberOfWorker = 0
+    private var numberOfBaby = 0
+    private var numberOfAdult = 0
+    private var numberOfElderly = 0
+    
+    // Service IDs and names
+    private var babyServiceId = ""
+    private var adultServiceId = ""
+    private var elderlyServiceId = ""
+    private var babyServiceName = ""
+    private var adultServiceName = ""
+    private var elderlyServiceName = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,23 +76,41 @@ class SelectTimeFragment : Fragment() {
 
         tvSelectedDates = binding.tvSelectedDates
         tvMonthYear = binding.tvMonthYear
+        serviceType = arguments?.getString("serviceType") ?: ""
         val totalHours = arguments?.getInt("totalHours") ?: 0
         val totalFee = arguments?.getInt("totalFee") ?: 0
         durationDescription = arguments?.getString("durationDescription") ?: ""
         durationWorkingHour = arguments?.getInt("durationWorkingHour") ?: 0
         durationFee = arguments?.getInt("durationFee") ?: 0
         durationId = arguments?.getString("durationId") ?: ""
+
+        shiftId = arguments?.getString("selectedShiftId") ?: ""
+        shiftWorkingHour = arguments?.getInt("selectedShiftWorkingHour") ?: 0
+        shiftFee = arguments?.getInt("selectedShiftFee") ?: 0
+        numberOfBaby = arguments?.getInt("numberBaby", 0) ?: 0
+        numberOfAdult = arguments?.getInt("numberAdult", 0) ?: 0
+        numberOfElderly = arguments?.getInt("numberOld", 0) ?: 0
+        numberOfWorker = arguments?.getInt("numberWorker", 1) ?: 1
+        
+        // Get service IDs and names from arguments
+        babyServiceId = arguments?.getString("babyServiceId") ?: ""
+        adultServiceId = arguments?.getString("adultServiceId") ?: ""
+        elderlyServiceId = arguments?.getString("elderlyServiceId") ?: ""
+        babyServiceName = arguments?.getString("babyServiceName") ?: ""
+        adultServiceName = arguments?.getString("adultServiceName") ?: ""
+        elderlyServiceName = arguments?.getString("elderlyServiceName") ?: ""
+        
         val extraServices = arguments?.getStringArrayList("extraServices") ?: arrayListOf()
-        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
-        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
-        val selectedRooms = SelectedRoomManager.getSelectedRooms()
-        for (room in selectedRooms) {
-            Log.d("SelectTimeFragment", "Received room: $room")
-        }
+//        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
+//        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
+//        val selectedRooms = SelectedRoomManager.getSelectedRooms()
+//        for (room in selectedRooms) {
+//            Log.d("SelectTimeFragment", "Received room: $room")
+//        }
 
         // Debug logging
-        Log.d("SelectTimeFragment", "Received room count: $selectedRoomCount")
-        Log.d("SelectTimeFragment", "Received room names: ${selectedRoomNames.joinToString(", ")}")
+//        Log.d("SelectTimeFragment", "Received room count: $selectedRoomCount")
+//        Log.d("SelectTimeFragment", "Received room names: ${selectedRoomNames.joinToString(", ")}")
 
         val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN"))
             .format(totalFee)
@@ -110,7 +145,7 @@ class SelectTimeFragment : Fragment() {
         setupDayRecyclerView()
         updateTimeDisplay()
 
-        setupNumberOfPeopleInput()
+//        setupNumberOfPeopleInput()
     }
 
     private fun setupToolbar() {
@@ -148,6 +183,7 @@ class SelectTimeFragment : Fragment() {
                 
                 val fragment = ConfirmAndCheckoutFragment().apply {
                     arguments = Bundle().apply {
+                        putString("serviceType", serviceType)
                         putStringArray("selectedDates", dateStrings.toTypedArray())
                         putString("selectedTime", timeString)
                         putInt("totalHours", totalHours)
@@ -158,13 +194,30 @@ class SelectTimeFragment : Fragment() {
                         putInt("durationFee", durationFee)
                         putString("durationId", durationId)
                         putString("serviceExtras", servicesText)
-                        putStringArrayList("selectedRoomNames", selectedRoomNames)
-                        putInt("selectedRoomCount", selectedRoomCount)
+
+                        putString("selectedShiftId", shiftId)
+                        putInt("selectedShiftWorkingHour", shiftWorkingHour)
+                        putInt("selectedShiftFee", shiftFee)
+                        putInt("numberBaby", numberOfBaby)
+                        putInt("numberAdult", numberOfAdult)
+                        putInt("numberOld", numberOfElderly)
+                        putInt("numberWorker", numberOfWorker)
+                        
+                        // Pass service IDs and names to ConfirmAndCheckoutFragment
+                        putString("babyServiceId", babyServiceId)
+                        putString("adultServiceId", adultServiceId)
+                        putString("elderlyServiceId", elderlyServiceId)
+                        putString("babyServiceName", babyServiceName)
+                        putString("adultServiceName", adultServiceName)
+                        putString("elderlyServiceName", elderlyServiceName)
+//                        putStringArrayList("selectedRoomNames", selectedRoomNames)
+//                        putInt("selectedRoomCount", selectedRoomCount)
                         
                         // Debug logging before passing to ConfirmAndCheckoutFragment
-                        Log.d("SelectTimeFragment", "Passing room count to Confirm: $selectedRoomCount")
-                        Log.d("SelectTimeFragment", "Passing room names to Confirm: ${selectedRoomNames.joinToString(", ")}")
+//                        Log.d("SelectTimeFragment", "Passing room count to Confirm: $selectedRoomCount")
+//                        Log.d("SelectTimeFragment", "Passing room names to Confirm: ${selectedRoomNames.joinToString(", ")}")
                         Log.d("SelectTimeFragment", "Passing duration info: id=$durationId, workingHour=$durationWorkingHour, fee=$durationFee")
+                        Log.d("SelectTimeFragment", "Passing service names: baby='$babyServiceName', adult='$adultServiceName', elderly='$elderlyServiceName'")
                     }
                 }
                 
@@ -242,93 +295,93 @@ class SelectTimeFragment : Fragment() {
         }
     }
 
-    private fun setupNumberOfPeopleInput() {
-        binding.edtNumberOfPeople.apply {
-            // Set default value
-            setText(numberOfPeople.toString())
-            
-            // Handle focus change
-            setOnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    validateAndSetPeopleCount()
-                } else {
-                    // Clear error when user starts editing
-                    (parent.parent as? TextInputLayout)?.error = null
-                }
-            }
-            
-            // Handle text changes
-            addTextChangedListener(object : TextWatcher {
-                private var lastValid = "1"
-                
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                    // Keep track of last valid input
-                    if (s?.toString()?.toIntOrNull() in 1..10) {
-                        lastValid = s.toString()
-                    }
-                }
-                
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    s?.toString()?.let { input ->
-                        if (input.isNotEmpty()) {
-                            try {
-                                val number = input.toInt()
-                                if (number > 10) {
-                                    (parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
-                                    numberOfPeople = 10
-                                } else if (number < 1) {
-                                    (parent.parent as? TextInputLayout)?.error = "Tối thiểu 1 người"
-                                    numberOfPeople = 1
-                                } else {
-                                    (parent.parent as? TextInputLayout)?.error = null
-                                    numberOfPeople = number
-                                }
-                            } catch (e: NumberFormatException) {
-                                (parent.parent as? TextInputLayout)?.error = "Vui lòng nhập số"
-                                numberOfPeople = 1
-                            }
-                        } else {
-                            (parent.parent as? TextInputLayout)?.error = null
-                            numberOfPeople = 1
-                        }
-                    }
-                }
-                
-                override fun afterTextChanged(s: Editable?) {
-                    // This will be handled by the focus change
-                }
-            })
-        }
-    }
+//    private fun setupNumberOfPeopleInput() {
+//        binding.edtNumberOfPeople.apply {
+//            // Set default value
+//            setText(numberOfPeople.toString())
+//
+//            // Handle focus change
+//            setOnFocusChangeListener { _, hasFocus ->
+//                if (!hasFocus) {
+//                    validateAndSetPeopleCount()
+//                } else {
+//                    // Clear error when user starts editing
+//                    (parent.parent as? TextInputLayout)?.error = null
+//                }
+//            }
+//
+//            // Handle text changes
+//            addTextChangedListener(object : TextWatcher {
+//                private var lastValid = "1"
+//
+//                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+//                    // Keep track of last valid input
+//                    if (s?.toString()?.toIntOrNull() in 1..10) {
+//                        lastValid = s.toString()
+//                    }
+//                }
+//
+//                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+//                    s?.toString()?.let { input ->
+//                        if (input.isNotEmpty()) {
+//                            try {
+//                                val number = input.toInt()
+//                                if (number > 10) {
+//                                    (parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
+//                                    numberOfPeople = 10
+//                                } else if (number < 1) {
+//                                    (parent.parent as? TextInputLayout)?.error = "Tối thiểu 1 người"
+//                                    numberOfPeople = 1
+//                                } else {
+//                                    (parent.parent as? TextInputLayout)?.error = null
+//                                    numberOfPeople = number
+//                                }
+//                            } catch (e: NumberFormatException) {
+//                                (parent.parent as? TextInputLayout)?.error = "Vui lòng nhập số"
+//                                numberOfPeople = 1
+//                            }
+//                        } else {
+//                            (parent.parent as? TextInputLayout)?.error = null
+//                            numberOfPeople = 1
+//                        }
+//                    }
+//                }
+//
+//                override fun afterTextChanged(s: Editable?) {
+//                    // This will be handled by the focus change
+//                }
+//            })
+//        }
+//    }
     
-    private fun validateAndSetPeopleCount() {
-        val input = binding.edtNumberOfPeople.text.toString().trim()
-        val count = try {
-            when {
-                input.isEmpty() -> 1
-                input.toInt() < 1 -> 1
-                input.toInt() > 10 -> {
-                    (binding.edtNumberOfPeople.parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
-                    10
-                }
-                else -> input.toInt()
-            }
-        } catch (e: NumberFormatException) {
-            1
-        }
-        
-        // Update the numberOfPeople variable regardless of whether it changed
-        numberOfPeople = count
-        
-        // Only update the UI if the displayed value is different
-        if (input != count.toString()) {
-            binding.edtNumberOfPeople.apply {
-                removeTextChangedListener(null) // Remove all text watchers
-                setText(count.toString())
-                setSelection(text.length) // Move cursor to end
-            }
-        }
-    }
+//    private fun validateAndSetPeopleCount() {
+//        val input = binding.edtNumberOfPeople.text.toString().trim()
+//        val count = try {
+//            when {
+//                input.isEmpty() -> 1
+//                input.toInt() < 1 -> 1
+//                input.toInt() > 10 -> {
+//                    (binding.edtNumberOfPeople.parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
+//                    10
+//                }
+//                else -> input.toInt()
+//            }
+//        } catch (e: NumberFormatException) {
+//            1
+//        }
+//
+//        // Update the numberOfPeople variable regardless of whether it changed
+//        numberOfPeople = count
+//
+//        // Only update the UI if the displayed value is different
+//        if (input != count.toString()) {
+//            binding.edtNumberOfPeople.apply {
+//                removeTextChangedListener(null) // Remove all text watchers
+//                setText(count.toString())
+//                setSelection(text.length) // Move cursor to end
+//            }
+//        }
+//    }
 
     private fun updateMonthYearDisplay() {
         val calendar = Calendar.getInstance()
