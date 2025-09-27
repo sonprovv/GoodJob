@@ -11,6 +11,13 @@ class PreferencesManager(context: Context) {
         context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     private val gson = Gson()
 
+    fun saveFCMToken(fcmToken: String) {
+        sharedPreferences.edit().putString("fcm_token", fcmToken).apply()
+    }
+    fun getFCMToken(): String? {
+        return sharedPreferences.getString("fcm_token", "")
+    }
+
     fun saveNameAndPhone(name: String, phone: String) {
         sharedPreferences.edit().putString(KEY_USER_NAME, name).apply()
         sharedPreferences.edit().putString(KEY_USER_PHONE, phone).apply()
@@ -69,10 +76,60 @@ class PreferencesManager(context: Context) {
         }
     }
 
+    // Lưu refresh token
+    fun saveRefreshToken(refreshToken: String) {
+        sharedPreferences.edit().putString(KEY_REFRESH_TOKEN, refreshToken).apply()
+        Log.d("PreferencesManager", "Refresh token saved")
+    }
+
+    // Lấy refresh token
+    fun getRefreshToken(): String? {
+        return sharedPreferences.getString(KEY_REFRESH_TOKEN, null)
+    }
+
+    // Lưu thời gian hết hạn của token (timestamp)
+    fun saveTokenExpirationTime(expirationTime: Long) {
+        sharedPreferences.edit().putLong(KEY_TOKEN_EXPIRATION, expirationTime).apply()
+        Log.d("PreferencesManager", "Token expiration time saved: ${java.util.Date(expirationTime)}")
+    }
+
+    // Lấy thời gian hết hạn của token
+    fun getTokenExpirationTime(): Long {
+        return sharedPreferences.getLong(KEY_TOKEN_EXPIRATION, 0L)
+    }
+
+    // Lưu Google Access Token (từ OAuth)
+    fun saveGoogleAccessToken(accessToken: String) {
+        sharedPreferences.edit().putString(KEY_GOOGLE_ACCESS_TOKEN, accessToken).apply()
+    }
+
+    // Lấy Google Access Token
+    fun getGoogleAccessToken(): String? {
+        return sharedPreferences.getString(KEY_GOOGLE_ACCESS_TOKEN, null)
+    }
+
+    // Kiểm tra trạng thái tokens để debug
+    fun getTokensInfo(): String {
+        val authToken = getAuthToken()
+        val refreshToken = getRefreshToken()
+        val googleAccessToken = getGoogleAccessToken()
+        val expirationTime = getTokenExpirationTime()
+        
+        return """
+            Auth Token: ${if (authToken.isNullOrEmpty()) "None" else "Present (${authToken.length} chars)"}
+            Refresh Token: ${if (refreshToken.isNullOrEmpty()) "None" else "Present (${refreshToken.length} chars)"}
+            Google Access Token: ${if (googleAccessToken.isNullOrEmpty()) "None" else "Present (${googleAccessToken.length} chars)"}
+            Token Expiration: ${if (expirationTime == 0L) "None" else java.util.Date(expirationTime)}
+        """.trimIndent()
+    }
+
     // Xóa tất cả dữ liệu đăng nhập
     fun clearAuthData() {
         sharedPreferences.edit().apply {
             remove(KEY_AUTH_TOKEN)
+            remove(KEY_REFRESH_TOKEN)
+            remove(KEY_GOOGLE_ACCESS_TOKEN)
+            remove(KEY_TOKEN_EXPIRATION)
             remove(KEY_USER_ID)
             remove(KEY_USER_EMAIL)
             remove(KEY_USER_NAME)
@@ -85,6 +142,7 @@ class PreferencesManager(context: Context) {
             remove(KEY_USER_PROVIDER)
             apply()
         }
+        Log.d("PreferencesManager", "All auth data cleared")
     }
 
     // Kiểm tra đã đăng nhập chưa
@@ -110,6 +168,9 @@ class PreferencesManager(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_GOOGLE_ACCESS_TOKEN = "google_access_token"
+        private const val KEY_TOKEN_EXPIRATION = "token_expiration"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USER_EMAIL = "user_email"
         private const val KEY_USER_NAME = "user_name"

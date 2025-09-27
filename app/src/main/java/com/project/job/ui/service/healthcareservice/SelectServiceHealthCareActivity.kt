@@ -1,8 +1,11 @@
 package com.project.job.ui.service.healthcareservice
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -12,24 +15,25 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
-import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.HealthcareShift
 import com.project.job.databinding.ActivitySelectServiceHealthCareBinding
 import com.project.job.ui.intro.CleaningIntroActivity
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
-import com.project.job.ui.service.cleaningservice.CleaningServiceDetailFragment
 import com.project.job.ui.service.cleaningservice.SelectTimeFragment
-import com.project.job.ui.service.cleaningservice.adapter.DurationAdapter
-import com.project.job.utils.SelectedRoomManager
+import com.project.job.ui.service.healthcareservice.adapter.ShiftAdapter
+import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@Suppress("DEPRECATION")
 class SelectServiceHealthCareActivity : AppCompatActivity() {
     private val TAG = "SelectServiceHealthCare"
     private lateinit var binding: ActivitySelectServiceHealthCareBinding
     private lateinit var viewModel: HealthCareViewModel
+    private lateinit var loadingDialog: LoadingDialog
     private var healthcareService: List<HealthcareService?> = emptyList()
     private var currentBasePrice: Int = 0 // To store the base price without extra services
     private var selectedShift: HealthcareShift? = null
@@ -43,6 +47,7 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         binding = ActivitySelectServiceHealthCareBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        loadingDialog = LoadingDialog(this)
 
         // Configure status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -122,6 +127,9 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // Add text change listeners for number inputs
+        setupNumberInputListeners()
+
         binding.cardViewButtonNext.setOnClickListener {
             val numberBaby = binding.edtNumberOfPeopleBaby.text.toString().toIntOrNull() ?: 0
             val numberAdult = binding.edtNumberOfPeopleDisable.text.toString().toIntOrNull() ?: 0
@@ -194,6 +202,53 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupNumberInputListeners() {
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                updateWorkerCount()
+            }
+        }
+
+        binding.edtNumberOfPeopleBaby.addTextChangedListener(textWatcher)
+        binding.edtNumberOfPeopleDisable.addTextChangedListener(textWatcher)
+        binding.edtNumberOfPeopleOlder.addTextChangedListener(textWatcher)
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateWorkerCount() {
+        try {
+            val babies = binding.edtNumberOfPeopleBaby.text.toString().toIntOrNull() ?: 0
+            val disabled = binding.edtNumberOfPeopleDisable.text.toString().toIntOrNull() ?: 0
+            val elderly = binding.edtNumberOfPeopleOlder.text.toString().toIntOrNull() ?: 0
+            
+            // Calculate total people
+            val totalPeople = babies + disabled + elderly
+            
+            // Calculate required workers (total people / 3, rounded up)
+            val requiredWorkers = if (totalPeople > 0) {
+                (totalPeople + 2) / 3  // This is equivalent to Math.ceil(totalPeople / 3.0)
+            } else {
+                1  // Minimum 1 worker
+            }
+            
+            // Get the current worker count before updating
+            val currentWorkerCount = getCurrentWorkerCount()
+            
+            // Update the worker count field
+            binding.edtNumberOfPeople.setText(requiredWorkers.toString())
+            
+            // If worker count changed, update the total price
+            if (requiredWorkers != currentWorkerCount) {
+                updateTotalPrice()
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error calculating worker count: ${e.message}")
+        }
+    }
+
     private fun observeViewModel() {
         lifecycleScope.launch {
             // Collect loading
@@ -205,7 +260,7 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                         binding.ivBack.isEnabled = false
                         binding.ivInfo.isEnabled = false
                         binding.llContentHeader.isEnabled = false
-                        binding.lottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewJobDetail.isEnabled = false
                         binding.cardViewButtonNext.visibility = View.GONE
                     } else {
@@ -213,7 +268,7 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                         binding.ivBack.isEnabled = true
                         binding.ivInfo.isEnabled = true
                         binding.llContentHeader.isEnabled = true
-                        binding.lottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewJobDetail.isEnabled = true
                         binding.cardViewButtonNext.visibility = View.VISIBLE
                     }
@@ -226,11 +281,11 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
             }
             launch {
                 viewModel.shift.collectLatest { shift ->
-                    android.util.Log.d("SelectServiceHealthCareActivity", "Received shift data: ${shift?.size} items")
+                    Log.d("SelectServiceHealthCareActivity", "Received shift data: ${shift.size} items")
                     shift.forEach { shiftItem ->
-                        android.util.Log.d("SelectServiceHealthCareActivity", "Shift: ${shiftItem?.workingHour}h - ${shiftItem?.fee} VND")
+                        Log.d("SelectServiceHealthCareActivity", "Shift: ${shiftItem?.workingHour}h - ${shiftItem?.fee} VND")
                     }
-                    shiftAdapter.submitList(shift ?: emptyList())
+                    shiftAdapter.submitList(shift)
                 }
             }
         }
@@ -240,17 +295,19 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         currentBasePrice = price
         updateTotalPrice()
     }
+    
+    private fun getCurrentWorkerCount(): Int {
+        return binding.edtNumberOfPeople.text.toString().toIntOrNull() ?: 1
+    }
 
+    @SuppressLint("SetTextI18n")
     private fun updateTotalPrice() {
-        val totalPrice = currentBasePrice
-
-        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN"))
-            .format(totalPrice)
+        val workerCount = getCurrentWorkerCount()
+        totalFee = currentBasePrice * totalHours * workerCount
+        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN")).format(totalFee)
         val baseHours = selectedShift?.workingHour ?: 1
-        val totalHours = baseHours
-        this.totalHours = totalHours
-        this.totalFee = totalPrice
-        binding.tvPrice.text = "$formattedPrice VND/${totalHours}h"
+        this.totalHours = baseHours
+        binding.tvPrice.text = "$formattedPrice VND/$totalHours giờ"
     }
 
 }

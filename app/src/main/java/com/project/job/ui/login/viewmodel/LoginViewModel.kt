@@ -3,14 +3,18 @@ package com.project.job.ui.login.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.job.data.repository.TokenRepository
 import com.project.job.data.repository.UserRepository
+import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.UserResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
-    private val userRepository = UserRepository()
+class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
+    private val userRepository = UserRemote.getInstance()
+
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -23,40 +27,54 @@ class LoginViewModel : ViewModel() {
 
     private val _token = MutableStateFlow<String?>(null)
     val token: StateFlow<String?> = _token
-    
-    private val _user = MutableStateFlow<com.project.job.data.source.remote.api.response.User?>(null)
+
+    private val _successPUT = MutableStateFlow<Boolean>(false)
+    val successPUT: StateFlow<Boolean> = _successPUT
+
+    private val _user =
+        MutableStateFlow<com.project.job.data.source.remote.api.response.User?>(null)
     val user: StateFlow<com.project.job.data.source.remote.api.response.User?> = _user
-    
+
+    // Refresh Token từ backend
+    private val _refreshToken = MutableStateFlow<String?>(null)
+    val refreshToken: StateFlow<String?> = _refreshToken
+
     // Google Sign-In
     private val _googleSignInResult = MutableStateFlow<UserResponse?>(null)
     val googleSignInResult: StateFlow<UserResponse?> = _googleSignInResult
 
     // Google Sign-In
-    fun loginWithGoogle(firebaseIdToken: String, role : String) {
+    fun loginWithGoogle(firebaseIdToken: String, fcmToken: String) {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
 
             try {
-                val response = userRepository.loginWithGoogle(firebaseIdToken, "user")
+                val response = userRepository.loginWithGoogle(firebaseIdToken)
                 Log.d("LoginViewModel", "Google Sign-In response: $response")
-                
-                if (response.isSuccessful) {
-                    val authResponse = response.body()
-                    if (authResponse != null && authResponse.success) {
-                        _error.value = null
-                        _token.value = authResponse.data.token
-                        _user.value = authResponse.data.user
-                        _googleSignInResult.value = authResponse
-                        Log.d("LoginViewModel", "Google Sign-In successful: $authResponse")
-                    } else {
-                        _error.value = authResponse?.message ?: "Authentication failed"
-                        Log.e("LoginViewModel", "Google Sign-In failed: ${authResponse?.message}")
+
+                when (response) {
+                    is NetworkResult.Success -> {
+                        val authResponse = response.data
+
+                        if (authResponse != null && authResponse.success) {
+                            _error.value = null
+                            _token.value = authResponse.data.token
+                            _user.value = authResponse.data.user
+                            _googleSignInResult.value = authResponse
+                            tokenRepository.saveAccessToken(authResponse.data.token)
+                            tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
+                            postFCMToken(fcmToken = fcmToken)
+                        } else {
+                            _error.value = authResponse?.message ?: "Login failed"
+                            _googleSignInResult.value = null
+                        }
                     }
-                } else {
-                    val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                    _error.value = "Error: ${response.code()} - $errorBody"
-                    Log.e("LoginViewModel", "Google Sign-In error: ${response.code()} - $errorBody")
+
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "Login failed"
+                        _googleSignInResult.value = null
+                    }
                 }
             } catch (e: Exception) {
                 _error.value = e.message ?: "An error occurred"
@@ -67,7 +85,7 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    fun fetchLogin(email: String, password: String) {
+    fun fetchLogin(email: String, password: String, fcmToken: String) {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
@@ -75,22 +93,24 @@ class LoginViewModel : ViewModel() {
             try {
                 val response = userRepository.login(email, password)
                 Log.d("LoginViewModel", "Login response: $response")
-                
-                if (response.isSuccessful) {
-                    val authResponse = response.body()
-                    if (authResponse != null && authResponse.success) {
-                        _error.value = null
-                        _token.value = authResponse.data.token
-                        _user.value = authResponse.data.user
-                        _loginResult.value = authResponse
-                        Log.d("LoginViewModel", "Login successful: $authResponse")
-                    } else {
-                        _error.value = authResponse?.message ?: "Login failed"
-                        _loginResult.value = null
+                when (response) {
+                    is NetworkResult.Success -> {
+                        val authResponse = response.data
+                        if (authResponse != null && authResponse.success) {
+                            _error.value = null
+                            _token.value = authResponse.data.token
+                            _user.value = authResponse.data.user
+                            tokenRepository.saveAccessToken(authResponse.data.token)
+                            tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
+                            tokenRepository.saveFcmToken(fcmToken)
+                        } else {
+                            _error.value = authResponse?.message ?: "Login failed"
+                        }
                     }
-                } else {
-                    _error.value = response.message() ?: "Login failed"
-                    _loginResult.value = null
+
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "Login failed"
+                    }
                 }
 
             } catch (e: Exception) {
@@ -104,27 +124,23 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    fun postFCMToken(clientID: String, fcmToken: String) {
+    fun postFCMToken(fcmToken: String) {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
 
             try {
-                val response = userRepository.postFcmToken(clientID, fcmToken)
+                val response = userRepository.postFcmToken(fcmToken)
                 Log.d("LoginViewModel", "Post FCM Token response: $response")
 
-                if (response.isSuccessful) {
-                    val fcmResponse = response.body()
-                    if (fcmResponse != null && fcmResponse.success) {
-                        _error.value = null
-                        Log.d("LoginViewModel", "Post FCM Token successful: $fcmResponse")
-                    } else {
-                        _error.value = fcmResponse?.message ?: "Posting FCM token failed"
-                        Log.e("LoginViewModel", "Post FCM Token failed: ${fcmResponse?.message}")
+                when(response){
+                    is NetworkResult.Success -> {
+                        val fcmResponse = response.data
+                        Log.d("LoginViewModel", "Post FCM Token response: $fcmResponse")
                     }
-                } else {
-                    _error.value = response.message() ?: "Posting FCM token failed"
-                    Log.e("LoginViewModel", "Post FCM Token error: ${response.code()} - ${response.message()}")
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "Post FCM Token failed"
+                    }
                 }
 
             } catch (e: Exception) {
@@ -132,6 +148,35 @@ class LoginViewModel : ViewModel() {
                 _error.value = e.message
             } finally {
                 Log.e("LoginViewModel", "Post FCM Token finally")
+                _loading.value = false
+            }
+
+        }
+    }
+
+    fun putFCMToken(fcmToken: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            _successPUT.value = false
+            try {
+                val response = userRepository.deleteFcmToken(fcmToken)
+                Log.d("LoginViewModel", "Delete FCM Token response: $response")
+                when(response){
+                    is NetworkResult.Success -> {
+                        val fcmResponse = response.data
+                        Log.d("LoginViewModel", "Delete FCM Token response: $fcmResponse")
+                    }
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "Delete FCM Token failed"
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Delete FCM Token error: ${e.message}")
+                _error.value = e.message
+            } finally {
+                Log.e("LoginViewModel", "Delete FCM Token finally")
                 _loading.value = false
             }
 

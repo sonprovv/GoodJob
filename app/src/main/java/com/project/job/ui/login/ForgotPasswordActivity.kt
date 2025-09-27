@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
 import com.project.job.databinding.ActivityForgotPasswordBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.ForgotPasswordViewModel
 import com.project.job.utils.hideKeyboard
 import kotlinx.coroutines.flow.collectLatest
@@ -28,13 +29,13 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private lateinit var viewModel: ForgotPasswordViewModel
     private var currentStep = 1 // 1: Email, 2: Code & Password
     private var code: String = ""
-
+    private lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityForgotPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        loadingDialog = LoadingDialog(this)
         viewModel = ViewModelProvider(this)[ForgotPasswordViewModel::class.java]
 
         // Configure status bar
@@ -142,7 +143,12 @@ class ForgotPasswordActivity : AppCompatActivity() {
     private fun observeViewModel() {
         lifecycleScope.launch {
             viewModel.loading.collectLatest { isLoading ->
-                binding.lottieLoader.isVisible = isLoading
+                if(isLoading) {
+                    loadingDialog.show()
+                }
+                else {
+                    loadingDialog.hide()
+                }
                 binding.cardViewBtnLogin.isEnabled = !isLoading
             }
         }
@@ -216,7 +222,7 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
         val email = binding.edtEmail.text.toString().trim()
         binding.edtPassword.hideKeyboard()
-        viewModel.forgotPassword(email, newPassword, confirmPassword, code, codeEnter)
+        viewModel.forgotPassword(email=email, newPassword=newPassword, code=code, confirmPassword=confirmPassword, codeEnter=codeEnter)
     }
 
     private fun updateUIForStep(step: Int) {

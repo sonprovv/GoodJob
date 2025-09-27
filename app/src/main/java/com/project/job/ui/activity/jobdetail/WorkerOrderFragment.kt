@@ -6,12 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
-import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentWorkerOrderBinding
 import com.project.job.ui.activity.jobdetail.adapter.WorkerAdapter
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
-import com.project.job.ui.activity.jobdetail.viewmodel.ChoideWorkerViewModel
+import com.project.job.ui.activity.jobdetail.viewmodel.ChoiceWorkerViewModel
 import com.project.job.ui.reviewworker.ReviewWorkerFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -22,7 +21,7 @@ class WorkerOrderFragment : Fragment() {
     private lateinit var workerAdapter: WorkerAdapter
     private var jobId: String? = null
     private lateinit var viewModel: JobDetailViewModel
-    private lateinit var choideWorkerViewModel: ChoideWorkerViewModel
+    private lateinit var choideWorkerViewModel: ChoiceWorkerViewModel
     private lateinit var preferencesManager: PreferencesManager
 
     companion object {
@@ -58,7 +57,7 @@ class WorkerOrderFragment : Fragment() {
         preferencesManager = PreferencesManager(requireContext())
         val token = preferencesManager.getAuthToken()?:""
         viewModel = JobDetailViewModel()
-        choideWorkerViewModel = ChoideWorkerViewModel()
+        choideWorkerViewModel = ChoiceWorkerViewModel()
 
         workerAdapter = WorkerAdapter(
             viewModel = choideWorkerViewModel,
@@ -67,7 +66,7 @@ class WorkerOrderFragment : Fragment() {
             onWorkerStatusChanged = {
                 // Refresh data sau khi thay đổi status worker (accept/reject)
                 jobId?.let { id ->
-                    viewModel.getListWorker(token, id)
+                    viewModel.getListWorker(id)
                 }
             },
             onViewDetailClicked = { worker ->
@@ -80,7 +79,7 @@ class WorkerOrderFragment : Fragment() {
         
         // Use jobId here to load worker data
         jobId?.let { id ->
-           viewModel.getListWorker(token, id)
+           viewModel.getListWorker(id)
         }
 
         observeViewModel()
@@ -128,7 +127,7 @@ class WorkerOrderFragment : Fragment() {
                             // Refresh data sau khi thành công
                             val token = preferencesManager.getAuthToken() ?: ""
                             jobId?.let { id ->
-                                viewModel.getListWorker(token, id)
+                                viewModel.getListWorker(id)
                             }
                         }
                     }
@@ -158,7 +157,7 @@ class WorkerOrderFragment : Fragment() {
         
         // Có thể truyền data worker qua Bundle nếu cần
         val bundle = Bundle().apply {
-            putString("worker_id", worker.uid)
+            putString("worker_id", worker.worker.uid)
             putString("worker_name", worker.worker.username)
             putString("worker_birthdate", worker.worker.dob)
             putString("worker_phone", worker.worker.tel)
@@ -168,6 +167,7 @@ class WorkerOrderFragment : Fragment() {
             putString("worker_status", worker.status)
             putString("worker_avatar", worker.worker.avatar)
             putString("worker_description", worker.worker.description)
+            putString("service_type", worker.serviceType)
         }
         reviewWorkerFragment.arguments = bundle
         

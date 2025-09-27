@@ -344,24 +344,4 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Loading Animation Overlay -->
-    <FrameLayout
-        android:id="@+id/loading_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#80000000"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone">
-
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/lottieLoader"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_gravity="center"
-            app:lottie_rawRes="@raw/loading_animation"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true" />
-    </FrameLayout>
-
 </RelativeLayout>

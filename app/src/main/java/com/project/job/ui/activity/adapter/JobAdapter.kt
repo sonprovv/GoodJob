@@ -36,7 +36,7 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
         val view = LayoutInflater.from(parent.context).inflate(
-            R.layout.item_job_history,
+            R.layout.item_job_activity,
             parent,
             false
         )

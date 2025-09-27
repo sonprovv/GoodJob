@@ -1,10 +1,7 @@
 package com.project.job.ui.service.healthcareservice
 
 import android.app.Dialog
-import android.graphics.Typeface
 import android.os.Bundle
-import android.text.TextUtils
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +16,9 @@ import com.project.job.R
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.HealthcareShift
 import com.project.job.databinding.FragmentHealthcareServiceDetailBinding
+import com.project.job.ui.service.healthcareservice.adapter.TabLayoutHealthcareAdapter
 
+@Suppress("DEPRECATION")
 class HealthcareServiceDetailFragment(private val healthcareService: List<HealthcareService?>) : BottomSheetDialogFragment() {
     private var _binding: FragmentHealthcareServiceDetailBinding? = null
     private val binding get() = _binding!!

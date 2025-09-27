@@ -39,13 +39,23 @@
         android:theme="@style/Theme.GoodJob"
         tools:targetApi="31">
         <activity
-            android:name=".ui.service.healthcareservice.SelectServiceHealthCareActivity"
-            android:windowSoftInputMode="adjustPan|stateHidden"
+            android:name=".ui.chatbot.ChatBotActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".ui.reviewworker.ReviewerActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.activity.jobdetail.JobDetailActivity"
-            android:windowSoftInputMode="adjustResize"
+            android:name=".ui.notification.NotificationActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.service.healthcareservice.SelectServiceHealthCareActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+        <activity
+            android:name=".ui.activity.jobdetail.JobDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.login.ChangPasswordActivity"
             android:exported="false" />

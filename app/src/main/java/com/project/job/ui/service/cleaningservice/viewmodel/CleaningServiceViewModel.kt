@@ -3,7 +3,8 @@ package com.project.job.ui.service.cleaningservice.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.repository.ServiceRepository
+import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.ServiceRemote
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class CleaningServiceViewModel : ViewModel() {
-    private val serviceRepository = ServiceRepository()
+    private val serviceRepository = ServiceRemote.getInstance()
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -37,41 +38,19 @@ class CleaningServiceViewModel : ViewModel() {
                 Log.d("CleaningServiceViewModel", "Raw response: $response")
 
                 // Log the raw response body as string
-                val responseBody = response.errorBody()?.string()
+                val responseBody = response
                 Log.d("CleaningServiceViewModel", "Response body: $responseBody")
 
-                if (response.isSuccessful) {
-                    val serviceResponse = response.body()
-                    Log.d("CleaningServiceViewModel", "Parsed response: $serviceResponse")
-
-                    if (serviceResponse?.success == true) {
-                        serviceResponse.data?.let { data ->
-                            if (data.services.isNotEmpty() && data.durations.isNotEmpty()) {
-                                _error.value = null
-                                _cleaningdata.value = data.services
-                                _durations.value = data.durations
-                                Log.d("CleaningServiceViewModel", "Data loaded successfully")
-                            } else {
-                                val errorMsg = "No service data available"
-                                Log.e("CleaningServiceViewModel", errorMsg)
-                                _error.value = errorMsg
-                            }
-                        } ?: run {
-                            val errorMsg = "No data received from server"
-                            Log.e("CleaningServiceViewModel", errorMsg)
-                            _error.value = errorMsg
-                        }
-                    } else {
-                        val errorMsg =
-                            serviceResponse?.message ?: "Failed to load cleaning services"
-                        Log.e("CleaningServiceViewModel", errorMsg)
-                        _error.value = errorMsg
+                when(response) {
+                    is NetworkResult.Success -> {
+                        _durations.value = response.data!!.durations
+                        _cleaningdata.value = response.data!!.services
                     }
-                } else {
-                    val errorMsg = response.message().takeIf { it.isNotBlank() }
-                        ?: "Failed to load cleaning services. Code: ${response.code()}"
-                    Log.e("CleaningServiceViewModel", "API Error: $errorMsg")
-                    _error.value = errorMsg
+                    is NetworkResult.Error -> {
+                        _error.value = response.message.takeIf { it.isNotBlank() }
+                            ?: "Failed to load cleaning services. Code: ${response.message}"
+                    }
+
                 }
 
             } catch (e: Exception) {
@@ -87,7 +66,6 @@ class CleaningServiceViewModel : ViewModel() {
     }
 
     fun postServiceCleaning(
-        token: String,
         userID: String,
         startTime: String,
         price: Int,
@@ -104,7 +82,6 @@ class CleaningServiceViewModel : ViewModel() {
             try {
                 Log.d("CleaningServiceViewModel", "Fetching cleaning services...")
                 val response = serviceRepository.postJobCleaning(
-                    token = token,
                     userID = userID,
                     serviceType = "CLEANING",
                     startTime = startTime,
@@ -119,13 +96,14 @@ class CleaningServiceViewModel : ViewModel() {
                 )
                 Log.d("CleaningServiceViewModel", "Raw response: $response")
 
-                if (response.isSuccessful) {
-                    _success_post.value = true
-                } else {
-                    val errorMsg = response.message().takeIf { it.isNotBlank() }
-                        ?: "Failed to load cleaning services. Code: ${response.code()}"
-                    Log.e("CleaningServiceViewModel", "API Error: $errorMsg")
-                    _error.value = errorMsg
+                when(response) {
+                    is NetworkResult.Success -> {
+                        _success_post.value = true
+                    }
+                    is NetworkResult.Error -> {
+                        _error.value = response.message.takeIf { it.isNotBlank() }
+                            ?: "Failed to load cleaning services. Code: ${response.message}"
+                    }
                 }
 
             } catch (e: Exception) {
@@ -139,3 +117,4 @@ class CleaningServiceViewModel : ViewModel() {
         }
     }
 }
+

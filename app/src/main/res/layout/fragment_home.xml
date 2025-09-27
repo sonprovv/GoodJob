@@ -24,16 +24,27 @@
         <!-- Text overlay -->
         <TextView
             android:id="@+id/tv_header_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_marginEnd="12dp"
+            android:ellipsize="end"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="48dp"
             android:text="Hôm nay bạn thế nào?"
             android:textColor="@android:color/white"
             android:textSize="24sp"
+            app:layout_constraintEnd_toStartOf="@+id/iv_notification"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageView
+            android:id="@+id/iv_notification"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:elevation="40dp"
+            android:src="@drawable/ic_bell_white"
+            app:layout_constraintEnd_toEndOf="@id/card_view_login"
+            app:layout_constraintTop_toTopOf="@id/tv_header_text" />
         <androidx.cardview.widget.CardView
             android:id="@+id/card_view_login"
             android:layout_width="match_parent"
@@ -478,19 +489,6 @@
             app:layout_constraintBottom_toBottomOf="@id/tv_title_reward"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tv_title_reward" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_reward"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_xem_them"
-            tools:itemCount="5"
-            tools:listitem="@layout/item_reward" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>
 

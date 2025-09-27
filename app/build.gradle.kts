@@ -106,7 +106,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.2")
     implementation("com.google.firebase:firebase-messaging-ktx")
-    
+
     // Lottie Animation
     implementation("com.airbnb.android:lottie:6.4.0")
 

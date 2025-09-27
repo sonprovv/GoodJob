@@ -7,7 +7,8 @@ data class UserResponse (
 )
 data class DataUser(
     val user: User,
-    val token: String
+    val token: String,
+    val refreshToken: String
 )
 data class User(
     val uid: String = "",

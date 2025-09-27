@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -14,17 +16,24 @@ import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.project.job.MainActivity
+import com.project.job.data.repository.TokenRepository
 import com.project.job.databinding.FragmentProfileBinding
+import com.project.job.ui.chatbot.ChatBotActivity
 import com.project.job.ui.login.ChangPasswordActivity
 import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
+import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment(), LoginResultListener {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var viewModel: LoginViewModel
 
     private val updateProfileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -94,12 +103,19 @@ class ProfileFragment : Fragment(), LoginResultListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Initialize preferences manager
         preferencesManager = PreferencesManager(requireContext())
+        // Initialize ViewModel
+        viewModel = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
+
         
         // Update UI based on login state
         updateUI()
+
+        binding.llHelp.setOnClickListener {
+            val intent = Intent(requireContext(), ChatBotActivity::class.java)
+            startActivity(intent)
+        }
 
         binding.cardViewButtonLogin.setOnClickListener {
             // Open LoginFragment
@@ -109,6 +125,8 @@ class ProfileFragment : Fragment(), LoginResultListener {
         }
 
         binding.llLogout.setOnClickListener {
+            val token = preferencesManager.getAuthToken() ?: ""
+            val fcmToken = preferencesManager.getFCMToken() ?: ""
             // Sign out from Google
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -121,6 +139,7 @@ class ProfileFragment : Fragment(), LoginResultListener {
                 preferencesManager.clearAuthData()
                 updateUI()
             }
+            viewModel.putFCMToken(fcmToken)
         }
 
         binding.llChangePass.setOnClickListener{
@@ -132,7 +151,34 @@ class ProfileFragment : Fragment(), LoginResultListener {
             val intent = Intent(requireContext(), UpdateProfileActivity::class.java)
             updateProfileLauncher.launch(intent)
         }
+        observeViewModel()
     }
-
-
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            // Collect loading
+            launch {
+                viewModel.loading.collectLatest { isLoading ->
+                    // Xử lý trạng thái loading tại đây
+                    if (isLoading) {
+                        // Hiển thị ProgressBar hoặc trạng thái loading
+                        (activity as? MainActivity)?.showLoading()
+                    } else {
+                        // Ẩn ProgressBar khi không còn loading
+                        (activity as? MainActivity)?.hideLoading()
+                    }
+                }
+            }
+            launch {
+                viewModel.successPUT.collectLatest { isSuccess ->
+                    if (isSuccess) {
+                        Toast.makeText(requireContext(), "Đăng xuất thành công", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

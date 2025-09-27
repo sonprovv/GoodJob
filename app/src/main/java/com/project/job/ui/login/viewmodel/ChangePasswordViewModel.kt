@@ -3,13 +3,16 @@ package com.project.job.ui.login.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.repository.UserRepository
+import com.project.job.data.repository.TokenRepository
+import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.UserRemote
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ChangePasswordViewModel : ViewModel() {
-    private val userRepository = UserRepository()
+    private val userRepository = UserRemote.getInstance()
+
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -25,28 +28,23 @@ class ChangePasswordViewModel : ViewModel() {
             _loading.value = true
             _error.value = null
             try {
-                val response = userRepository.changPassword(token=token, newPassword=newPassword, confirmPassword=confirmPassword)
+                val response = userRepository.changPassword(
+                    newPassword = newPassword,
+                    confirmPassword = confirmPassword
+                )
                 Log.d("ChangePasswordViewModel", "ChangePassword response: $response")
-                Log.d("ChangePasswordViewModel", "ChangePassword response: $token, $newPassword, $confirmPassword")
-
-                if (response.isSuccessful) {
-                    val userResponse = response.body()
-                    if (userResponse != null && userResponse.success) {
-                        _error.value = null
-                        Log.d("ChangePasswordViewModel", "ChangePassword successful: $userResponse")
-                        _success.value = true
-                    } else {
-                        _error.value = userResponse?.message ?: "ChangePassword failed"
-                    }
-                } else {
-                    _error.value = response.message() ?: "ChangePassword failed"
+                Log.d(
+                    "ChangePasswordViewModel",
+                    "ChangePassword response: $token, $newPassword, $confirmPassword"
+                )
+                if (response is NetworkResult.Success) {
+                    _success.value = true
+                } else if (response is NetworkResult.Error) {
+                    _error.value = response.message
                 }
-
             } catch (e: Exception) {
-                Log.e("ChangePasswordViewModel", "ChangePassword error: ${e.message}")
-                _error.value = e.message
+                _error.value = e.message ?: "An unexpected error occurred"
             } finally {
-                Log.e("ChangePasswordViewModel", "ChangePassword finally")
                 _loading.value = false
             }
         }

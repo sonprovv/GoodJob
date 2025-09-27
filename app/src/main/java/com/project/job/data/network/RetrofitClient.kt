@@ -3,6 +3,9 @@ package com.project.job.data.network
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import com.project.job.data.repository.TokenRepository
+import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.interceptor.AuthInterceptor
 import com.project.job.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -13,16 +16,10 @@ object RetrofitClient {
     private const val BASE_URL = Constant.BASE_URL
     private const val TAG = "RetrofitClient"
     
-    // Application context
-    private var _context: Context? = null
-    val context: Context
-        get() = _context ?: throw IllegalStateException("RetrofitClient not initialized. Call initialize() first.")
-    
-    fun initialize(context: Context) {
-        _context = context.applicationContext
-    }
-    
-    fun isInitialized(): Boolean = _context != null
+    private var isInitialized = false
+    private lateinit var tokenRepository: TokenRepository
+    private lateinit var httpClient: OkHttpClient
+    private lateinit var _apiService: ApiService
 
     private val loggingInterceptor = HttpLoggingInterceptor { message ->
         Log.d(TAG, message)
@@ -30,16 +27,35 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val httpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
+    fun initialize(context: Context) {
+        if (!isInitialized) {
+            val preferencesManager = PreferencesManager(context)
+            tokenRepository = TokenRepository(preferencesManager)
+            
+            httpClient = OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .addInterceptor(AuthInterceptor(tokenRepository = tokenRepository))
+                .build()
 
-    val apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+            _apiService = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ApiService::class.java)
+                
+            isInitialized = true
+            Log.d(TAG, "RetrofitClient initialized successfully")
+        }
     }
+
+    val apiService: ApiService
+        get() {
+            if (!isInitialized) {
+                throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
+            }
+            return _apiService
+        }
+        
+    fun isInitialized(): Boolean = isInitialized
 }

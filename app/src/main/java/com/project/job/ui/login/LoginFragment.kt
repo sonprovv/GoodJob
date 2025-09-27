@@ -1,5 +1,6 @@
 package com.project.job.ui.login
 
+import android.app.Application
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -22,20 +23,30 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.project.job.JobApplication
+import com.project.job.MainActivity
 import com.project.job.R
+import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.databinding.FragmentLoginBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
 import com.project.job.utils.getFCMToken
+import com.project.job.utils.TokenManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 
 class LoginFragment : BottomSheetDialogFragment() {
     private var loginResultListener: LoginResultListener? = null
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
+    private lateinit var loadingDialog: LoadingDialog
     fun setLoginResultListener(listener: LoginResultListener) {
         this.loginResultListener = listener
     }
@@ -43,15 +54,16 @@ class LoginFragment : BottomSheetDialogFragment() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var viewModel: LoginViewModel
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var tokenManager: TokenManager
     private val auth: FirebaseAuth by lazy {
         FirebaseAuth.getInstance()
     }
+    private var fcmToken = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Set style trong onCreate, không cần lặp lại trong onCreateView
         setStyle(STYLE_NORMAL, R.style.BottomSheetDialog)
-        preferencesManager = PreferencesManager(requireContext())
 
         // Cấu hình Google Sign-In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -102,12 +114,14 @@ class LoginFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Set background bo tròn cho view chính
         view.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_login)
-
-        viewModel = LoginViewModel()
-
+        preferencesManager = PreferencesManager(requireContext())
+        tokenManager = TokenManager.getInstance(requireContext())
+        fcmToken = preferencesManager.getFCMToken() ?: ""
+        Log.d(TAG, "FCM Token: ${fcmToken.toString()}")
+        viewModel = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
+        loadingDialog = LoadingDialog(requireActivity())
         // Xử lý sự kiện đăng nhập thường
         binding.btnLogin.setOnClickListener {
             val intent = Intent(requireContext(), LoginActivity::class.java)
@@ -146,21 +160,23 @@ class LoginFragment : BottomSheetDialogFragment() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
-                    // Get Firebase ID token
-                    task.result?.user?.getIdToken(true)?.addOnCompleteListener { tokenTask ->
-                        if (tokenTask.isSuccessful) {
-                            val firebaseIdToken = tokenTask.result?.token
+                    Log.d(TAG, "Firebase authentication successful")
+                    
+                    // Sử dụng TokenManager để lấy Firebase ID token
+                    lifecycleScope.launch {
+                        try {
+                            val firebaseIdToken = tokenManager.getCurrentFirebaseToken(forceRefresh = false)
                             if (firebaseIdToken != null) {
-                                Log.d(TAG, "Firebase ID token obtained successfully")
-                                // Send this token to your backend
-                                viewModel.loginWithGoogle(firebaseIdToken, "user")
+                                Log.d(TAG, "Firebase ID token obtained via TokenManager")
+                                // Gửi token này đến backend
+                                viewModel.loginWithGoogle(idToken, fcmToken = fcmToken)
                             } else {
-                                Log.e(TAG, "Firebase ID token is null")
+                                Log.e(TAG, "Failed to get Firebase ID token via TokenManager")
                                 showError("Failed to get authentication token")
                             }
-                        } else {
-                            Log.e(TAG, "Failed to get ID token", tokenTask.exception)
-                            showError("Authentication failed: ${tokenTask.exception?.message}")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error getting Firebase token via TokenManager", e)
+                            showError("Authentication failed: ${e.message}")
                         }
                     }
                 } else {
@@ -178,11 +194,11 @@ class LoginFragment : BottomSheetDialogFragment() {
                         // Xử lý trạng thái loading tại đây
                         if (isLoading) {
                             // Hiển thị ProgressBar hoặc trạng thái loading
-                            binding.lottieLoader.visibility = View.VISIBLE
+                            loadingDialog.show()
                             binding.ivGoogleLogin.isEnabled = false // Vô hiệu hóa nút đăng nhập
                         } else {
                             // Ẩn ProgressBar khi không còn loading
-                            binding.lottieLoader.visibility = View.GONE
+                            loadingDialog.hide()
                             binding.ivGoogleLogin.isEnabled = true // Kích hoạt lại nút đăng nhập
                         }
                     }
@@ -192,8 +208,6 @@ class LoginFragment : BottomSheetDialogFragment() {
                         if (user != null) {
                             Log.d(TAG, "User data received: $user")
                             preferencesManager.saveUser(user)
-                            val fcmtoken = getFCMToken().toString()
-                            viewModel.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
 
                             // Dismiss the fragment when user data is received
                             if (isAdded && !isRemoving) {
@@ -209,6 +223,18 @@ class LoginFragment : BottomSheetDialogFragment() {
                         if (token != null) {
                             Log.d(TAG, "Token received: $token")
                             preferencesManager.saveAuthToken(token)
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.refreshToken.collect { refreshToken ->
+                        if (refreshToken != null) {
+                            Log.d(TAG, "Backend refresh token received: ${refreshToken.take(10)}...")
+                            preferencesManager.saveRefreshToken(refreshToken)
+                            
+                            // Log trạng thái tokens để debug
+                            Log.d(TAG, "All tokens saved. Current status:\n${preferencesManager.getTokensInfo()}")
                         }
                     }
                 }
@@ -234,14 +260,51 @@ class LoginFragment : BottomSheetDialogFragment() {
         try {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             val account = task.getResult(ApiException::class.java)
+//            val account = GoogleSignIn.getLastSignedInAccount(requireContext())
+//                ?: throw ApiException(com.google.android.gms.common.api.Status.RESULT_CANCELED)
+            // 1. Dùng ID Token login Firebase
             account.idToken?.let { token ->
+                Log.d(TAG, "idTokenPP: ${token}")
                 firebaseAuthWithGoogle(token)
             } ?: showError("No ID token found")
+
+            // 2. Lưu thông tin Google account (không cần exchange tokens)
+            account.serverAuthCode?.let { authCode ->
+                Log.d(TAG, "Server auth code received: ${authCode.take(10)}...")
+                // Lưu auth code để có thể sử dụng sau này nếu cần
+                // Nhưng không exchange ngay vì cần client_secret
+                Log.d(TAG, "Server auth code saved for potential backend exchange")
+            }
+
         } catch (e: ApiException) {
             Log.e(TAG, "Google sign in failed", e)
             showError("Google sign in failed: ${e.statusCode}")
         }
     }
+
+    /**
+     * ⚠️ KHÔNG SỬ DỤNG PHƯƠNG THỨC NÀY TRONG PRODUCTION
+     * 
+     * Lý do: Client Secret không nên được hardcode trong Android app vì:
+     * 1. Không an toàn - có thể bị reverse engineer
+     * 2. Google không khuyến khích sử dụng client secret trong mobile apps
+     * 3. Firebase ID Token đã đủ để authenticate với backend
+     * 
+     * Thay vào đó:
+     * - Sử dụng Firebase ID Token để authenticate với backend
+     * - Backend sẽ verify Firebase token và tạo session riêng
+     * - Hoặc backend exchange auth code với client secret (an toàn hơn)
+     */
+    private fun exchangeAuthCodeForTokens_DEPRECATED(authCode: String): TokenResponse? {
+        // KHÔNG SỬ DỤNG - Chỉ để tham khảo
+        return null
+    }
+
+    data class TokenResponse(
+        val accessToken: String,
+        val refreshToken: String?,
+        val expiresIn: Long
+    )
 
     private fun saveAuthData(authResponse: UserResponse) {
         // Lưu token và thông tin người dùng vào SharedPreferences

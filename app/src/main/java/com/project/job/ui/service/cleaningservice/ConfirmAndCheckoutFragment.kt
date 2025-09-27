@@ -16,10 +16,10 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.CleaningDuration
-import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.databinding.FragmentConfirmAndCheckoutBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
-import com.project.job.ui.service.healthcareservice.HealthCareViewModel
+import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
 import com.project.job.utils.SelectedRoomManager
 import com.project.job.utils.UserDataBroadcastManager
 import kotlinx.coroutines.flow.collectLatest
@@ -34,6 +34,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
     private lateinit var viewModelCleaning: CleaningServiceViewModel
     private lateinit var viewModelHealthCare: HealthCareViewModel
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var loadingDialog: LoadingDialog
 
     private val userDataUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -60,7 +61,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        loadingDialog = LoadingDialog(requireActivity())
         viewModelCleaning = CleaningServiceViewModel()
         viewModelHealthCare = HealthCareViewModel()
 
@@ -252,7 +253,6 @@ class ConfirmAndCheckoutFragment : Fragment() {
             if(serviceType == "cleaning") {
                 Log.d("ConfirmCheckout", "Cleaning service type detected")
                 viewModelCleaning.postServiceCleaning(
-                    token = token,
                     userID = uid,
                     startTime = selectedTime,
 //                workerQuantity = numberOfPeople,
@@ -323,7 +323,6 @@ class ConfirmAndCheckoutFragment : Fragment() {
                 Log.d("ConfirmCheckout", "Final services list: $services")
                 
                 viewModelHealthCare.postServiceHealthcare(
-                    token = token,
                     userID = uid,
                     startTime = selectedTime,
                     price = totalFee,
@@ -348,12 +347,12 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.flLoading.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewButtonPostJob.isEnabled =
                             false // Vô hiệu hóa nút đăng nhập
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.flLoading.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewButtonPostJob.isEnabled =
                             true // Kích hoạt lại nút đăng nhập
                     }
@@ -364,12 +363,12 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.flLoading.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewButtonPostJob.isEnabled =
                             false // Vô hiệu hóa nút đăng nhập
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.flLoading.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewButtonPostJob.isEnabled =
                             true // Kích hoạt lại nút đăng nhập
                     }

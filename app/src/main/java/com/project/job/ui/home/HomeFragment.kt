@@ -22,10 +22,10 @@ import com.project.job.ui.home.adapter.BannerAdapter
 import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.map.MapActivity
+import com.project.job.ui.notification.NotificationActivity
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
 import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActivity
 import com.project.job.utils.UserDataBroadcastManager
-import com.project.job.utils.getFCMToken
 
 class HomeFragment : Fragment(), LoginResultListener {
     private var _binding: FragmentHomeBinding? = null
@@ -71,7 +71,14 @@ class HomeFragment : Fragment(), LoginResultListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
+        preferencesManager = PreferencesManager(requireContext())
+
+        binding.ivNotification.setOnClickListener {
+            val intent = Intent(requireContext(), NotificationActivity::class.java)
+            startActivity(intent)
+        }
+
         // Register broadcast receiver
         registerUserDataReceiver()
         
@@ -119,7 +126,7 @@ class HomeFragment : Fragment(), LoginResultListener {
             }
         }
         binding.llItemService3.setOnClickListener {
-            getFCMToken()
+//            getFCMToken()
         }
         checkLoginStatus()
     }
@@ -222,12 +229,11 @@ class HomeFragment : Fragment(), LoginResultListener {
 
     }
     private fun checkLoginStatus() {
-        preferencesManager = PreferencesManager(requireContext())
         val isLoggedIn = preferencesManager.getAuthToken() != null
         
         // Update UI based on login status
         if (isLoggedIn) {
-            binding.tvHeaderText.text = "Xin chào " + preferencesManager.getUserData()["user_name"] ?: "Người dùng"
+            binding.tvHeaderText.text = "Xin chào \n" + preferencesManager.getUserData()["user_name"] ?: "Người dùng"
             binding.cardViewButtonLogin.visibility = View.GONE
             binding.tvContentHeader.setTextColor(resources.getColor(R.color.cam))
             // TODO: Show user info if needed

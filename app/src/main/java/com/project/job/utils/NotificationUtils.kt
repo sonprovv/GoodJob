@@ -11,7 +11,7 @@ import com.project.job.R
 object NotificationUtils {
 
     const val CHANNEL_ID = "chat_messages"
-    private const val CHANNEL_NAME = "Chat Messages"
+    private const val CHANNEL_NAME = "Chat JOB"
     private const val CHANNEL_DESCRIPTION = "Notifications for chat messages"
 
     fun createNotificationChannel(context: Context) {
@@ -46,7 +46,7 @@ object NotificationUtils {
         message: String
     ): NotificationCompat.Builder {
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_bell)
+            .setSmallIcon(R.drawable.ic_logo_notification)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

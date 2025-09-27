@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -18,6 +19,7 @@ import com.project.job.ui.profile.ProfileFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var loadingOverlay: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,8 @@ class MainActivity : AppCompatActivity() {
         // Gán binding trước
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        loadingOverlay = binding.flLottieLoader
 
         // Configure status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -66,7 +70,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    fun showLoading() {
+        loadingOverlay.visibility = View.VISIBLE
+    }
 
+    fun hideLoading() {
+        loadingOverlay.visibility = View.GONE
+    }
     @SuppressLint("RestrictedApi")
     private fun setupBottomNavigation() {
         // Tắt icon tint

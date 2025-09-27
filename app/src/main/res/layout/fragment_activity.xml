@@ -146,24 +146,10 @@
                     android:id="@+id/rcv_list_job"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:listitem="@layout/item_job_history"
+                    tools:listitem="@layout/item_job_activity"
                     />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-    <FrameLayout
-        android:id="@+id/fl_lottieLoader"
-        android:layout_width="match_parent"
-        android:visibility="gone"
-        android:background="#80000000"
-        android:layout_height="match_parent">
-        <com.airbnb.lottie.LottieAnimationView
-            android:layout_gravity="center"
-            android:id="@+id/lottieLoader"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            app:lottie_rawRes="@raw/loading_animation"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"/>
-    </FrameLayout>
+
 </FrameLayout>

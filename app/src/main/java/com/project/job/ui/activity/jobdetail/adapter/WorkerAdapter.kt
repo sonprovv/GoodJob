@@ -15,13 +15,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.WorkerOrder
-import com.project.job.ui.activity.jobdetail.viewmodel.ChoideWorkerViewModel
-import kotlinx.coroutines.flow.collectLatest
+import com.project.job.ui.activity.jobdetail.viewmodel.ChoiceWorkerViewModel
 import kotlinx.coroutines.launch
 
 class WorkerAdapter (
     private var workerList: List<WorkerOrder> = emptyList(),
-    private val viewModel: ChoideWorkerViewModel,
+    private val viewModel: ChoiceWorkerViewModel,
     private val token: String,
     private val lifecycleOwner: LifecycleOwner,
     private val onWorkerStatusChanged: () -> Unit = {},
@@ -56,6 +55,11 @@ class WorkerAdapter (
             if(isReview) {
                 // Hiển thị review đã có
                 val rating = worker.review?.rating ?: 0
+                
+                // Vô hiệu hóa click sao TRƯỚC khi setRating để tránh lỗi click
+                disableStarClicks()
+                
+                // Hiển thị số sao đã đánh giá
                 setRating(rating)
                 
                 itemView.findViewById<TextView>(R.id.tv_review_comment).text = worker.review?.comment ?: ""
@@ -64,9 +68,6 @@ class WorkerAdapter (
                 itemView.findViewById<View>(R.id.ll_review).visibility = View.VISIBLE
                 itemView.findViewById<View>(R.id.ll_comment).visibility = View.GONE
                 itemView.findViewById<View>(R.id.ll_action).visibility = View.GONE
-                
-                // Vô hiệu hóa click sao PHẢI ĐẶT SAU khi setRating
-                disableStarClicks()
             } else {
                 // Nếu chưa đánh giá, hiển thị phần đánh giá
                 itemView.findViewById<View>(R.id.ll_review).visibility = View.VISIBLE
@@ -173,6 +174,7 @@ class WorkerAdapter (
                 star.setOnClickListener(null)
                 star.isClickable = false
                 star.isFocusable = false
+                star.isEnabled = false // Vô hiệu hóa hoàn toàn
                 star.background = null // Remove ripple effect
                 star.alpha = 0.7f // Làm mờ để hiển thị trạng thái disabled
             }
@@ -234,13 +236,14 @@ class WorkerAdapter (
                 else -> rating
             }
             
+            // Hiển thị số sao theo đánh giá
             stars.forEachIndexed { index, star ->
                 if (index < currentRating) {
                     // Filled star - màu cam
                     star.setColorFilter(ContextCompat.getColor(itemView.context, R.color.cam))
                 } else {
                     // Empty star - màu xám
-                    star.setColorFilter(ContextCompat.getColor(itemView.context, R.color.gray_light))
+                    star.setColorFilter(ContextCompat.getColor(itemView.context, R.color.gray))
                 }
             }
         }

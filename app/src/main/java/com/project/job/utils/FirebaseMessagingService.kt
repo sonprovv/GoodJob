@@ -200,23 +200,23 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 //        appPreferences.fcmToken = token
 
         // If user is logged in, update the token in Firestore
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
-        if (!userId.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    // Update token in Firestore
-                    val userRef = Firebase.firestore.collection("users").document(userId)
-                    userRef.update("fcmToken", token)
-                        .addOnSuccessListener {
-                            Log.d(TAG, "FCM token updated in Firestore")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(TAG, "Error updating FCM token in Firestore", e)
-                        }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error updating FCM token", e)
-                }
-            }
-        }
+//        val userId = FirebaseAuth.getInstance().currentUser?.uid
+//        if (!userId.isNullOrEmpty()) {
+//            CoroutineScope(Dispatchers.IO).launch {
+//                try {
+//                    // Update token in Firestore
+//                    val userRef = Firebase.firestore.collection("users").document(userId)
+//                    userRef.update("fcmToken", token)
+//                        .addOnSuccessListener {
+//                            Log.d(TAG, "FCM token updated in Firestore")
+//                        }
+//                        .addOnFailureListener { e ->
+//                            Log.e(TAG, "Error updating FCM token in Firestore", e)
+//                        }
+//                } catch (e: Exception) {
+//                    Log.e(TAG, "Error updating FCM token", e)
+//                }
+//            }
+//        }
     }
 }

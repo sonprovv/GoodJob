@@ -17,8 +17,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.project.job.MainActivity
 import com.project.job.R
+import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityRegisterBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.ui.login.viewmodel.RegisterViewModel
 import com.project.job.utils.addFadeClickEffect
@@ -31,12 +33,15 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var viewModel: RegisterViewModel
     private lateinit var viewModelLogin : LoginViewModel
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var loadingDialog: LoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        loadingDialog = LoadingDialog(this)
 
         // Thiết lập màu sắc cho status bar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -53,8 +58,8 @@ class RegisterActivity : AppCompatActivity() {
             // window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         }
 
-        viewModel = RegisterViewModel()
-        viewModelLogin = LoginViewModel()
+        viewModel = RegisterViewModel(tokenRepository = TokenRepository(preferencesManager))
+        viewModelLogin = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
         preferencesManager = PreferencesManager(this)
 
         setupPasswordToggle(binding.edtPassword)
@@ -78,7 +83,8 @@ class RegisterActivity : AppCompatActivity() {
                 binding.edtPassword.error = getString(R.string.empty_field)
             }
             else {
-                viewModel.register(email, password, username)
+                val fcmToken = preferencesManager.getFCMToken() ?: ""
+                viewModel.register(email, password, username, fcmToken)
             }
         }
 
@@ -163,11 +169,11 @@ class RegisterActivity : AppCompatActivity() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.lottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewBtnRegister.isEnabled = false // Vô hiệu hóa nút đăng nhập
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.lottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewBtnRegister.isEnabled = true // Kích hoạt lại nút đăng nhập
                     }
                 }
@@ -180,9 +186,6 @@ class RegisterActivity : AppCompatActivity() {
                     if (user != null) {
                         // Lưu user vào SharedPreferences
                         preferencesManager.saveUser(user)
-
-                        val fcmtoken = getFCMToken().toString()
-                        viewModelLogin.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
                     }
                 }
             }
@@ -193,6 +196,9 @@ class RegisterActivity : AppCompatActivity() {
                     if (token != null) {
                         // Lưu token vào SharedPreferences
                         preferencesManager.saveAuthToken(token)
+
+                        viewModelLogin.postFCMToken(fcmToken = preferencesManager.getFCMToken() ?: "")
+
                         // Chuyển đến MainActivity
                         val intent =
                             Intent(this@RegisterActivity, MainActivity::class.java)

@@ -7,8 +7,11 @@
     <color name="xanh">#16B75A</color>
     <color name="gray_nhat">#FAFAFA</color>
     <color name="red">#F44336</color>
-    
+    <color name="gray">#ccc</color>
+    <color name="markreadnotification">#fff</color>
+    <color name="unreadnotification">#E3F1FD</color>
     <!-- Button and interactive element colors -->
     <color name="primary_color">@color/xanh</color>
     <color name="gray_light">#E0E0E0</color>
+    <color name="background_color">#F5F5F5</color>
 </resources>

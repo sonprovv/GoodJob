@@ -7,6 +7,7 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
+import com.project.job.data.source.local.PreferencesManager
 
 @SuppressLint("ClickableViewAccessibility")
 fun View.addFadeClickEffect(
@@ -60,15 +61,23 @@ class GridSpacingItemDecoration(
     }
 }
 
-fun getFCMToken() {
-    FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+fun getFCMToken(context: android.content.Context) {
+    val preferencesManager = PreferencesManager(context)
+    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
             Log.w("FirebaseLogs", "Fetching FCM registration token failed", task.exception)
-            return@OnCompleteListener
+            return@addOnCompleteListener
         }
         val token = task.result
-        Log.d("FirebaseLogs", "FCM Token: $token")
-    })
+        token?.let {
+            preferencesManager.saveFCMToken(it)
+            Log.d("FirebaseLogs", "FCM Token: $it")
+        }
+    }
 }
+
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class AuthRequired
 
 

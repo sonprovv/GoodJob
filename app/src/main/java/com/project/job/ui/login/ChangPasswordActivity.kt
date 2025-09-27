@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityChangPasswordBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.ChangePasswordViewModel
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
@@ -26,12 +27,13 @@ class ChangPasswordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChangPasswordBinding
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: ChangePasswordViewModel
+    private lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityChangPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        loadingDialog = LoadingDialog(this)
         // Configure status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.statusBarColor = Color.TRANSPARENT
@@ -127,11 +129,11 @@ class ChangPasswordActivity : AppCompatActivity() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.lottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewBtnUpdate.isEnabled = false // Vô hiệu hóa nút đăng nhập
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.lottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewBtnUpdate.isEnabled = true // Kích hoạt lại nút đăng nhập
                     }
                 }

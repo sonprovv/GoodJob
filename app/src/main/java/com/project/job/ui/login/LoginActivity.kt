@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.project.job.databinding.ActivityLoginBinding
 import android.graphics.Color
 import android.os.Build
@@ -18,10 +16,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.MainActivity
 import com.project.job.R
+import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
-import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -29,14 +28,16 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: LoginViewModel
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var loadingDialog: LoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        viewModel = ViewModelProvider(this)[LoginViewModel::class.java]
         preferencesManager = PreferencesManager(this)
+        viewModel = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
+        loadingDialog = LoadingDialog(this)
 
         // Thiết lập màu sắc cho status bar
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -63,7 +64,7 @@ class LoginActivity : AppCompatActivity() {
             // Xử lý sự kiện đăng nhập
             val email = binding.edtEmail.text.toString().trim()
             val password = binding.edtPassword.text.toString().trim()
-            viewModel.fetchLogin(email, password)
+            viewModel.fetchLogin(email, password, preferencesManager.getFCMToken() ?: "")
 
         }
         binding.tvRegister.addFadeClickEffect {
@@ -147,11 +148,11 @@ class LoginActivity : AppCompatActivity() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.lottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewBtnLogin.isEnabled = false // Vô hiệu hóa nút đăng nhập
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.lottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewBtnLogin.isEnabled = true // Kích hoạt lại nút đăng nhập
                     }
                 }
@@ -165,8 +166,7 @@ class LoginActivity : AppCompatActivity() {
                     if (user != null) {
                         // Lưu user vào SharedPreferences
                         preferencesManager.saveUser(user)
-                        val fcmtoken = getFCMToken().toString()
-                        viewModel.postFCMToken(clientID = user.uid, fcmToken = fcmtoken)
+
                     }
                 }
             }
@@ -177,6 +177,8 @@ class LoginActivity : AppCompatActivity() {
                     if (token != null) {
                         // Lưu token vào SharedPreferences
                         preferencesManager.saveAuthToken(token)
+                        viewModel.postFCMToken(fcmToken = preferencesManager.getFCMToken() ?: "")
+
                         // Chuyển đến MainActivity
                         val intent =
                             android.content.Intent(this@LoginActivity, MainActivity::class.java)

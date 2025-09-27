@@ -30,4 +30,16 @@
         <item name="itemBackground">@android:color/transparent</item>
         <item name="android:background">@color/white</item>
     </style>
+
+    <!-- Time Picker Style -->
+    <style name="TimePickerStyle" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">#E0E0E0</item>
+        <item name="colorControlActivated">#333333</item>
+        <item name="android:textColorPrimary">#333333</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:timePickerMode">spinner</item>
+        <item name="android:numbersTextColor">#333333</item>
+        <item name="android:numbersBackgroundColor">@android:color/transparent</item>
+        <item name="android:numbersSelectorColor">#E0E0E0</item>
+    </style>
 </resources>

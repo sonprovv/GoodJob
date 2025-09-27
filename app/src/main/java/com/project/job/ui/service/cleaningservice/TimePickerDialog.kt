@@ -1,19 +1,15 @@
 package com.project.job.ui.service.cleaningservice
 
 import android.app.Dialog
-import android.graphics.Color
-import android.graphics.Paint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.widget.EditText
-import android.widget.NumberPicker
 import android.widget.TextView
+import android.widget.TimePicker
 import androidx.fragment.app.DialogFragment
 import com.project.job.R
-import java.util.*
 
 class CustomTimePickerDialog : DialogFragment() {
 
@@ -30,9 +26,8 @@ class CustomTimePickerDialog : DialogFragment() {
     // Current selected values
     private var selectedHour = 14
     private var selectedMinute = 0
-
-    private lateinit var npHour: NumberPicker
-    private lateinit var npMinute: NumberPicker
+    
+    private lateinit var timePicker: TimePicker
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -50,60 +45,21 @@ class CustomTimePickerDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupNumberPickers(view)
+        
+        timePicker = view.findViewById(R.id.timePicker)
+        setupTimePicker()
         setupClickListeners(view)
     }
-
-    private fun setupNumberPickers(view: View) {
-        // Setup Hour NumberPicker
-        npHour = view.findViewById(R.id.np_hour)
-        npHour.minValue = 0
-        npHour.maxValue = 23
-        npHour.value = selectedHour
-        npHour.setFormatter { String.format(Locale.getDefault(), "%02d", it) }
-        npHour.setOnValueChangedListener { _, _, newVal ->
-            selectedHour = newVal
-        }
-
-        // Setup Minute NumberPicker
-        npMinute = view.findViewById(R.id.np_minute)
-        npMinute.minValue = 0
-        npMinute.maxValue = 59 // 0, 5, 10, ..., 55 (12 steps)
-        npMinute.value = selectedMinute
-        npMinute.setFormatter { String.format(Locale.getDefault(), "%02d", it) }
-        npMinute.setOnValueChangedListener { _, _, newVal ->
-            selectedMinute = newVal
-        }
-
-        setNumberPickerTextColor(npHour, Color.BLACK)
-        setNumberPickerTextColor(npMinute, Color.BLACK)
-    }
-
-    private fun setNumberPickerTextColor(numberPicker: NumberPicker, color: Int) {
-        try {
-            val selectorWheelPaintField =
-                numberPicker.javaClass.getDeclaredField("mSelectorWheelPaint")
-            selectorWheelPaintField.isAccessible = true
-            val paint = selectorWheelPaintField.get(numberPicker) as Paint
-            paint.color = color
-
-            for (i in 0 until numberPicker.childCount) {
-                val child = numberPicker.getChildAt(i)
-                if (child is EditText) {
-                    child.setTextColor(color)
-                    child.isEnabled = false      // tắt nhập trực tiếp
-                    child.isFocusable = false
-                    child.isCursorVisible = false
-                }
-            }
-
-            // refresh để áp dụng màu cho cả selector
-            numberPicker.invalidate()
-            numberPicker.requestLayout()
-            numberPicker.postInvalidate()
-        } catch (e: Exception) {
-            e.printStackTrace()
+    
+    private fun setupTimePicker() {
+        timePicker.setIs24HourView(true) // Set 24-hour format
+        timePicker.hour = selectedHour
+        timePicker.minute = selectedMinute
+        
+        // Set time change listener
+        timePicker.setOnTimeChangedListener { _, hour, minute ->
+            selectedHour = hour
+            selectedMinute = minute
         }
     }
 
@@ -128,10 +84,10 @@ class CustomTimePickerDialog : DialogFragment() {
 
     fun setInitialTime(hour: Int, minute: Int) {
         selectedHour = hour
-        selectedMinute = minute // Round to nearest 5-minute increment
-        if (::npHour.isInitialized && ::npMinute.isInitialized) {
-            npHour.value = selectedHour
-            npMinute.value = selectedMinute
+        selectedMinute = minute
+        if (::timePicker.isInitialized) {
+            timePicker.hour = selectedHour
+            timePicker.minute = selectedMinute
         }
     }
 

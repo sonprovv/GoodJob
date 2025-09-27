@@ -6,7 +6,9 @@ import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
 import com.project.job.data.source.remote.api.request.CreateJobRequest
 import com.project.job.data.source.remote.api.request.FCMTokenRequest
 import com.project.job.data.source.remote.api.request.ForgotPasswordRequest
+import com.project.job.data.source.remote.api.request.GoogleSignInRequest
 import com.project.job.data.source.remote.api.request.LoginRequest
+import com.project.job.data.source.remote.api.request.RefreshTokenRequest
 import com.project.job.data.source.remote.api.request.RegisterRequest
 import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
@@ -16,6 +18,9 @@ import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
+import com.project.job.data.source.remote.api.response.GetNotificationsResponse
+import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
+import com.project.job.data.source.remote.api.response.RefreshTokenResponse
 import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
 import com.project.job.data.source.remote.api.response.ServiceCleaningResponse
@@ -26,6 +31,7 @@ import com.project.job.data.source.remote.api.response.UpdateUserResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
+import com.project.job.utils.AuthRequired
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -39,25 +45,49 @@ import retrofit2.http.Path
 
 interface ApiService {
     // fcm token
-    @POST("api/devices/{clientID")
+    @AuthRequired
+    @POST("api/devices")
     suspend fun postFcmToken(
-        @Path("clientID") clientID: String,
         @Body request: FCMTokenRequest
     ): Response<FCMTokenResponse>
 
-    @POST("api/users/me")
+    @AuthRequired
+    @PUT("api/devices/logout")
+    suspend fun deleteFcmToken(
+        @Body request: FCMTokenRequest
+    ): Response<FCMTokenResponse>
+
+    // notification
+    @AuthRequired
+    @GET("api/notifications")
+    suspend fun getNotifications(
+    ): Response<GetNotificationsResponse>
+
+    @AuthRequired
+    @PUT("api/notifications/{notificationID}")
+    suspend fun markNotificationAsRead(
+        @Path("notificationID") notificationID: String
+    ): Response<GetNotificationsResponse>
+
+    // auth
+    @POST("api/auth/client/refreshToken")
+    suspend fun refreshToken(
+        @Body refreshToken: String
+    ): Response<RefreshTokenResponse>
+
+    @POST("api/auth/me")
     suspend fun login(
         @Body request: LoginRequest
     ): Response<UserResponse>
 
-    @POST("api/users/create")
+    @POST("api/auth/create")
     suspend fun register(
         @Body request: RegisterRequest
     ): Response<UserResponse>
 
-    @POST("api/users/loginGG")
+    @POST("api/auth/loginGG")
     suspend fun googleSignIn(
-        @Body request: Map<String, String>
+        @Body request: GoogleSignInRequest
     ): Response<UserResponse>
 
     @POST("api/emails/send")
@@ -70,26 +100,26 @@ interface ApiService {
         @Body request: ForgotPasswordRequest
     ): Response<ForgotPasswordResponse>
 
+    @AuthRequired
     @PUT("api/users/change-password")
     suspend fun changePassword(
-        @Header("Authorization") token: String,
         @Body request: ChangePasswordRequest
     ): Response<ChangePasswordResponse>
 
+    @AuthRequired
     @PUT("api/users/update")
     suspend fun updateProfile(
-        @Header("Authorization") token: String,
         @Body request: UpdateUserRequest
     ): Response<UpdateUserResponse>
 
+    @AuthRequired
     @Multipart
     @POST("api/images/upload")
     suspend fun updateAvatar(
-        @Header("Authorization") token: String,
         @Part image: MultipartBody.Part
     ): Response<UpdateAvatarResponse>
 
-
+    // services
     @GET("api/services/cleaning")
     suspend fun getCleaningServices(): Response<ServiceCleaningResponse>
 
@@ -99,45 +129,50 @@ interface ApiService {
     @GET("api/services/maintenance")
     suspend fun getMaintenanceServices(): Response<ServiceMaintenanceResponse>
 
+    @AuthRequired
     @POST("api/jobs/cleaning")
     suspend fun postJobCleaning(
-        @Header("Authorization") token: String,
         @Body request: CreateJobRequest
     ): Response<CreateJobResponse>
 
+    @AuthRequired
     @POST("api/jobs/healthcare")
     suspend fun postJobHealthcare(
-        @Header("Authorization") token: String,
         @Body request: CreateJobHealthcareRequest
     ): Response<CreateJobResponse>
 
     // get list job posted by user
+    @AuthRequired
     @GET("api/jobs/user/{uid}/job")
     suspend fun getUserPostJobs(
-        @Header("Authorization") token: String,
         @Path("uid") uid: String
     ): Response<UserPostJobsResponse>
 
     // get list worker in 1 job
+    @AuthRequired
     @GET("api/orders/{jobID}")
     suspend fun getWorkerInJob(
-        @Header("Authorization") token: String,
         @Path("jobID") jobID: String
     ): Response<WorkerOrderJobResponse>
 
     // choice worker (accept or reject)
+    @AuthRequired
     @PUT("api/orders/update")
     suspend fun choiceWorker(
-        @Header("Authorization") token: String,
         @Body request: ChoiceWorkerRequest
     ) : Response<ChoiceWorkerResponse>
 
     // review worker
+    @AuthRequired
     @POST("api/reviews/create")
     suspend fun reviewWorker(
-        @Header("Authorization") token: String,
         @Body request: ReviewWorkerRequest
     ) : Response<ReviewWorkerResponse>
 
+    @AuthRequired
+    @GET("api/reviews/worker/{workerID}/experience")
+    suspend fun getWorkerReviews(
+        @Path("workerID") workerID: String
+    ): Response<GetReviewWorkerResponse>
 
 }

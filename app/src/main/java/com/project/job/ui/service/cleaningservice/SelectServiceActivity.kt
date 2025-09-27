@@ -18,6 +18,7 @@ import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.databinding.ActivitySelectServiceBinding
 import com.project.job.ui.intro.CleaningIntroActivity
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
 import com.project.job.ui.service.cleaningservice.adapter.DurationAdapter
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 
 class SelectServiceActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySelectServiceBinding
+    private lateinit var loadingDialog: LoadingDialog
     private val selectedExtraServices = mutableSetOf<Int>()
     private val EXTRA_SERVICE_FEE = 50000 // Extra service fee in VND
     private var currentBasePrice: Int = 0 // To store the base price without extra services
@@ -45,6 +47,7 @@ class SelectServiceActivity : AppCompatActivity() {
         binding = ActivitySelectServiceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        loadingDialog = LoadingDialog(this)
         // Configure status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.statusBarColor = Color.TRANSPARENT
@@ -180,7 +183,7 @@ class SelectServiceActivity : AppCompatActivity() {
                         binding.ivBack.isEnabled = false
                         binding.ivInfo.isEnabled = false
                         binding.llContentHeader.isEnabled = false
-                        binding.lottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewJobDetail.isEnabled = false
                         binding.cardViewButtonNext.visibility = View.GONE
                         binding.llExtraCooking.isEnabled = false
@@ -190,7 +193,7 @@ class SelectServiceActivity : AppCompatActivity() {
                         binding.ivBack.isEnabled = true
                         binding.ivInfo.isEnabled = true
                         binding.llContentHeader.isEnabled = true
-                        binding.lottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewJobDetail.isEnabled = true
                         binding.cardViewButtonNext.visibility = View.VISIBLE
                         binding.llExtraCooking.isEnabled = true

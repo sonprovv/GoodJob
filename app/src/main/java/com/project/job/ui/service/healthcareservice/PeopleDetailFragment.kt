@@ -1,19 +1,14 @@
 package com.project.job.ui.service.healthcareservice
 
-import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
 import com.project.job.R
-import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.ui.service.cleaningservice.adapter.DetailServiceCleaningAdapter
-import com.project.job.utils.SelectedRoomManager
 
 class PeopleDetailFragment : Fragment() {
     private val duties: List<String> by lazy {
@@ -66,50 +61,4 @@ class PeopleDetailFragment : Fragment() {
         val excludedTasksAdapter = DetailServiceCleaningAdapter(excludedTasks)
         recyclerViewExcludedTasks.adapter = excludedTasksAdapter
     }
-
-//    private fun addRoomToManager() {
-//        val selectedService = CleaningService(
-//            uid = uid,
-//            serviceType = serviceType,
-//            serviceName = serviceName,
-//            image = image,
-//            tasks = tasks
-//        )
-//        SelectedRoomManager.addRoom(selectedService)
-//
-//        // Debug logging
-//        android.util.Log.d("RoomDetailFragment", "Added room: $serviceName (uid: $uid)")
-//        android.util.Log.d("RoomDetailFragment", "Total rooms in manager: ${SelectedRoomManager.getSelectedRoomsCount()}")
-//    }
-//
-//    private fun removeRoomFromManager() {
-//        SelectedRoomManager.removeRoom(uid)
-//    }
-//
-//    private fun saveSelectedService() {
-//        val serviceData = mapOf(
-//            "uid" to uid,
-//            "serviceType" to serviceType,
-//            "serviceName" to serviceName,
-//            "image" to image,
-//            "tasks" to tasks
-//        )
-//
-//        val sharedPref = requireContext().getSharedPreferences("selected_services", Context.MODE_PRIVATE)
-//        val gson = Gson()
-//        val serviceJson = gson.toJson(serviceData)
-//
-//        with(sharedPref.edit()) {
-//            putString(uid, serviceJson)
-//            apply()
-//        }
-//    }
-//
-//    private fun removeSelectedService() {
-//        val sharedPref = requireContext().getSharedPreferences("selected_services", Context.MODE_PRIVATE)
-//        with(sharedPref.edit()) {
-//            remove(uid)
-//            apply()
-//        }
-//    }
 }

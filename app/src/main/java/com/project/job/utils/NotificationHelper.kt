@@ -3,10 +3,7 @@ package com.project.job.utils
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat

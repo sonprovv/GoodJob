@@ -16,6 +16,7 @@ import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.User
 import com.project.job.databinding.FragmentUpdateNameAndPhoneBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.profile.viewmodel.UpdateProfileViewModel
 import com.project.job.utils.UserDataBroadcastManager
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: UpdateProfileViewModel
+    private lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -119,7 +121,7 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel = UpdateProfileViewModel()
         preferencesManager = PreferencesManager(requireContext())
-        
+        loadingDialog = LoadingDialog(requireActivity())
         // Observe ViewModel states
         observeViewModel()
         
@@ -158,7 +160,7 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
             )
             val token = preferencesManager.getAuthToken() ?: ""
             if (token.isNotEmpty()) {
-                viewModel.updateProfile(user, token)
+                viewModel.updateProfile(user)
             } else {
                 Toast.makeText(requireContext(), "Hết phiên đăng nhập, vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show()
             }
@@ -199,8 +201,10 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
             viewModel.loading.collect { loading ->
                 binding.btnSave.isEnabled = !loading
                 if (loading) {
+                    loadingDialog.show()
                     binding.btnSave.text = "Đang cập nhật..."
                 } else {
+                    loadingDialog.hide()
                     binding.btnSave.text = "Lưu"
                 }
             }

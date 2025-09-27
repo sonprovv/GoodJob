@@ -8,18 +8,21 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.project.job.R
+import com.project.job.MainActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.databinding.FragmentActivityBinding
 import com.project.job.ui.activity.adapter.JobAdapter
 import com.project.job.ui.activity.history.HistoryActivity
-import com.project.job.ui.service.healthcareservice.HealthCareViewModel
+import com.project.job.ui.activity.viewmodel.ActivityViewModel
+import com.project.job.ui.login.LoginFragment
+import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import com.project.job.ui.login.LoginResultListener
 
-class ActivityFragment : Fragment() {
+class ActivityFragment : Fragment(), LoginResultListener {
 
     private var _binding: FragmentActivityBinding? = null
     private val binding get() = _binding!!
@@ -44,6 +47,12 @@ class ActivityFragment : Fragment() {
         viewModelHealthcare = HealthCareViewModel()
         preferencesManager = PreferencesManager(requireContext())
 
+        binding.cardViewButtonLogin.setOnClickListener {
+            val loginFragment = LoginFragment()
+            loginFragment.setLoginResultListener(this)
+            loginFragment.show(parentFragmentManager, "LoginFragment")
+        }
+
         // Initialize adapter
         jobAdapter = JobAdapter()
 
@@ -59,7 +68,7 @@ class ActivityFragment : Fragment() {
 
         // Kiểm tra xem token có tồn tại hay không
         if (token != "") {
-            viewModel.getListJob(token = token, uid = uid)
+            viewModel.getListJob(uid = uid)
             viewModelHealthcare.getServiceHealthcare()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE
             binding.llNoLogin.visibility = View.GONE
@@ -84,11 +93,11 @@ class ActivityFragment : Fragment() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.flLottieLoader.visibility = View.VISIBLE
+                        (activity as? MainActivity)?.showLoading()
                         binding.llListJob.visibility = View.GONE
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.flLottieLoader.visibility = View.GONE
+                        (activity as? MainActivity)?.hideLoading()
                         binding.llListJob.visibility = View.VISIBLE
                     }
                 }
@@ -99,10 +108,10 @@ class ActivityFragment : Fragment() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.flLottieLoader.visibility = View.VISIBLE
+                        (activity as? MainActivity)?.showLoading()
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.flLottieLoader.visibility = View.GONE
+                        (activity as? MainActivity)?.hideLoading()
                     }
                 }
             }
@@ -128,6 +137,19 @@ class ActivityFragment : Fragment() {
                     jobAdapter.updateList(jobAdapter.jobList, healthcareServiceList)
                 }
             }
+        }
+    }
+
+    override fun onLoginSuccess() {
+        // Reload data when user logs in successfully
+        val token = preferencesManager.getAuthToken() ?: ""
+        val uid = preferencesManager.getUserData()["user_id"] ?: ""
+        
+        if (token.isNotEmpty()) {
+            viewModel.getListJob(uid = uid)
+            viewModelHealthcare.getServiceHealthcare()
+            binding.llLoginSuccessNoData.visibility = View.VISIBLE
+            binding.llNoLogin.visibility = View.GONE
         }
     }
 

@@ -13,42 +13,14 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="16dp">
 
-        <!-- Hours and Minutes Display -->
-        <LinearLayout
+        <TimePicker
+            android:id="@+id/timePicker"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <!-- Hours NumberPicker -->
-            <NumberPicker
-                android:id="@+id/np_hour"
-                android:layout_width="60dp"
-                android:layout_height="150dp"
-                android:gravity="center"
-                android:textSize="32sp" />
-
-            <!-- Separator -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:fontFamily="sans-serif-light"
-                android:textColor="#333333"
-                android:textSize="32sp" />
-
-            <!-- Minutes NumberPicker -->
-            <NumberPicker
-                android:id="@+id/np_minute"
-                android:layout_width="60dp"
-                android:layout_height="150dp"
-                android:gravity="center"
-                android:textSize="32sp" />
-
-        </LinearLayout>
+            android:timePickerMode="spinner"
+            android:theme="@style/TimePickerStyle"/>
 
     </LinearLayout>
 

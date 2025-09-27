@@ -28,11 +28,14 @@ import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.User
 import com.project.job.databinding.ActivityUpdateProfileBinding
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.profile.viewmodel.UpdateProfileViewModel
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,6 +44,7 @@ class UpdateProfileActivity : AppCompatActivity() {
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: UpdateProfileViewModel
     private lateinit var user: User
+    private lateinit var loadingDialog: LoadingDialog
 
     private var imageUri: Uri? = null
     private val cameraPermission = Manifest.permission.CAMERA
@@ -259,11 +263,39 @@ class UpdateProfileActivity : AppCompatActivity() {
             .into(binding.ivProfilePicture)
     }
 
+    /**
+     * Convert Uri to File for upload
+     */
+    private fun uriToFile(uri: Uri): File? {
+        return try {
+            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+            inputStream?.let { stream ->
+                // Create a temporary file
+                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val tempFile = File.createTempFile("avatar_$timeStamp", ".jpg", cacheDir)
+                
+                val outputStream = FileOutputStream(tempFile)
+                stream.copyTo(outputStream)
+                
+                outputStream.close()
+                stream.close()
+                
+                Log.d("UpdateProfile", "Uri converted to file: ${tempFile.absolutePath}, size: ${tempFile.length()} bytes")
+                tempFile
+            }
+        } catch (e: Exception) {
+            Log.e("UpdateProfile", "Error converting Uri to File", e)
+            Toast.makeText(this, "Lỗi khi xử lý file ảnh", Toast.LENGTH_SHORT).show()
+            null
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityUpdateProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        loadingDialog = LoadingDialog(this)
 
         // Initialize RetrofitClient if not already initialized
         if (!RetrofitClient.isInitialized()) {
@@ -387,15 +419,22 @@ class UpdateProfileActivity : AppCompatActivity() {
 
             // Only upload avatar if a new image was selected
             if (imageUri != null) {
-                // Start the avatar upload, which will also update the profile after success
-                viewModel.updateAvatar(
-                    token = token,
-                    avatar = imageUri.toString(),
-                    user = updatedUser
-                )
+                // Convert Uri to File first
+                val avatarFile = uriToFile(imageUri!!)
+                if (avatarFile != null) {
+                    // Start the avatar upload, which will also update the profile after success
+                    viewModel.updateAvatar(
+                        avatarFile = avatarFile,
+                        user = updatedUser
+                    )
+                } else {
+                    // If conversion failed, show error and just update profile without avatar
+                    Toast.makeText(this, "Không thể xử lý file ảnh, cập nhật thông tin mà không thay đổi avatar", Toast.LENGTH_LONG).show()
+                    viewModel.updateProfile(updatedUser)
+                }
             } else {
                 // If no new image, just update the profile
-                viewModel.updateProfile(updatedUser, token)
+                viewModel.updateProfile(updatedUser)
             }
         }
         observeViewModel()
@@ -407,13 +446,13 @@ class UpdateProfileActivity : AppCompatActivity() {
             launch {
                 viewModel.loading.collect { isLoading ->
                     if (isLoading) {
-                        binding.loadingOverlay.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.cardViewButtonSave.isEnabled = false
                         binding.cardViewCamera.isEnabled = false
                         binding.ivBack.isEnabled = false
                         binding.ivCalendar.isEnabled = false
                     } else {
-                        binding.loadingOverlay.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.cardViewButtonSave.isEnabled = true
                         binding.cardViewCamera.isEnabled = true
                         binding.ivBack.isEnabled = true
