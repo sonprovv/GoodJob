@@ -11,6 +11,7 @@ import com.project.job.databinding.FragmentWorkerOrderBinding
 import com.project.job.ui.activity.jobdetail.adapter.WorkerAdapter
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
 import com.project.job.ui.activity.jobdetail.viewmodel.ChoiceWorkerViewModel
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.reviewworker.ReviewWorkerFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -23,10 +24,11 @@ class WorkerOrderFragment : Fragment() {
     private lateinit var viewModel: JobDetailViewModel
     private lateinit var choideWorkerViewModel: ChoiceWorkerViewModel
     private lateinit var preferencesManager: PreferencesManager
+    private lateinit var loadingDialog: LoadingDialog
 
     companion object {
         private const val ARG_JOB_ID = "job_id"
-        
+
         fun newInstance(jobId: String): WorkerOrderFragment {
             val fragment = WorkerOrderFragment()
             val args = Bundle()
@@ -53,9 +55,9 @@ class WorkerOrderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        loadingDialog = LoadingDialog(requireActivity())
         preferencesManager = PreferencesManager(requireContext())
-        val token = preferencesManager.getAuthToken()?:""
+        val token = preferencesManager.getAuthToken() ?: ""
         viewModel = JobDetailViewModel()
         choideWorkerViewModel = ChoiceWorkerViewModel()
 
@@ -76,10 +78,10 @@ class WorkerOrderFragment : Fragment() {
             preferencesManager = preferencesManager
         )
         binding.rcvListWorker.adapter = workerAdapter
-        
+
         // Use jobId here to load worker data
         jobId?.let { id ->
-           viewModel.getListWorker(id)
+            viewModel.getListWorker(id)
         }
 
         observeViewModel()
@@ -94,38 +96,37 @@ class WorkerOrderFragment : Fragment() {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        binding.flLottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.llNoData.visibility = View.GONE
                         binding.llListWorker.visibility = View.GONE
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        binding.flLottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                     }
                 }
             }
-            
+
             // Collect loading từ ChoideWorkerViewModel
             launch {
                 choideWorkerViewModel.loading.collectLatest { isLoading ->
                     if (isLoading) {
                         // Hiển thị loading khi đang xử lý choice worker
-                        binding.flLottieLoader.visibility = View.VISIBLE
+                        loadingDialog.show()
                         binding.llListWorker.isEnabled = false // Disable interaction
                     } else {
                         // Ẩn loading khi hoàn thành
-                        binding.flLottieLoader.visibility = View.GONE
+                        loadingDialog.hide()
                         binding.llListWorker.isEnabled = true // Enable interaction
                     }
                 }
             }
-            
+
             // Collect success state từ ChoideWorkerViewModel
             launch {
                 choideWorkerViewModel.success_change.collectLatest { success ->
                     success?.let {
                         if (it) {
                             // Refresh data sau khi thành công
-                            val token = preferencesManager.getAuthToken() ?: ""
                             jobId?.let { id ->
                                 viewModel.getListWorker(id)
                             }
@@ -133,7 +134,7 @@ class WorkerOrderFragment : Fragment() {
                     }
                 }
             }
-            
+
             launch {
                 viewModel.workers.collectLatest { worker ->
                     if (worker != null && worker.isNotEmpty()) {
@@ -154,7 +155,7 @@ class WorkerOrderFragment : Fragment() {
 
     private fun navigateToReviewWorkerFragment(worker: com.project.job.data.source.remote.api.response.WorkerOrder) {
         val reviewWorkerFragment = ReviewWorkerFragment()
-        
+
         // Có thể truyền data worker qua Bundle nếu cần
         val bundle = Bundle().apply {
             putString("worker_id", worker.worker.uid)
@@ -170,7 +171,7 @@ class WorkerOrderFragment : Fragment() {
             putString("service_type", worker.serviceType)
         }
         reviewWorkerFragment.arguments = bundle
-        
+
         // Navigate using Activity's supportFragmentManager and replace the entire activity content
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(android.R.id.content, reviewWorkerFragment)
