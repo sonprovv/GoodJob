@@ -2,15 +2,17 @@ package com.project.job.data.source
 
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
+import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
-import com.project.job.data.source.remote.api.response.CleaningData
 import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
-import com.project.job.data.source.remote.api.response.HealthcareData
-import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
+import com.project.job.data.source.remote.api.response.ServiceCleaningResponse
+import com.project.job.data.source.remote.api.response.ServiceHealthcareResponse
+import com.project.job.data.source.remote.api.response.ServiceMaintenanceResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 
@@ -19,13 +21,13 @@ interface ServiceDataSource {
 //        suspend fun getServiceCleaning(): Flow<CleaningData?>
 //    }
 //
-    interface Remote{
-        suspend fun getServiceCleaning(): NetworkResult<CleaningData?>
-    }
+//    interface Remote{
+//        suspend fun getServiceCleaning(): NetworkResult<CleaningData?>
+//    }
 
-    suspend fun getServiceCleaning(): NetworkResult<CleaningData?>
-    suspend fun getServiceMaintenance(): NetworkResult<List<MaintenanceData>?>
-    suspend fun getServiceHealthcare(): NetworkResult<HealthcareData?>
+    suspend fun getServiceCleaning(): NetworkResult<ServiceCleaningResponse>
+    suspend fun getServiceMaintenance(): NetworkResult<ServiceMaintenanceResponse>
+    suspend fun getServiceHealthcare(): NetworkResult<ServiceHealthcareResponse>
 
     suspend fun postJobCleaning(
         userID: String,
@@ -50,6 +52,16 @@ interface ServiceDataSource {
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
     ): NetworkResult<CreateJobResponse?>
+
+    suspend fun postJobMaintenance(
+        userID: String,
+        serviceType: String,
+        startTime: String,
+        price: Int,
+        listDays: List<String>,
+        services: List<ServicePowerInfo>,
+        location: String
+    ): NetworkResult<CreateJobMaintenanceResponse>
 
     suspend fun getUserPostJobs( uid : String): NetworkResult<UserPostJobsResponse>
 

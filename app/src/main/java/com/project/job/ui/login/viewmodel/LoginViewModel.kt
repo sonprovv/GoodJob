@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.job.data.repository.TokenRepository
-import com.project.job.data.repository.UserRepository
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.UserResponse

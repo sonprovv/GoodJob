@@ -303,10 +303,11 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun updateTotalPrice() {
         val workerCount = getCurrentWorkerCount()
-        totalFee = currentBasePrice * totalHours * workerCount
-        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN")).format(totalFee)
+        // Always update totalHours from the currently selected shift BEFORE calculating totalFee
         val baseHours = selectedShift?.workingHour ?: 1
         this.totalHours = baseHours
+        totalFee = currentBasePrice * workerCount
+        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN")).format(totalFee)
         binding.tvPrice.text = "$formattedPrice VND/$totalHours giờ"
     }
 

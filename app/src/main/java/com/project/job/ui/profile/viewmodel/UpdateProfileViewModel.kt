@@ -3,7 +3,6 @@ package com.project.job.ui.profile.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.repository.UserRepository
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.User
@@ -74,7 +73,11 @@ class UpdateProfileViewModel : ViewModel() {
 
                 when (avatarResponse) {
                     is NetworkResult.Success -> {
-                        val newAvatarUrl = avatarResponse.data?.url
+                        // Backend có thể trả về url hoặc data field
+                        val newAvatarUrl = avatarResponse.data?.url ?: avatarResponse.data?.data
+                        
+                        Log.d("UpdateProfileViewModel", "Avatar response: ${avatarResponse.data}")
+                        Log.d("UpdateProfileViewModel", "Extracted avatar URL: $newAvatarUrl")
                         
                         if (!newAvatarUrl.isNullOrEmpty()) {
                             Log.d("UpdateProfileViewModel", "Avatar upload successful: $newAvatarUrl")

@@ -4,6 +4,7 @@ import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
 import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
+import com.project.job.data.source.remote.api.response.RefreshTokenResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
 import com.project.job.data.source.remote.api.response.UpdateAvatarResponse
 import com.project.job.data.source.remote.api.response.UpdateUserResponse
@@ -22,4 +23,5 @@ interface UserDataSource {
     suspend fun changPassword(newPassword: String, confirmPassword: String): NetworkResult<ChangePasswordResponse?>
     suspend fun updateAvatar(imageFile: File): NetworkResult<UpdateAvatarResponse?>
     suspend fun updateProfile(user: User): NetworkResult<UpdateUserResponse?>
+    suspend fun refreshToken(refreshToken: String): NetworkResult<RefreshTokenResponse?>
 }

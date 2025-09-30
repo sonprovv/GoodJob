@@ -42,7 +42,8 @@ data class ServiceHealthcare(
 @Parcelize
 data class PowersInfo(
     val powerName: String,
-    val quantity: Int
+    val quantity: Int,
+    val quantityMaintenance: Int
 ) : Parcelable
 
 @Parcelize

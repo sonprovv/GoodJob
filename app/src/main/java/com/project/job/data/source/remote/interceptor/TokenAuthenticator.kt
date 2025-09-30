@@ -1,6 +1,7 @@
 package com.project.job.data.source.remote.interceptor
 import com.project.job.data.network.ApiService
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.api.request.RefreshTokenRequest
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
@@ -19,25 +20,25 @@ class TokenAuthenticator(
 
         // get the refresh token from DataStore
         // call refresh token api
-        val refreshReponse = runBlocking {
+        val refreshResponse = runBlocking {
             try {
                 //userApi.refreshToken("Bearer ${tokenLocalImpl.getRefreshToken()}")
-                apiService.refreshToken("Bearer ${preferencesManager.getRefreshToken()}")
+                apiService.refreshToken(RefreshTokenRequest("Bearer ${preferencesManager.getRefreshToken()}"))
             } catch (e: Exception) {
                 null
             }
         }
 
-        if (refreshReponse?.isSuccessful == false) return null
+        if (refreshResponse?.isSuccessful == false) return null
 
         runBlocking {
             // save new token to DataStore
-            preferencesManager.saveAuthToken(refreshReponse?.body()?.data?.token ?: "")
-            preferencesManager.saveRefreshToken(refreshReponse?.body()?.data?.refreshToken ?: "")
+            preferencesManager.saveAuthToken(refreshResponse?.body()?.data?.idToken ?: "")
+            preferencesManager.saveRefreshToken(refreshResponse?.body()?.data?.refreshToken ?: "")
         }
 
         // use new access token to send request again
-        refreshReponse?.body()?.data?.token?.let {
+        refreshResponse?.body()?.data?.idToken?.let {
             return response.request.newBuilder()
                 .header("Authorization", "Bearer $it")
                 .build()

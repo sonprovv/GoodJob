@@ -17,31 +17,36 @@
         android:layout_height="match_parent"
         android:src="@drawable/bg_splash"
         />
-    <RelativeLayout
+
+    <LinearLayout
+        android:id="@+id/ll_logo_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_centerInParent="true"
         android:gravity="center"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:id="@+id/splash_text"
-            android:gravity="center"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentEnd="true"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/splash_image"
+        app:layout_constraintEnd_toEndOf="@+id/splash_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:visibility="gone"
+            android:id="@+id/iv_logo"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignTop="@id/containerText"
+            android:src="@drawable/ic_logo_bee" />
+        <!-- LinearLayout chứa từng ký tự -->
+        <LinearLayout
+            android:id="@+id/containerText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="28sp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/inknutantiquasemibold"
-            android:text="GOODJOB"
-            />
-        <View
-            android:layout_alignEnd="@+id/splash_text"
-            android:layout_marginStart="170dp"
-            android:layout_marginEnd="120dp"
-            android:background="@color/white"
-            android:layout_width="wrap_content"
-            android:layout_alignBottom="@id/splash_text"
-            android:layout_height="2dp"/>
-    </RelativeLayout>
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -48,7 +48,7 @@ class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewMode
                             _user.value = authResponse.data.user
 
                             tokenRepository.saveAccessToken(authResponse.data.token)
-                            tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
+                            tokenRepository.saveRefreshToken(authResponse.data.refreshToken)
                             postFCMToken(fcmToken)
                             _registerResult.value = authResponse
                         } else {
@@ -58,7 +58,7 @@ class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewMode
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "Register failed"
+                        _error.value = response.message
                         _registerResult.value = null
                     }
                 }
@@ -84,7 +84,7 @@ class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewMode
                         Log.d("RegisterViewModel", "Post FCM Token response: $fcmResponse")
                     }
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "Post FCM Token failed"
+                        _error.value = response.message
                     }
                 }
             } catch (e: Exception) {

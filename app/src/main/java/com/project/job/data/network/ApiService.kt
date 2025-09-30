@@ -3,6 +3,7 @@ package com.project.job.data.network
 import com.project.job.data.source.remote.api.request.ChangePasswordRequest
 import com.project.job.data.source.remote.api.request.ChoiceWorkerRequest
 import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
+import com.project.job.data.source.remote.api.request.CreateJobMaintenanceRequest
 import com.project.job.data.source.remote.api.request.CreateJobRequest
 import com.project.job.data.source.remote.api.request.FCMTokenRequest
 import com.project.job.data.source.remote.api.request.ForgotPasswordRequest
@@ -15,9 +16,11 @@ import com.project.job.data.source.remote.api.request.SendMailRequest
 import com.project.job.data.source.remote.api.request.UpdateUserRequest
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
+import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
+import com.project.job.data.source.remote.api.response.GetNotificationResponse
 import com.project.job.data.source.remote.api.response.GetNotificationsResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.RefreshTokenResponse
@@ -67,12 +70,12 @@ interface ApiService {
     @PUT("api/notifications/{notificationID}")
     suspend fun markNotificationAsRead(
         @Path("notificationID") notificationID: String
-    ): Response<GetNotificationsResponse>
+    ): Response<GetNotificationResponse>
 
     // auth
     @POST("api/auth/client/refreshToken")
     suspend fun refreshToken(
-        @Body refreshToken: String
+        @Body request: RefreshTokenRequest
     ): Response<RefreshTokenResponse>
 
     @POST("api/auth/me")
@@ -112,7 +115,6 @@ interface ApiService {
         @Body request: UpdateUserRequest
     ): Response<UpdateUserResponse>
 
-    @AuthRequired
     @Multipart
     @POST("api/images/upload")
     suspend fun updateAvatar(
@@ -140,6 +142,12 @@ interface ApiService {
     suspend fun postJobHealthcare(
         @Body request: CreateJobHealthcareRequest
     ): Response<CreateJobResponse>
+
+    @AuthRequired
+    @POST("api/jobs/maintenance")
+    suspend fun postJobMaintenance(
+        @Body request: CreateJobMaintenanceRequest
+    ): Response<CreateJobMaintenanceResponse>
 
     // get list job posted by user
     @AuthRequired

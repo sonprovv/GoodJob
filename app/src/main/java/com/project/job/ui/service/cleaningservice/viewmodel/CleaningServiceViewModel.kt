@@ -43,8 +43,8 @@ class CleaningServiceViewModel : ViewModel() {
 
                 when(response) {
                     is NetworkResult.Success -> {
-                        _durations.value = response.data!!.durations
-                        _cleaningdata.value = response.data!!.services
+                        _durations.value = response.data.data!!.durations
+                        _cleaningdata.value = response.data.data.services
                     }
                     is NetworkResult.Error -> {
                         _error.value = response.message.takeIf { it.isNotBlank() }

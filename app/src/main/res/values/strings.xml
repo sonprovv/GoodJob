@@ -8,7 +8,7 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="tiet_kiem_thoi_gian"><b>Tiết kiệm thời gian: </b>Nhanh chóng có ngay người giúp việc chỉ với vài thao tác đặt lịch đơn giản trên ứng dụng, không tốn thời gian để chờ đợi.</string>
-    <string name="gia_ca_minh_bach"><b>Giá cả minh bạch, rõ ràng: </b>Giá dịch vụ được hiển thị rõ ràng, minh bạch trên ứng dụng, bạn không cần phải thanh toán thêm bất kỳ chi phí nào.</string>
+    <string name="gia_ca_minh_bach_ro_rang"><b>Giá cả minh bạch, rõ ràng: </b>Giá dịch vụ được hiển thị rõ ràng, minh bạch trên ứng dụng, bạn không cần phải thanh toán thêm bất kỳ chi phí nào.</string>
     <string name="cong_tac_vien_uy_tin"><b>Cộng tác viên uy tín: </b>Đội ngũ Cộng tác viên của Goodjob đã được lựa chọn và đào tạo kỹ lưỡng, đảm bảo chất lượng công việc và tính chuyên nghiệp.</string>
     <string name="linh_dong_da_dang"><b>Linh động, đa dạng: </b>Googjob cung cấp nhiều phương án làm việc, giờ giấc linh hoạt có thể đáp ứng được các nhu cầu và thói quen sinh hoạt của Khách hàng.</string>
     <string name="password_not_match">Mật khẩu không khớp. Vui lòng nhập lại</string>
@@ -16,4 +16,12 @@
     <string name="reviews_for">Reviews for %s</string>
     <string name="worker_reviews">Worker Reviews</string>
     <string name="default_web_client_id">982452710221-c5pev1iv7f4g2a4gv3jg6js1ju84mmbt.apps.googleusercontent.com</string>
+    <string name="content_header_maintenance">Sau một thời gian dài sử dụng máy lạnh, bụi bẩn sẽ bám vào dàn lạnh, không chỉ gây ảnh hưởng đến hoạt động của máy lạnh mà còn tác động trực tiếp đến sức khỏe con người. Vì vậy hãy để dịch vụ vệ sinh máy lạnh của GoodJob giúp tuổi thọ máy lạnh của bạn tăng lên và bảo vệ sức khỏe gia đình bạn.</string>
+    <string name="chuyen_nghiep"><b>Chuyên nghiệp:</b>\nĐội ngũ kỹ thuật viên dày dặn kinh nghiệm nắm rõ quy trình vệ sinh cho các loại máy lạnh và có thái độ thân thiện, nhiệt tình.</string>
+    <string name="an_toan_hieu_qua"><b>An toàn và hiệu quả:</b>\nTrang thiết bị chuyên dụng hiện đại, dung dịch vệ sinh an toàn. Bạn luôn nhận được thời gian bảo hành (thường là 7 ngày) tính từ khi nhân viên bắt đầu nhận đơn hàng vệ sinh máy lạnh.</string>
+    <string name="luon_san_sang"><b>Luôn sẵn sàng:</b>\nKhi bạn cần vệ sinh đội ngũ kỹ thuật viên chuyên nghiệp của GoodJob luôn có mặt để hỗ trợ bạn.</string>
+    <string name="gia_ca_minh_bach"><b>Giá cả minh bạch:</b>\nGía dịch vụ sẽ được hiển thị khi đặt lịch. Bạn không phải trả thêm bất kì phí phát sinh nào.</string>
+    <string name="content_header_maintenace_washing">Sau một thời gian dài sử dụng, máy giặt rất dễ mắc phải các vấn đề liên quan tới chất lượng giặt, mùi trên quần áo, các màng, túi lọc bị tắc .v.v. gây ảnh hưởng tới công suất và độ bền của máy giặt.\n\n<b>Dịch vụ vệ sinh lồng giặt của Goodjob</b> được thực hiện bởi đội ngũ chuyên viên giàu kinh nghiệm sẽ vệ sinh sâu lồng giặt và các thiết bị lọc trên máy bằng vòi xịt áp lực cao, dung dịch vệ sinh trung tính giúp loại bỏ triệt để cặn bẩn, màng bám và nấm mốc. Đặc biệt, việc bảo dưỡng và vệ sinh máy giặt định kỳ sẽ giúp:</string>
+    <string name="quan_ao">Quần áo giặt sạch hơn, không còn bụi bẩn và khả năng bị vi khuẩn, mầm bệnh xâm nhập</string>
+    <string name="may_giat">Máy giặt hoạt động êm hơn, tiết kiệm nước và bền hơn</string>
 </resources>

@@ -25,6 +25,7 @@ import com.project.job.ui.map.MapActivity
 import com.project.job.ui.notification.NotificationActivity
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
 import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActivity
+import com.project.job.ui.service.maintenanceservice.SelectServiceMaintenanceActivity
 import com.project.job.utils.UserDataBroadcastManager
 
 class HomeFragment : Fragment(), LoginResultListener {
@@ -126,7 +127,18 @@ class HomeFragment : Fragment(), LoginResultListener {
             }
         }
         binding.llItemService3.setOnClickListener {
-//            getFCMToken()
+            val location = preferencesManager.getUserData()["user_location"]
+            if(location == "" || location == null || location == "Chưa cập nhật"){
+                val intent = Intent(requireContext(), MapActivity::class.java).apply {
+                    putExtra("source", "maintenance_service")
+                }
+                startActivity(intent)
+                return@setOnClickListener
+            }
+            else {
+                val intent = Intent(requireContext(), SelectServiceMaintenanceActivity::class.java)
+                startActivity(intent)
+            }
         }
         checkLoginStatus()
     }

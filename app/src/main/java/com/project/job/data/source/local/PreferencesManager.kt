@@ -47,8 +47,13 @@ class PreferencesManager(context: Context) {
     }
 
     // Lưu token xác thực
-    fun saveAuthToken(token: String) {
-        sharedPreferences.edit().putString(KEY_AUTH_TOKEN, token).apply()
+    fun saveAuthToken(token: String?) {
+        if (!token.isNullOrEmpty()) {
+            sharedPreferences.edit().putString(KEY_AUTH_TOKEN, token).apply()
+            Log.d("PreferencesManager", "Auth token saved successfully")
+        } else {
+            Log.w("PreferencesManager", "Attempted to save null or empty auth token")
+        }
     }
 
     // Lấy token xác thực
@@ -77,9 +82,13 @@ class PreferencesManager(context: Context) {
     }
 
     // Lưu refresh token
-    fun saveRefreshToken(refreshToken: String) {
-        sharedPreferences.edit().putString(KEY_REFRESH_TOKEN, refreshToken).apply()
-        Log.d("PreferencesManager", "Refresh token saved")
+    fun saveRefreshToken(refreshToken: String?) {
+        if (!refreshToken.isNullOrEmpty()) {
+            sharedPreferences.edit().putString(KEY_REFRESH_TOKEN, refreshToken).apply()
+            Log.d("PreferencesManager", "Refresh token saved successfully")
+        } else {
+            Log.w("PreferencesManager", "Attempted to save null or empty refresh token")
+        }
     }
 
     // Lấy refresh token

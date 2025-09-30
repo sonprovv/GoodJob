@@ -35,7 +35,7 @@ class NotificationViewModel : ViewModel() {
                 val response = notificationRepository.getNotifications()
                 when(response) {
                     is NetworkResult.Success -> {
-                        _notifications.value = response.data ?: emptyList()
+                        _notifications.value = response.data.notifications
                     }
                     is NetworkResult.Error -> {
                         _error.value = response.message
@@ -49,7 +49,7 @@ class NotificationViewModel : ViewModel() {
             }
         }
     }
-    fun markNotificationAsRead(token: String, notificationID: String) {
+    fun markNotificationAsRead(notificationID: String) {
         viewModelScope.launch {
             _markReadSuccess.value = false
             _loading.value = true

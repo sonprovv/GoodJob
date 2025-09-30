@@ -39,6 +39,15 @@
         android:theme="@style/Theme.GoodJob"
         tools:targetApi="31">
         <activity
+            android:name=".ui.service.maintenanceservice.SelectServiceMaintenanceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.intro.MaintenanceWashingIntroActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.intro.MaintenanceIntroActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.chatbot.ChatBotActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />

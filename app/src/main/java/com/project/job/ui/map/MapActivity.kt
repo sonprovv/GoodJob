@@ -39,6 +39,7 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityMapBinding
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
 import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActivity
+import com.project.job.ui.service.maintenanceservice.SelectServiceMaintenanceActivity
 import com.project.job.utils.Constant
 import com.project.job.utils.addFadeClickEffect
 import okhttp3.Call
@@ -191,6 +192,9 @@ class MapActivity : ComponentActivity(), LocationListener {
                 // Chuyển về SelectServiceActivity
                 proceedToCleaningService(location, addressInfo)
             }
+            "maintenance_service" -> {
+                proceedToMaintenanceService(location, addressInfo)
+            }
             else -> {
                 // Mặc định chuyển sang SelectServiceActivity (cleaning)
                 proceedToCleaningService(location, addressInfo)
@@ -270,6 +274,38 @@ class MapActivity : ComponentActivity(), LocationListener {
             putExtra("location_source", "map_selection")
             putExtra("timestamp", System.currentTimeMillis())
             
+            // Clear activity stack và quay về existing instance
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+
+        // Hiển thị thông báo xác nhận
+        Toast.makeText(
+            this,
+            "✅ Đã chọn vị trí:\n$addressInfo",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        startActivity(intent)
+        finish() // Đóng MapActivity
+    }
+
+    // Chuyển sang SelectServiceMaintenanceActivity với thông tin vị trí (maintenance service)
+    private fun proceedToMaintenanceService(location: Point, addressInfo: String) {
+        Log.d(TAG, "Proceeding to SelectServiceHealthCareActivity with: $addressInfo")
+        preferencesManager.saveAddress(addressInfo)
+
+        val intent = Intent(this, SelectServiceMaintenanceActivity::class.java).apply {
+            // Truyền tọa độ
+            putExtra("selected_latitude", location.latitude())
+            putExtra("selected_longitude", location.longitude())
+
+            // Truyền địa chỉ
+            putExtra("selected_address", addressInfo)
+
+            // Truyền thông tin bổ sung
+            putExtra("location_source", "map_selection")
+            putExtra("timestamp", System.currentTimeMillis())
+
             // Clear activity stack và quay về existing instance
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }

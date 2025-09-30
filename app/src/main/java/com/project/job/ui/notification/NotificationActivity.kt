@@ -162,7 +162,6 @@ class NotificationActivity : AppCompatActivity() {
             "mark_read" -> {
                 // Call API to mark notification as read
                 viewModel.markNotificationAsRead(
-                    token = token,
                     notificationID = notification.uid
                 )
             }

@@ -44,8 +44,8 @@ class HealthCareViewModel: ViewModel() {
                     is NetworkResult.Success -> {
                         val serviceResponse = response.data
                         Log.d("HealthCareViewModel", "Parsed response: $serviceResponse")
-                        _healthcareService.value = serviceResponse!!.services
-                        _shift.value = serviceResponse.shifts
+                        _healthcareService.value = serviceResponse.data.services
+                        _shift.value = serviceResponse.data.shifts
                     }
                     is NetworkResult.Error -> {
                         val errorMsg = response.message

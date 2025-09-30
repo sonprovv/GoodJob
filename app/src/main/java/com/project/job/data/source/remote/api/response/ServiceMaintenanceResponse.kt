@@ -11,7 +11,6 @@ data class MaintenanceData(
     val image: String,
     val serviceType: String,
     val serviceName: String,
-    val powers: List<PowersInfo>,
-    val isMaintenance: Boolean,
+    val powers: List<String>,
     val maintenance: String
 )

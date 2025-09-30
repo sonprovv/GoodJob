@@ -111,7 +111,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="@string/gia_ca_minh_bach"
+                        android:text="@string/gia_ca_minh_bach_ro_rang"
                         android:textColor="@color/black"
                         android:textSize="16sp" />
                 </LinearLayout>

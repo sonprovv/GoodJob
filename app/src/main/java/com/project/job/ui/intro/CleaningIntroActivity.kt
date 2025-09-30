@@ -7,6 +7,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.project.job.R
 import com.project.job.databinding.ActivityCleaningIntroBinding
+import com.project.job.utils.addFadeClickEffect
 
 class CleaningIntroActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCleaningIntroBinding
@@ -16,7 +17,7 @@ class CleaningIntroActivity : AppCompatActivity() {
         binding = ActivityCleaningIntroBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.cardViewButtonBack.setOnClickListener {
+        binding.cardViewButtonBack.addFadeClickEffect {
             finish()
         }
     }

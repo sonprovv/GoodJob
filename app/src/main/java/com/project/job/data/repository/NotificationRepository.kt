@@ -33,7 +33,8 @@ class NotificationRepository : NotificationRepositoryImpl {
                 val notificationResponse = response.body()
                 if (notificationResponse?.success == true) {
                     // The API returns the updated notification list, but we need to find the specific notification
-                    val updatedNotification = notificationResponse.notifications.find { it.uid == notificationID }
+                    val updatedNotification = notificationResponse.notification
+//                        .find { it.uid == notificationID }
                     Result.success(updatedNotification)
                 } else {
                     Result.failure(Exception(notificationResponse?.message ?: "Failed to mark notification as read"))

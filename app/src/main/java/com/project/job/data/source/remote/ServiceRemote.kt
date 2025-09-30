@@ -5,22 +5,25 @@ import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.ServiceDataSource
 import com.project.job.data.source.remote.api.request.ChoiceWorkerRequest
 import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
+import com.project.job.data.source.remote.api.request.CreateJobMaintenanceRequest
 import com.project.job.data.source.remote.api.request.CreateJobRequest
 import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
+import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
-import com.project.job.data.source.remote.api.response.CleaningData
 import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
-import com.project.job.data.source.remote.api.response.HealthcareData
-import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
+import com.project.job.data.source.remote.api.response.ServiceCleaningResponse
+import com.project.job.data.source.remote.api.response.ServiceHealthcareResponse
+import com.project.job.data.source.remote.api.response.ServiceMaintenanceResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 
-class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
+class ServiceRemote(private val apiService: ApiService) : ServiceDataSource {
 //    override suspend fun getServiceCleaning(): NetworkResult<CleaningData?> {
 //        try{
 //            api.getcleaning()
@@ -31,48 +34,21 @@ class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
 //
 //    }
 
-    override suspend fun getServiceCleaning(): NetworkResult<CleaningData?> {
-        try{
-            val result = apiServie.getCleaningServices()
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()?.data)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+    override suspend fun getServiceCleaning(): NetworkResult<ServiceCleaningResponse> {
+        return safeApiCall {
+            apiService.getCleaningServices()
         }
     }
 
-    override suspend fun getServiceMaintenance(): NetworkResult<List<MaintenanceData>?> {
-        try{
-            val result = apiServie.getMaintenanceServices()
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()?.data)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+    override suspend fun getServiceMaintenance(): NetworkResult<ServiceMaintenanceResponse> {
+        return safeApiCall {
+            apiService.getMaintenanceServices()
         }
     }
 
-    override suspend fun getServiceHealthcare(): NetworkResult<HealthcareData?> {
-        try{
-            val result = apiServie.getHealthcareServices()
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()?.data)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+    override suspend fun getServiceHealthcare(): NetworkResult<ServiceHealthcareResponse> {
+        return safeApiCall {
+            apiService.getHealthcareServices()
         }
     }
 
@@ -87,29 +63,20 @@ class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
         isIroning: Boolean,
         location: String
     ): NetworkResult<CreateJobResponse?> {
-        try{
-            val result = apiServie.postJobCleaning(
+        return safeApiCall {
+            apiService.postJobCleaning(
                 CreateJobRequest(
-                userID = userID,
-                serviceType = serviceType,
-                startTime = startTime,
-                price = price,
-                listDays = listDays,
-                duration = duration,
-                isCooking = isCooking,
-                isIroning = isIroning,
-                location = location
+                    userID = userID,
+                    serviceType = serviceType,
+                    startTime = startTime,
+                    price = price,
+                    listDays = listDays,
+                    duration = duration,
+                    isCooking = isCooking,
+                    isIroning = isIroning,
+                    location = location
+                )
             )
-            )
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body())
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
         }
     }
 
@@ -124,59 +91,58 @@ class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
     ): NetworkResult<CreateJobResponse> {
-        try{
-            val result = apiServie.postJobHealthcare(
+        return safeApiCall {
+            apiService.postJobHealthcare(
                 CreateJobHealthcareRequest(
-                userID = userID,
-                serviceType = serviceType,
-                startTime = startTime,
-                price = price,
-                workerQuantity = workerQuantity,
-                listDays = listDays,
-                location = location,
-                shift = shift,
-                services = services
+                    userID = userID,
+                    serviceType = serviceType,
+                    startTime = startTime,
+                    price = price,
+                    workerQuantity = workerQuantity,
+                    listDays = listDays,
+                    location = location,
+                    shift = shift,
+                    services = services
+                )
             )
-            )
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
         }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+
+    }
+
+    override suspend fun postJobMaintenance(
+        userID: String,
+        serviceType: String,
+        startTime: String,
+        price: Int,
+        listDays: List<String>,
+        services: List<ServicePowerInfo>,
+        location: String
+    ): NetworkResult<CreateJobMaintenanceResponse> {
+        return safeApiCall {
+            apiService.postJobMaintenance(
+                CreateJobMaintenanceRequest(
+                    userID = userID,
+                    serviceType = serviceType,
+                    startTime = startTime,
+                    price = price,
+                    listDays = listDays,
+                    services = services,
+                    location = location
+                )
+            )
         }
     }
 
+
     override suspend fun getUserPostJobs(uid: String): NetworkResult<UserPostJobsResponse> {
-        try{
-            val result = apiServie.getUserPostJobs(uid)
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+        return safeApiCall {
+            apiService.getUserPostJobs(uid)
         }
     }
 
     override suspend fun getWorkerOrderJob(jobID: String): NetworkResult<WorkerOrderJobResponse> {
-        try{
-            val result = apiServie.getWorkerInJob(jobID)
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+        return safeApiCall {
+            apiService.getWorkerInJob(jobID)
         }
     }
 
@@ -184,35 +150,19 @@ class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
         uid: String,
         status: String
     ): NetworkResult<ChoiceWorkerResponse> {
-        try{
-            val result = apiServie.choiceWorker(ChoiceWorkerRequest(
-                uid = uid,
-                status = status
-            ))
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+        return safeApiCall {
+            apiService.choiceWorker(
+                ChoiceWorkerRequest(
+                    uid = uid,
+                    status = status
+                )
+            )
         }
     }
 
     override suspend fun getWorkerReviews(workerID: String): NetworkResult<GetReviewWorkerResponse> {
-        try{
-            val result = apiServie.getWorkerReviews(workerID)
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
+        return safeApiCall {
+            apiService.getWorkerReviews(workerID)
         }
     }
 
@@ -224,30 +174,21 @@ class ServiceRemote(private val apiServie: ApiService) : ServiceDataSource {
         comment: String,
         serviceType: String
     ): NetworkResult<ReviewWorkerResponse> {
-        try{
-            val result = apiServie.reviewWorker(
+        return safeApiCall {
+            apiService.reviewWorker(
                 ReviewWorkerRequest(
-                userID = userID,
-                workerID = workerID,
-                orderID = orderID,
-                rating = rating,
-                comment = comment,
-                serviceType = serviceType
+                    userID = userID,
+                    workerID = workerID,
+                    orderID = orderID,
+                    rating = rating,
+                    comment = comment,
+                    serviceType = serviceType
                 )
             )
-            if(result.isSuccessful){
-                return NetworkResult.Success(result.body()!!)
-            }
-            else{
-                return NetworkResult.Error("Something went wrong")
-            }
-        }
-        catch (e: Exception){
-            return NetworkResult.Error(e.message ?: "Something went wrong")
         }
     }
 
-    companion object{
+    companion object {
         private var instance: ServiceRemote? = null
         fun getInstance(): ServiceRemote {
             if (instance == null) {
