@@ -19,6 +19,6 @@ data class ShiftInfo(
 )
 
 data class ServiceInfoHealthcare(
-    val serviceID: String,
+    val uid: String,
     val quantity: Int
 )

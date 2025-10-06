@@ -6,6 +6,7 @@ import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
 import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
@@ -51,7 +52,7 @@ interface ServiceDataSource {
         location: String,
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
-    ): NetworkResult<CreateJobResponse?>
+    ): NetworkResult<CreateJobHealthcareResponse?>
 
     suspend fun postJobMaintenance(
         userID: String,

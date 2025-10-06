@@ -6,11 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.HealthcareService
+import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.ui.activity.jobdetail.JobDetailActivity
+import com.project.job.ui.payment.PaymentQrFragment
 import com.project.job.utils.addFadeClickEffect
 
 class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
@@ -28,9 +31,13 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     var healthcareServices: List<HealthcareService>? = null
         private set
 
-    fun updateList(newList: List<DataJobs>, services: List<HealthcareService>? = null) {
+    var maintenanceServices: List<MaintenanceData>? = null
+        private set
+
+    fun updateList(newList: List<DataJobs>, services: List<HealthcareService>? = null, maintenanceServices: List<MaintenanceData>? = null) {
         jobList = newList
         services?.let { healthcareServices = it }
+        this.maintenanceServices = maintenanceServices
         notifyDataSetChanged()
     }
 
@@ -50,13 +57,35 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
         holder.itemView.addFadeClickEffect {
             val currentPosition = holder.adapterPosition
             if (currentPosition != RecyclerView.NO_POSITION) {
-                val intent = Intent(holder.itemView.context, JobDetailActivity::class.java)
-                if(jobList[currentPosition].serviceType == "HEALTHCARE" && !healthcareServices.isNullOrEmpty()){
-                    Log.d("JobAdapter", "Passing ${healthcareServices?.size} healthcare services to detail")
-                    intent.putParcelableArrayListExtra("healthcareServiceList", ArrayList(healthcareServices))
+                val currentJob = jobList[currentPosition]
+                
+                // Kiểm tra nếu status là "Not Payment" → hiển thị PaymentQrFragment
+                if (currentJob.status == "Not Payment") {
+                    val context = holder.itemView.context
+                    if (context is FragmentActivity) {
+                        val qrFragment = PaymentQrFragment(
+                            uid = currentJob.user.uid,
+                            jobID = currentJob.uid,
+                            serviceType = currentJob.serviceType,
+                            amount = currentJob.price
+                        )
+                        qrFragment.show(context.supportFragmentManager, "PaymentQrFragment")
+                        Log.d("JobAdapter", "Showing PaymentQrFragment for Not Payment job")
+                    }
+                } else {
+                    // Status không phải "Not Payment" → navigate to JobDetailActivity
+                    val intent = Intent(holder.itemView.context, JobDetailActivity::class.java)
+                    if(currentJob.serviceType == "HEALTHCARE" && !healthcareServices.isNullOrEmpty()){
+                        Log.d("JobAdapter", "Passing ${healthcareServices?.size} healthcare services to detail")
+                        intent.putParcelableArrayListExtra("healthcareServiceList", ArrayList(healthcareServices))
+                    }
+                    if(currentJob.serviceType == "MAINTENANCE" && !maintenanceServices.isNullOrEmpty()){
+                        Log.d("JobAdapter", "Passing ${maintenanceServices?.size} maintenance services to detail")
+                        intent.putParcelableArrayListExtra("maintenanceServiceList", ArrayList(maintenanceServices))
+                    }
+                    intent.putExtra("job", currentJob)
+                    holder.itemView.context.startActivity(intent)
                 }
-                intent.putExtra("job", jobList[currentPosition])
-                holder.itemView.context.startActivity(intent)
             }
         }
     }
@@ -64,7 +93,7 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     override fun getItemCount(): Int = jobList.size
 
     inner class viewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvServiceTyoe = itemView.findViewById<TextView>(R.id.tv_service_tyoe)
+        private val tvServiceType = itemView.findViewById<TextView>(R.id.tv_service_tyoe)
         private val tvLocation = itemView.findViewById<TextView>(R.id.tv_location)
         private val tvDateCreate = itemView.findViewById<TextView>(R.id.tv_date_create)
         private val tvState = itemView.findViewById<TextView>(R.id.tv_state)
@@ -73,6 +102,13 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
         private val llTotalPeople = itemView.findViewById<View>(R.id.ll_total_people)
 
         fun bind(job: DataJobs) {
+            if(job.serviceType == "HEALTHCARE"){
+                tvTotalNumberPeople.text = "${job.workerQuantity} người"
+                llTotalPeople.visibility = View.VISIBLE
+            }
+            else{
+                llTotalPeople.visibility = View.INVISIBLE
+            }
             var typejob = "Dịch vụ: "
             if(job.serviceType == "CLEANING"){
                 typejob += "Dọn dẹp"
@@ -104,17 +140,19 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                 status = "Đang tuyển"
                 tvState.setTextColor(itemView.context.getColor(R.color.cam))
             }
-            tvServiceTyoe.text = typejob
+            else if(job.status == "Not Payment") {
+                status = "Chưa thanh toán"
+                tvState.setTextColor(itemView.context.getColor(R.color.red))
+            }
+            else if(job.status == "Cancel") {
+                status = "Đã hủy"
+                tvState.setTextColor(itemView.context.getColor(R.color.red))
+            }
+            tvServiceType.text = typejob
             tvLocation.text = job.location
             tvDateCreate.text = "${job.createdAt} - ${job.startTime}"
             tvState.text = status
-            if(typejob == "Dịch vụ: Chăm sóc"){
-                tvTotalNumberPeople.text = "${job.workerQuantity} người"
-                llTotalPeople.visibility = View.VISIBLE
-            }
-            else{
-                tvTotalNumberPeople.visibility = View.GONE
-            }
+
             tvTotalPrice.text = formatPrice(job.price)
         }
 

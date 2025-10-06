@@ -31,7 +31,7 @@
                 android:id="@+id/tv_history"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Lịch sử"
+                android:text="Lịch sử thanh toán"
                 android:textColor="#2FA862"
                 android:textSize="20sp" />
         </LinearLayout>

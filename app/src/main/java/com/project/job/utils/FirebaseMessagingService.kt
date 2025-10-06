@@ -98,25 +98,65 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         val senderName = data[KEY_SENDER_NAME] ?: ""
         val conversationId = data[KEY_CONVERSATION_ID] ?: ""
         val profileImageUrl = data["profileImageUrl"] ?: ""
+        val notificationType = data["notificationType"] ?: ""
 
-//        // Create a message object
-//        val message = Message(
-//            id = data["message_id"] ?: UUID.randomUUID().toString(),
-//            message = messageText,
-//            senderId = senderId,
-//            receiverId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-//            timestamp = data["timestamp"]?.toLongOrNull() ?: System.currentTimeMillis(),
-//            isSeen = false
-//        )
-//
-//        // Create a user object for the sender
-//        val sender = User(
-//            id = senderId,
-//            name = senderName,
-//            email = "",
-//            profileImageUrl = profileImageUrl
-//        )
+        // Check if this is a chat notification
+        if (notificationType == "Chat") {
+            handleChatNotification(title, messageText, senderId, senderName, conversationId, data)
+        } else {
+            // Handle regular notifications
+            Log.d(TAG, "Processing regular notification")
+            handleRegularNotification(title, messageText, senderId, senderName, conversationId)
+        }
+    }
 
+    private fun isAppInForeground(): Boolean {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val appProcesses = activityManager.runningAppProcesses ?: return false
+        for (processInfo in appProcesses) {
+            if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                processInfo.processName == packageName
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun handleChatNotification(
+        title: String,
+        message: String,
+        senderId: String,
+        senderName: String,
+        conversationId: String,
+        data: Map<String, String>
+    ) {
+        // Check if app is in foreground
+        if (isAppInForeground()) {
+            // App is in foreground, show in-app notification
+            Log.d(TAG, "App is in foreground, showing in-app chat notification")
+
+            // Broadcast the chat message to the activity
+            val intent = Intent(ACTION_NEW_MESSAGE)
+            intent.putExtra(KEY_MESSAGE, message)
+            intent.putExtra(KEY_SENDER_ID, senderId)
+            intent.putExtra(KEY_SENDER_NAME, senderName)
+            intent.putExtra(KEY_CONVERSATION_ID, conversationId)
+            intent.putExtra("notificationType", "Chat")
+            sendBroadcast(intent)
+        } else {
+            Log.d(TAG, "App is in background, showing chat system notification")
+            showChatNotification(title, message, senderId, senderName, conversationId)
+        }
+    }
+
+    private fun handleRegularNotification(
+        title: String,
+        message: String,
+        senderId: String,
+        senderName: String,
+        conversationId: String
+    ) {
         // Check if app is in foreground
         if (isAppInForeground()) {
             // App is in foreground, show in-app notification
@@ -124,7 +164,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
             // Broadcast the message to the activity
             val intent = Intent(ACTION_NEW_MESSAGE)
-            intent.putExtra(KEY_MESSAGE, messageText)
+            intent.putExtra(KEY_MESSAGE, message)
             intent.putExtra(KEY_SENDER_ID, senderId)
             intent.putExtra(KEY_SENDER_NAME, senderName)
             intent.putExtra(KEY_CONVERSATION_ID, conversationId)
@@ -132,9 +172,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         } else {
             // App is in background, show system notification
             Log.d(TAG, "App is in background, showing system notification")
-
-            // Show basic notification
-            showBasicNotification(title, messageText, senderId, senderName, conversationId)
+            showBasicNotification(title, message, senderId, senderName, conversationId)
         }
     }
 
@@ -146,7 +184,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         conversationId: String
     ) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
+
         // Create notification builder
         val builder = NotificationUtils.getNotificationBuilder(this, title, message)
             .setContentTitle(if (senderName.isNotEmpty()) senderName else title)
@@ -155,7 +193,45 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setVibrate(longArrayOf(0, 250, 250, 250))
             .setLights(0xff00ff00.toInt(), 300, 1000)
-        
+
+        // Show notification
+        notificationManager.notify(notificationId++, builder.build())
+    }
+
+    private fun showChatNotification(
+        title: String,
+        message: String,
+        senderId: String,
+        senderName: String,
+        conversationId: String
+    ) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create intent to open ChatDetailActivity
+        val intent = Intent(this, com.project.job.ui.chat.detail.ChatDetailActivity::class.java).apply {
+            putExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_RECEIVER_ID, senderId)
+            putExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_PARTNER_NAME, senderName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            notificationId,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Create notification builder for chat
+        val builder = NotificationUtils.getNotificationBuilder(this, title, message)
+            .setContentTitle(if (senderName.isNotEmpty()) senderName else title)
+            .setContentText(message)
+            .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(message))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setVibrate(longArrayOf(0, 250, 250, 250))
+            .setLights(0xff2196F3.toInt(), 300, 1000) // Blue color for chat notifications
+
         // Show notification
         notificationManager.notify(notificationId++, builder.build())
     }
@@ -170,24 +246,16 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         val senderId = data[KEY_SENDER_ID] ?: ""
         val senderName = data[KEY_SENDER_NAME] ?: ""
         val conversationId = data[KEY_CONVERSATION_ID] ?: ""
+        val notificationType = data["notificationType"] ?: ""
 
-        Log.d(TAG, "Handling notification: title=$title, message=$message")
+        Log.d(TAG, "Handling notification: title=$title, message=$message, type=$notificationType")
 
-        // Show basic notification for notification payload
-        showBasicNotification(title, message, senderId, senderName, conversationId)
-    }
-
-    private fun isAppInForeground(): Boolean {
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val appProcesses = activityManager.runningAppProcesses ?: return false
-        for (processInfo in appProcesses) {
-            if (processInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
-                processInfo.processName == packageName
-            ) {
-                return true
-            }
+        if (notificationType == "Chat") {
+            handleChatNotification(title, message, senderId, senderName, conversationId, data)
+        } else {
+            // Show basic notification for notification payload
+            showBasicNotification(title, message, senderId, senderName, conversationId)
         }
-        return false
     }
 
     // Notification channel is now created in App.kt

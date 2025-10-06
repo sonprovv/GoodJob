@@ -13,12 +13,11 @@ data class CreateJobMaintenanceRequest(
 
 data class ServicePowerInfo (
     val uid: String,
-    val power: List<PowersInfoQuantity>,
-    val maintenance: String
+    val powers: List<PowersInfoQuantity>,
 )
 
 data class PowersInfoQuantity(
-    val powerName: String,
+    val uid: String,
     val quantity: Int,
-    val quantityMaintenance: Int
+    val quantityAction: Int
 )

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.project.job.R
 import com.project.job.databinding.FragmentMessageBinding
+import com.project.job.ui.chat.detail.ChatDetailActivity
 import com.project.job.ui.chat.taskerfavorite.TaskerFavoriteActivity
 
 class MessageFragment : Fragment() {
@@ -22,6 +23,7 @@ class MessageFragment : Fragment() {
         _binding = FragmentMessageBinding.inflate(inflater, container, false)
         return binding.root
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Set up any additional UI components or listeners here
@@ -29,5 +31,20 @@ class MessageFragment : Fragment() {
             val intent = Intent(requireContext(), TaskerFavoriteActivity::class.java)
             startActivity(intent)
         }
+
+        // Ví dụ: Nhấn để mở chat với user "test_user_123"
+        binding.cardChatTaskerFavorite.setOnLongClickListener {
+            openChatWithUser("test_user_123", "Test User", null)
+            true
+        }
+    }
+
+    private fun openChatWithUser(receiverId: String, partnerName: String?, partnerAvatar: String?) {
+        val intent = Intent(requireContext(), ChatDetailActivity::class.java).apply {
+            putExtra(ChatDetailActivity.EXTRA_RECEIVER_ID, receiverId)
+            putExtra(ChatDetailActivity.EXTRA_PARTNER_NAME, partnerName ?: "Chat")
+            putExtra(ChatDetailActivity.EXTRA_PARTNER_AVATAR, partnerAvatar)
+        }
+        startActivity(intent)
     }
 }

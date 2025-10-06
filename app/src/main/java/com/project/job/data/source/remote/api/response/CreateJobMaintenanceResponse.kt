@@ -10,6 +10,7 @@ data class CreateJobMaintenanceResponse(
 
 data class NewJobMaintenance (
     val userID: String,
+    val uid: String,
     val serviceType: String,
     val startTime: String,
     val price: Int,

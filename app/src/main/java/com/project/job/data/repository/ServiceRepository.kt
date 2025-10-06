@@ -10,6 +10,7 @@ import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningData
 import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.HealthcareData
@@ -145,7 +146,7 @@ class ServiceRepository (
         location: String,
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
-    ): Result<CreateJobResponse> {
+    ): Result<CreateJobHealthcareResponse> {
         return try {
             val response = apiService.postJobHealthcare(
                 CreateJobHealthcareRequest(

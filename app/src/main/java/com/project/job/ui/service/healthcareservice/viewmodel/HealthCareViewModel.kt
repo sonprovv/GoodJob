@@ -9,6 +9,7 @@ import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.HealthcareShift
+import com.project.job.data.source.remote.api.response.NewJobHealthcare
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,6 +31,9 @@ class HealthCareViewModel: ViewModel() {
 
     private val _success_post = MutableStateFlow<Boolean>(false)
     val success_post: StateFlow<Boolean> = _success_post
+
+    private val _new_job_healthcare = MutableStateFlow<NewJobHealthcare?>(null)
+    val new_job_healthcare: StateFlow<NewJobHealthcare?> = _new_job_healthcare
 
     fun getServiceHealthcare() {
         viewModelScope.launch {
@@ -99,6 +103,7 @@ class HealthCareViewModel: ViewModel() {
                         val jobResponse = response.data
                         Log.d("HealthCareViewModel", "Parsed response: $jobResponse")
                         _success_post.value = true
+                        _new_job_healthcare.value = jobResponse.newJob
                     }
                     is NetworkResult.Error -> {
                         val errorMsg = response.message

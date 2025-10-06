@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.MainActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.HealthcareService
+import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.databinding.FragmentActivityBinding
 import com.project.job.ui.activity.adapter.JobAdapter
 import com.project.job.ui.activity.history.HistoryActivity
@@ -21,6 +22,7 @@ import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import com.project.job.ui.login.LoginResultListener
+import com.project.job.ui.service.maintenanceservice.viewmodel.MaintenanceViewModel
 
 class ActivityFragment : Fragment(), LoginResultListener {
 
@@ -28,9 +30,11 @@ class ActivityFragment : Fragment(), LoginResultListener {
     private val binding get() = _binding!!
     private lateinit var viewModel : ActivityViewModel
     private lateinit var viewModelHealthcare : HealthCareViewModel
+    private lateinit var viewModelMaintenance : MaintenanceViewModel
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var jobAdapter: JobAdapter
     private var healthcareServiceList : List<HealthcareService> = emptyList()
+    private var maintenanceServiceList : List<MaintenanceData> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +49,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ActivityViewModel()
         viewModelHealthcare = HealthCareViewModel()
+        viewModelMaintenance = MaintenanceViewModel()
         preferencesManager = PreferencesManager(requireContext())
 
         binding.cardViewButtonLogin.setOnClickListener {
@@ -61,7 +66,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
         binding.rcvListJob.layoutManager = LinearLayoutManager(requireContext())
         
         // Initialize with empty lists
-        jobAdapter.updateList(emptyList(), emptyList())
+        jobAdapter.updateList(emptyList(), emptyList(), emptyList())
 
         val token = preferencesManager.getAuthToken() ?: ""
         val uid = preferencesManager.getUserData()["user_id"] ?: ""
@@ -70,6 +75,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
         if (token != "") {
             viewModel.getListJob(uid = uid)
             viewModelHealthcare.getServiceHealthcare()
+            viewModelMaintenance.getMaintenanceService()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE
             binding.llNoLogin.visibility = View.GONE
         } else {
@@ -125,7 +131,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
                     else {
                         binding.llLoginSuccessNoData.visibility = View.GONE
                         binding.llListJob.visibility = View.VISIBLE
-                        jobAdapter.updateList(listJob, healthcareServiceList)
+                        jobAdapter.updateList(listJob, healthcareServiceList, maintenanceServiceList)
                     }
                 }
             }
@@ -133,8 +139,15 @@ class ActivityFragment : Fragment(), LoginResultListener {
             launch {
                 viewModelHealthcare.healthcareService.collectLatest { listService ->
                     healthcareServiceList = listService.filterNotNull()
-                    // Update the adapter with the latest services
-                    jobAdapter.updateList(jobAdapter.jobList, healthcareServiceList)
+                    // Update the adapter with the latest services (đồng bộ cả hai danh sách)
+                    jobAdapter.updateList(jobAdapter.jobList, healthcareServiceList, maintenanceServiceList)
+                }
+            }
+            launch {
+                viewModelMaintenance.maintenanceService.collectLatest { listService ->
+                    maintenanceServiceList = listService.filterNotNull()
+                    // Update the adapter with service maintenance (đồng bộ cả hai danh sách)
+                    jobAdapter.updateList(jobAdapter.jobList, healthcareServiceList, maintenanceServiceList)
                 }
             }
         }
@@ -148,6 +161,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
         if (token.isNotEmpty()) {
             viewModel.getListJob(uid = uid)
             viewModelHealthcare.getServiceHealthcare()
+            viewModelMaintenance.getMaintenanceService()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE
             binding.llNoLogin.visibility = View.GONE
         }

@@ -32,7 +32,7 @@ class WorkerAdapter (
         private val tvPhone = itemView.findViewById<TextView>(R.id.tv_phone)
         private val tvLocation = itemView.findViewById<TextView>(R.id.tv_location)
         private val tvStatus = itemView.findViewById<TextView>(R.id.tv_status)
-        private val cardViewReject = itemView.findViewById<CardView>(R.id.card_view_reject)
+        private val cardViewDetailWorker = itemView.findViewById<CardView>(R.id.card_view_detail_worker)
         private val cardViewAccept = itemView.findViewById<CardView>(R.id.card_view_accept)
 
         // Rating stars
@@ -114,13 +114,11 @@ class WorkerAdapter (
             val llReview = itemView.findViewById<View>(R.id.ll_review)
             val llAction = itemView.findViewById<View>(R.id.ll_action)
             if(status == "Chờ xác nhận") {
-                cardViewReject.visibility = View.VISIBLE
                 cardViewAccept.visibility = View.VISIBLE
                 llReview.visibility = View.GONE
             }
             else {
-                if(status == "Đã xác nhận" || status == "Đã từ chối" || status == "Đang xử lý") {
-                    cardViewReject.visibility = View.GONE
+                if(status == "Đã xác nhận" || status == "Đang xử lý") {
                     cardViewAccept.visibility = View.GONE
                     // Show rating section only for completed work
                 }
@@ -134,12 +132,13 @@ class WorkerAdapter (
                 }
             }
             // Xử lý sự kiện click cho card_view_reject
-            cardViewReject.setOnClickListener {
+            cardViewDetailWorker.setOnClickListener {
                 // Gọi ChoideWorkerViewModel.choiceWorker với status "Rejected"
-                viewModel.choiceWorker(token, worker.uid, "Rejected")
-                
+//                viewModel.choiceWorker(token, worker.uid, "Rejected")
+                // Chhuyển sang màn
+                onViewDetailClicked(worker)
+
                 // Ẩn card_view_accept
-                cardViewReject.visibility = View.GONE
                 cardViewAccept.visibility = View.GONE
 
                 // Callback để thông báo worker đã bị reject
@@ -151,8 +150,7 @@ class WorkerAdapter (
                 // Gọi ChoideWorkerViewModel.choiceWorker với status "Accepted"
                 viewModel.choiceWorker(token, worker.uid, "Accepted")
                 
-                // Ẩn card_view_reject
-                cardViewReject.visibility = View.GONE
+                // Ẩn card_view_accept
                 cardViewAccept.visibility = View.GONE
                 // Callback để thông báo worker đã được accept
                 onWorkerStatusChanged()
@@ -272,8 +270,8 @@ class WorkerAdapter (
 
     override fun onBindViewHolder(holder: viewHolder, position: Int) {
         holder.bind(workerList[position])
-        holder.itemView.setOnClickListener {
-            onViewDetailClicked(workerList[position])
-        }
+//        holder.itemView.setOnClickListener {
+//            onViewDetailClicked(workerList[position])
+//        }
     }
 }

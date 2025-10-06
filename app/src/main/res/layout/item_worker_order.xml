@@ -245,7 +245,7 @@
             android:orientation="horizontal">
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/card_view_reject"
+                android:id="@+id/card_view_detail_worker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
@@ -261,7 +261,7 @@
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="8dp"
-                    android:text="Không chấp nhận"
+                    android:text="Xem chi tiết"
                     android:textColor="#2FA862"
                     android:textSize="16sp"
                     android:textStyle="bold" />

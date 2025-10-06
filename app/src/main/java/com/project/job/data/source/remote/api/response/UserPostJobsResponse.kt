@@ -13,37 +13,36 @@ data class UserPostJobsResponse(
 data class DataJobs(
     val uid: String,
     val startTime: String,
-    val serviceType : String,
-    val workerQuantity: Int?=null,
+    val serviceType: String,
+    val workerQuantity: Int? = null,
     val price: Int,
     val listDays: List<String>,
     val status: String,
     val location: String,
-    val isCooking: Boolean ?= null,
-    val isIroning: Boolean ?= null,
+    val isCooking: Boolean? = null,
+    val isIroning: Boolean? = null,
     val createdAt: String,
-    val user : UserInfo,
-    val duration: CleaningDuration ?= null,
-    val services : List<ServiceHealthcare> ?= null,
-    val shift : HealthcareShift ?= null
-//    val serviceHeathCare: ServiceHeathCare? = null,
-//    val serviceMaintenance: ServiceMaintenance? = null
+    val user: UserInfo,
+    val duration: CleaningDuration? = null,
+    val services: List<ServiceHealthcare>? = null,
+    val shift: HealthcareShift? = null
 ) : Parcelable
+
 @Parcelize
 data class ServiceHealthcare(
-    val serviceID : String?=null,
-    val quantity : Int?=null,
-    val uid : String?=null,
-    val powers : List<PowersInfo>?=null,
-    val isMaintenance : Boolean ?=null,
-    val maintenance : String ?=null,
+    val quantity: Int? = null,
+    val uid: String? = null,
+    val powers: List<PowersInfo>? = null,
 ) : Parcelable
 
 @Parcelize
 data class PowersInfo(
-    val powerName: String,
+    val uid: String,
+    val name: String?,
     val quantity: Int,
-    val quantityMaintenance: Int
+    val price: Int? = null,
+    val priceAction: Int? = null,
+    val quantityAction: Int? = null
 ) : Parcelable
 
 @Parcelize

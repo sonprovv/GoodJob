@@ -24,6 +24,7 @@ import com.project.job.ui.login.ChangPasswordActivity
 import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.login.viewmodel.LoginViewModel
+import com.project.job.ui.payment.PaymentQrFragment
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -117,6 +118,10 @@ class ProfileFragment : Fragment(), LoginResultListener {
             startActivity(intent)
         }
 
+        binding.llPolicy.setOnClickListener {
+            // Open PaymentQrFragment
+        }
+
         binding.cardViewButtonLogin.setOnClickListener {
             // Open LoginFragment
             val loginFragment = LoginFragment.newInstance()
@@ -125,7 +130,6 @@ class ProfileFragment : Fragment(), LoginResultListener {
         }
 
         binding.llLogout.setOnClickListener {
-            val token = preferencesManager.getAuthToken() ?: ""
             val fcmToken = preferencesManager.getFCMToken() ?: ""
             // Sign out from Google
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

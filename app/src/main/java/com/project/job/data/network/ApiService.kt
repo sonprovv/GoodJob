@@ -16,6 +16,7 @@ import com.project.job.data.source.remote.api.request.SendMailRequest
 import com.project.job.data.source.remote.api.request.UpdateUserRequest
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
+import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
 import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.FCMTokenResponse
@@ -39,12 +40,13 @@ import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
+import retrofit2.http.DELETE
 
 interface ApiService {
     // fcm token
@@ -141,7 +143,7 @@ interface ApiService {
     @POST("api/jobs/healthcare")
     suspend fun postJobHealthcare(
         @Body request: CreateJobHealthcareRequest
-    ): Response<CreateJobResponse>
+    ): Response<CreateJobHealthcareResponse>
 
     @AuthRequired
     @POST("api/jobs/maintenance")
@@ -183,4 +185,55 @@ interface ApiService {
         @Path("workerID") workerID: String
     ): Response<GetReviewWorkerResponse>
 
+    // ---------------- Chat ----------------
+    @AuthRequired
+    @POST("api/chat/send")
+    suspend fun chatSendMessage(
+        @Body request: com.project.job.data.source.remote.api.request.chat.SendMessageRequest
+    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.MessageResponse>>
+
+    @AuthRequired
+    @GET("api/chat/messages/{userId}")
+    suspend fun chatGetMessages(
+        @Path("userId") userId: String,
+        @Query("limit") limit: Int = 50
+    ): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.MessageResponse>>>
+
+    @AuthRequired
+    @GET("api/chat/conversations")
+    suspend fun chatGetConversations(): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.ConversationResponse>>>
+
+    @AuthRequired
+    @GET("api/chat/available-users")
+    suspend fun chatGetAvailableUsers(): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.ChatUserResponse>>>
+
+    @AuthRequired
+    @PUT("api/chat/read/{userId}")
+    suspend fun chatMarkAsRead(
+        @Path("userId") userId: String
+    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+
+    @AuthRequired
+    @DELETE("api/chat/message/{conversationId}/{messageId}")
+    suspend fun chatDeleteMessage(
+        @Path("conversationId") conversationId: String,
+        @Path("messageId") messageId: String
+    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+
+    @AuthRequired
+    @DELETE("api/chat/conversation/{userId}")
+    suspend fun chatDeleteConversation(
+        @Path("userId") userId: String
+    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+
+    @GET("api/chat/status/{userId}")
+    suspend fun chatGetUserStatus(
+        @Path("userId") userId: String
+    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.UserStatusResponse>>
+
+    @AuthRequired
+    @POST("api/chat/status")
+    suspend fun chatUpdateStatus(
+        @Body request: com.project.job.data.source.remote.api.request.chat.UpdateStatusRequest
+    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.UserStatusResponse>>
 }

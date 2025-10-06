@@ -159,7 +159,7 @@ class CustomCalendarGridView @JvmOverloads constructor(
             val calendarDay = getItem(position)
             
             dayText.text = calendarDay.day
-            
+            dayText.isEnabled = false
             if (calendarDay.isCurrentMonth) {
                 dayText.setTextColor(ContextCompat.getColor(context, R.color.black))
                 if (calendarDay.isWorkingDay) {

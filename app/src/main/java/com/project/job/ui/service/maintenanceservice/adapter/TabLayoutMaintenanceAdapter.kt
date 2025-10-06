@@ -5,11 +5,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.project.job.data.source.remote.api.response.MaintenanceData
+import com.project.job.ui.service.maintenanceservice.OnPriceChangedListener
 import com.project.job.ui.service.maintenanceservice.ServiceMaintenanceChildFragment
 
 class TabLayoutMaintenanceAdapter(
     fragmentActivity: FragmentActivity,
-    private val rooms: List<MaintenanceData>
+    private val rooms: List<MaintenanceData>,
+    private val priceChangedListener: OnPriceChangedListener? = null
 ) : FragmentStateAdapter(fragmentActivity) {
 
     override fun getItemCount(): Int = rooms.size
@@ -18,12 +20,13 @@ class TabLayoutMaintenanceAdapter(
         val room = rooms.getOrNull(position) ?: return ServiceMaintenanceChildFragment()
         return ServiceMaintenanceChildFragment().apply {
             arguments = Bundle().apply {
-                putStringArrayList("powers", ArrayList(room.powers))
+                putParcelableArrayList("powers", ArrayList(room.powers))
                 putString("uid", room.uid)
                 putString("serviceType", room.serviceType)
                 putString("serviceName", room.serviceName)
                 putString("image", room.image)
                 putString("maintenance", room.maintenance)
+                // Truyền listener thông qua Bundle (fragment sẽ tự nhận ra)
             }
         }
     }

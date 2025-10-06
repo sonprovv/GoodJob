@@ -20,6 +20,7 @@ object RetrofitClient {
     
     private var isInitialized = false
     private lateinit var tokenRepository: TokenRepository
+    @SuppressLint("StaticFieldLeak")
     private lateinit var authenticationManager: AuthenticationManager
     private lateinit var tokenManagerIntegration: TokenManagerIntegration
     private lateinit var httpClient: OkHttpClient

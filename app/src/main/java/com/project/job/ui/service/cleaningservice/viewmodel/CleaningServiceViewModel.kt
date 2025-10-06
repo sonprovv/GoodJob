@@ -7,6 +7,8 @@ import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.ServiceRemote
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
+import com.project.job.data.source.remote.api.response.NewJobCleaning
+import com.project.job.data.source.remote.api.response.NewJobHealthcare
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -27,6 +29,9 @@ class CleaningServiceViewModel : ViewModel() {
 
     private val _success_post = MutableStateFlow<Boolean>(false)
     val success_post: StateFlow<Boolean> = _success_post
+
+    private val _new_job_cleaning = MutableStateFlow<NewJobCleaning?>(null)
+    val new_job_cleaning: StateFlow<NewJobCleaning?> = _new_job_cleaning
 
     fun getServiceCleaning() {
         viewModelScope.launch {
@@ -99,6 +104,7 @@ class CleaningServiceViewModel : ViewModel() {
                 when(response) {
                     is NetworkResult.Success -> {
                         _success_post.value = true
+                        _new_job_cleaning.value = response.data?.newJob
                     }
                     is NetworkResult.Error -> {
                         _error.value = response.message.takeIf { it.isNotBlank() }

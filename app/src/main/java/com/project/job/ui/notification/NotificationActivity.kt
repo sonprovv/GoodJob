@@ -47,8 +47,9 @@ class NotificationActivity : AppCompatActivity() {
             onMenuItemClick = { notification, action ->
                 handleMenuAction(notification, action)
             },
-            onViewDetailClicked = { jobID ->
-                navigateToJobDetail(jobID)
+            onViewDetailClicked = { notification ->
+//                navigateToJobDetail(jobID)
+                navigateToNotificationDetail(notification)
             }
         )
 
@@ -77,17 +78,25 @@ class NotificationActivity : AppCompatActivity() {
         healthcareViewModel.getServiceHealthcare()
     }
 
-    private fun navigateToJobDetail(jobID: String) {
-        // Find the job by ID
-        val job = jobList.find { it.uid == jobID }
-        if (job != null) {
-            val intent = Intent(this, JobDetailActivity::class.java)
-            intent.putExtra("job", job)
-            intent.putParcelableArrayListExtra("healthcareServiceList", ArrayList(healthcareServiceList))
-            startActivity(intent)
-        } else {
-            Toast.makeText(this, "Không tìm thấy thông tin công việc", Toast.LENGTH_SHORT).show()
-        }
+//    private fun navigateToJobDetail(jobID: String) {
+//        // Find the job by ID
+//        val job = jobList.find { it.uid == jobID }
+//        if (job != null) {
+//            val intent = Intent(this, JobDetailActivity::class.java)
+//            intent.putExtra("job", job)
+//            intent.putParcelableArrayListExtra("healthcareServiceList", ArrayList(healthcareServiceList))
+//            startActivity(intent)
+//        } else {
+//            Toast.makeText(this, "Không tìm thấy thông tin công việc", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+
+    private fun navigateToNotificationDetail(notification: NotificationInfo) {
+        val intent = Intent(this, NotificationDetailActivity::class.java)
+        intent.putExtra("title_notification", notification.title)
+        intent.putExtra("content_notification", notification.content)
+        intent.putExtra("time_notification", notification.createdAt)
+        startActivity(intent)
     }
 
     private fun setupSwipeRefresh() {

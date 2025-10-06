@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.HealthcareService
+import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.databinding.ActivityJobDetailBinding
 import com.project.job.ui.activity.jobdetail.adapter.TabLayoutAdapter
 
@@ -25,10 +26,15 @@ class JobDetailActivity : AppCompatActivity() {
         healthcareServiceList?.forEachIndexed { index, service ->
             Log.d("JobDetailActivity", "Service $index: ${service.uid} - ${service.serviceName}")
         }
+        val maintenanceServiceList = intent.getParcelableArrayListExtra<MaintenanceData>("maintenanceServiceList")
+        Log.d("JobDetailActivity", "Maintenance services received: ${maintenanceServiceList?.size}")
+        maintenanceServiceList?.forEachIndexed{index, service ->
+            Log.d("JobDetailActivity", "Service $index: ${service.uid} - ${service.serviceName}")
+        }
 
         // Set up ViewPager2 with adapter
         dataJob?.let { job ->
-            val adapter = TabLayoutAdapter(this, job, healthcareServiceList)
+            val adapter = TabLayoutAdapter(this, job, healthcareServiceList, maintenanceServiceList)
             binding.viewPagerActivity.adapter = adapter
         }
 

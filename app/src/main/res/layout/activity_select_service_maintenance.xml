@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:background="@color/white"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#EDECEC"
     tools:context=".ui.service.maintenanceservice.SelectServiceMaintenanceActivity">
+
     <LinearLayout
         android:id="@+id/ll_header"
         android:layout_width="match_parent"
@@ -57,53 +58,101 @@
     </LinearLayout>
 
     <LinearLayout
-        android:padding="12dp"
-        app:layout_constraintTop_toBottomOf="@id/ll_header"
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="68dp"
-        >
+        android:orientation="vertical"
+        android:layout_marginBottom="12dp"
+        android:paddingVertical="12dp"
+        app:layout_constraintBottom_toTopOf="@id/ll_bottom_sheet_bao_gia"
+        app:layout_constraintTop_toBottomOf="@id/ll_header">
+
         <TextView
+            android:layout_marginHorizontal="12dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Chọn loại máy"
             android:textColor="@color/black"
             android:textSize="18sp"
-            android:textStyle="bold"
-            />
+            android:textStyle="bold" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout_maintenance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabGravity="center"
             android:tooltipText="@null"
+            app:tabGravity="center"
             app:tabIndicatorColor="@android:color/transparent"
             app:tabIndicatorHeight="0dp"
+            app:tabMinWidth="0dp"
             app:tabMode="scrollable"
+            app:tabPaddingEnd="4dp"
+            app:tabPaddingStart="4dp"
             app:tabSelectedTextColor="@color/white"
             app:tabTextAppearance="@style/TabTextAppearance"
-            app:tabTextColor="@color/black"
-            app:tabMinWidth="0dp"
-            app:tabPaddingStart="4dp"
-            app:tabPaddingEnd="4dp"
-            />
+            app:tabTextColor="@color/black" />
+
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/view_pager_maintenance"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </LinearLayout>
+
     <LinearLayout
+        android:id="@+id/ll_bottom_sheet_bao_gia"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
+        android:orientation="vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/ll_bottom_sheet_detail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Thiết bị đã chọn"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_total_selected_items"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/bg_indicator"
+                android:gravity="center"
+                android:layout_marginHorizontal="4dp"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="1" />
+
+            <ImageView
+                android:id="@+id/iv_narrow_up_bottom_sheet_detail"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="4dp"
+                android:src="@drawable/ic_narrowup" />
+
+            <ImageView
+                android:id="@+id/iv_narrow_down_bottom_sheet_detail"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_narrowdown"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <androidx.cardview.widget.CardView
             android:id="@+id/card_view_button_next"

@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.project.job.R
+import com.project.job.data.source.remote.api.response.PowersInfo
 import com.project.job.databinding.FragmentServiceMaintenanceChildBinding
 import com.project.job.ui.intro.MaintenanceIntroActivity
 import com.project.job.ui.intro.MaintenanceWashingIntroActivity
@@ -22,6 +23,26 @@ class ServiceMaintenanceChildFragment : Fragment() {
     private var _binding: FragmentServiceMaintenanceChildBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: PowerAdapter
+
+    // Listener để thông báo cho activity khi có sự thay đổi
+    private var priceChangedListener: OnPriceChangedListener? = null
+
+    // Static listener để chia sẻ giữa tất cả các fragment instance
+    companion object {
+        private var sharedListener: OnPriceChangedListener? = null
+
+        fun setSharedListener(listener: OnPriceChangedListener?) {
+            sharedListener = listener
+        }
+    }
+
+    // Method để set listener từ activity
+    fun setPriceChangedListener(listener: OnPriceChangedListener) {
+        this.priceChangedListener = listener
+    }
+
+    // Lưu trữ tên service hiện tại để sử dụng trong callback
+    private lateinit var serviceName: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +60,12 @@ class ServiceMaintenanceChildFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         val image = arguments?.getString("image").orEmpty()
-        val serviceName = arguments?.getString("serviceName").orEmpty()
-        val powers = arguments?.getStringArrayList("powers") ?: arrayListOf()
+        val serviceNameArg = arguments?.getString("serviceName").orEmpty()
+        val powers = arguments?.getParcelableArrayList<PowersInfo>("powers") ?: emptyList()
         val maintenancePower = arguments?.getString("maintenance").orEmpty()
+
+        // Lưu trữ tên service hiện tại để sử dụng trong callback
+        serviceName = serviceNameArg
         // Load service image
         Glide.with(binding.root)
             .load(image.takeIf { it.isNotEmpty() })
@@ -53,14 +77,15 @@ class ServiceMaintenanceChildFragment : Fragment() {
         setupPowerRecyclerView(powers, maintenancePower)
 
         // Setup intro navigation
-        setupIntroNavigation(serviceName)
+        setupIntroNavigation()
     }
 
-    private fun setupPowerRecyclerView(powers: List<String>, maintenanceText: String) {
+    private fun setupPowerRecyclerView(powers: List<PowersInfo>, maintenanceText: String) {
         adapter = PowerAdapter { selectedItems ->
-            // Callback khi quantity thay đổi
-            Log.d("ServiceMaintenanceChild", "Selected items: $selectedItems")
-            // TODO: Update price or other UI based on selected items
+            // Callback khi quantity thay đổi - thông báo cho activity với tất cả items hiện tại và tên service
+            Log.d("ServiceMaintenanceChild", "All items: ${adapter.getAllItems()}")
+            // Gửi tất cả items hiện tại và tên service hiện tại
+            (priceChangedListener ?: sharedListener)?.onPriceChanged(adapter.getAllItems(), serviceName)
         }
         
         binding.rcvPower.apply {
@@ -72,7 +97,7 @@ class ServiceMaintenanceChildFragment : Fragment() {
         adapter.submitList(powers, maintenanceText)
     }
 
-    private fun setupIntroNavigation(serviceName: String) {
+    private fun setupIntroNavigation() {
         when (serviceName) {
             "Máy giặt" -> {
                 binding.cardViewJobDetail.addFadeClickEffect {

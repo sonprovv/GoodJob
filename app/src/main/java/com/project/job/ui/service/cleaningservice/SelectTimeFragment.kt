@@ -40,6 +40,7 @@ class SelectTimeFragment : Fragment() {
     private var durationDescription = ""
     private var serviceType = ""
     private var numberOfPeople = 1
+    private var extraServices = arrayListOf<String>()
 //    private var selectedRoomNames = arrayListOf<String>()
 //    private var selectedRoomCount = 0
     private var durationWorkingHour = 0
@@ -61,6 +62,11 @@ class SelectTimeFragment : Fragment() {
     private var babyServiceName = ""
     private var adultServiceName = ""
     private var elderlyServiceName = ""
+    // Dữ liệu maintenance services (lưu trữ để tránh mất dữ liệu)
+    private var selectedServiceUids = arrayListOf<String>()
+    private var selectedPowerUids = arrayListOf<String>()
+    private var selectedQuantities = arrayListOf<Int>()
+    private var selectedMaintenanceQuantities = arrayListOf<Int>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,10 +79,31 @@ class SelectTimeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Thêm logging để debug việc nhận arguments
+        Log.d("SelectTimeFragment", "Arguments received:")
+        arguments?.keySet()?.forEach { key ->
+            val value = arguments?.get(key)
+            Log.d("SelectTimeFragment", "  $key: $value")
+        }
 
+        // Debug logging cụ thể cho maintenance data
+        Log.d("SelectTimeFragment", "Service type: ${arguments?.getString("serviceType")}")
+        Log.d("SelectTimeFragment", "Selected service UIDs: ${arguments?.getStringArrayList("selectedServiceUids")}")
+        Log.d("SelectTimeFragment", "Selected power UIDs: ${arguments?.getStringArrayList("selectedPowerUids")}")
+        Log.d("SelectTimeFragment", "Selected quantities: ${arguments?.getIntegerArrayList("selectedQuantities")}")
+        Log.d("SelectTimeFragment", "Selected maintenance quantities: ${arguments?.getIntegerArrayList("selectedMaintenanceQuantities")}")
+
+        // Thử đọc bằng cách khác để debug
+//        Log.d("SelectTimeFragment", "All argument keys: $allKeys")
         tvSelectedDates = binding.tvSelectedDates
         tvMonthYear = binding.tvMonthYear
+        // Lưu trữ dữ liệu maintenance vào biến instance để tránh mất dữ liệu
         serviceType = arguments?.getString("serviceType") ?: ""
+        selectedServiceUids = arguments?.getStringArrayList("selectedServiceUids") ?: arrayListOf()
+        selectedPowerUids = arguments?.getStringArrayList("selectedPowerUids") ?: arrayListOf()
+        selectedQuantities = arguments?.getIntegerArrayList("selectedQuantities") ?: arrayListOf()
+        selectedMaintenanceQuantities = arguments?.getIntegerArrayList("selectedMaintenanceQuantities") ?: arrayListOf()
+
         val totalHours = arguments?.getInt("totalHours") ?: 0
         val totalFee = arguments?.getInt("totalFee") ?: 0
         durationDescription = arguments?.getString("durationDescription") ?: ""
@@ -91,7 +118,7 @@ class SelectTimeFragment : Fragment() {
         numberOfAdult = arguments?.getInt("numberAdult", 0) ?: 0
         numberOfElderly = arguments?.getInt("numberOld", 0) ?: 0
         numberOfWorker = arguments?.getInt("numberWorker", 1) ?: 1
-        
+
         // Get service IDs and names from arguments
         babyServiceId = arguments?.getString("babyServiceId") ?: ""
         adultServiceId = arguments?.getString("adultServiceId") ?: ""
@@ -99,8 +126,8 @@ class SelectTimeFragment : Fragment() {
         babyServiceName = arguments?.getString("babyServiceName") ?: ""
         adultServiceName = arguments?.getString("adultServiceName") ?: ""
         elderlyServiceName = arguments?.getString("elderlyServiceName") ?: ""
-        
-        val extraServices = arguments?.getStringArrayList("extraServices") ?: arrayListOf()
+
+        extraServices = arguments?.getStringArrayList("extraServices") ?: arrayListOf()
 //        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
 //        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
 //        val selectedRooms = SelectedRoomManager.getSelectedRooms()
@@ -120,7 +147,6 @@ class SelectTimeFragment : Fragment() {
 
 
         // Update extra services display
-
         servicesText = "${extraServices.joinToString(", ")}"
         Log.d("SelectTimeFragment", "Extra Services: $servicesText")
         Log.d("SelectTimeFragment", "Duration Description: $durationDescription")
@@ -210,14 +236,28 @@ class SelectTimeFragment : Fragment() {
                         putString("babyServiceName", babyServiceName)
                         putString("adultServiceName", adultServiceName)
                         putString("elderlyServiceName", elderlyServiceName)
-//                        putStringArrayList("selectedRoomNames", selectedRoomNames)
-//                        putInt("selectedRoomCount", selectedRoomCount)
-                        
-                        // Debug logging before passing to ConfirmAndCheckoutFragment
-//                        Log.d("SelectTimeFragment", "Passing room count to Confirm: $selectedRoomCount")
-//                        Log.d("SelectTimeFragment", "Passing room names to Confirm: ${selectedRoomNames.joinToString(", ")}")
-                        Log.d("SelectTimeFragment", "Passing duration info: id=$durationId, workingHour=$durationWorkingHour, fee=$durationFee")
-                        Log.d("SelectTimeFragment", "Passing service names: baby='$babyServiceName', adult='$adultServiceName', elderly='$elderlyServiceName'")
+
+                        // Truyền dữ liệu maintenance services nếu có
+                        if (serviceType == "maintenance") {
+                            Log.d("SelectTimeFragment", "Reading maintenance data for ConfirmAndCheckoutFragment:")
+                            Log.d("SelectTimeFragment", "  Selected service UIDs: ${selectedServiceUids.joinToString(", ")}")
+                            Log.d("SelectTimeFragment", "  Selected power UIDs: ${selectedPowerUids.joinToString(", ")}")
+                            Log.d("SelectTimeFragment", "  Selected quantities: ${selectedQuantities.joinToString(", ")}")
+                            Log.d("SelectTimeFragment", "  Selected maintenance quantities: ${selectedMaintenanceQuantities.joinToString(", ")}")
+
+                            // Kiểm tra xem có dữ liệu không trước khi truyền
+                            if (selectedServiceUids.isNotEmpty()) {
+                                putStringArrayList("selectedServiceUids", selectedServiceUids)
+                                putStringArrayList("selectedPowerUids", selectedPowerUids)
+                                putIntegerArrayList("selectedQuantities", selectedQuantities)
+                                putIntegerArrayList("selectedMaintenanceQuantities", selectedMaintenanceQuantities)
+                                Log.d("SelectTimeFragment", "Maintenance data transmitted to ConfirmAndCheckoutFragment")
+                            } else {
+                                Log.d("SelectTimeFragment", "No maintenance data to transmit - selectedServiceUids is empty")
+                            }
+                        } else {
+                            Log.d("SelectTimeFragment", "Service type is not maintenance: $serviceType")
+                        }
                     }
                 }
                 

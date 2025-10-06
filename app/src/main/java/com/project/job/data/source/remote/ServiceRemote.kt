@@ -13,6 +13,7 @@ import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningDuration
+import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
 import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
 import com.project.job.data.source.remote.api.response.CreateJobResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
@@ -90,7 +91,7 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource {
         location: String,
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
-    ): NetworkResult<CreateJobResponse> {
+    ): NetworkResult<CreateJobHealthcareResponse> {
         return safeApiCall {
             apiService.postJobHealthcare(
                 CreateJobHealthcareRequest(

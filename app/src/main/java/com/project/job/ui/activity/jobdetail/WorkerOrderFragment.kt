@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.databinding.FragmentWorkerOrderBinding
 import com.project.job.ui.activity.jobdetail.adapter.WorkerAdapter
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
@@ -21,18 +22,20 @@ class WorkerOrderFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var workerAdapter: WorkerAdapter
     private var jobId: String? = null
+    private var jobQuantity: Int? = 1
     private lateinit var viewModel: JobDetailViewModel
     private lateinit var choideWorkerViewModel: ChoiceWorkerViewModel
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var loadingDialog: LoadingDialog
-
     companion object {
         private const val ARG_JOB_ID = "job_id"
-
-        fun newInstance(jobId: String): WorkerOrderFragment {
+        private const val ARG_JOB_QUANTITY = "job_quantity"
+        fun newInstance(dataJob: DataJobs): WorkerOrderFragment {
             val fragment = WorkerOrderFragment()
             val args = Bundle()
-            args.putString(ARG_JOB_ID, jobId)
+            val quantity = dataJob.workerQuantity ?: 1
+            args.putString(ARG_JOB_ID, dataJob.uid)
+            args.putString(ARG_JOB_QUANTITY, quantity.toString())
             fragment.arguments = args
             return fragment
         }
@@ -42,6 +45,7 @@ class WorkerOrderFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             jobId = it.getString(ARG_JOB_ID)
+            jobQuantity = it.getString(ARG_JOB_QUANTITY)?.toIntOrNull() ?: 1
         }
     }
 
@@ -141,7 +145,7 @@ class WorkerOrderFragment : Fragment() {
                         // Có data: hiện list, ẩn no data
                         binding.llNoData.visibility = View.GONE
                         binding.llListWorker.visibility = View.VISIBLE
-                        workerAdapter.submitList(worker)
+                        workerAdapter.submitList(worker ?: emptyList())
                     } else {
                         // Không có data: ẩn list, hiện no data
                         binding.llListWorker.visibility = View.GONE

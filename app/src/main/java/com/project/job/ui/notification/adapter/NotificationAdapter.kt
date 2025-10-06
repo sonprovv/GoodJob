@@ -15,7 +15,8 @@ import com.project.job.data.source.remote.api.response.NotificationInfo
 class NotificationAdapter(
     private var notifications: List<NotificationInfo> = emptyList(),
     private val onMenuItemClick: (NotificationInfo, String) -> Unit = { _, _ -> },
-    private val onViewDetailClicked: (String) -> Unit = {}
+//    private val onViewDetailClicked: (String) -> Unit = {}
+    private val onViewDetailClicked: (NotificationInfo) -> Unit = {}
 ) : RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
     inner class NotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -25,13 +26,14 @@ class NotificationAdapter(
         val container = itemView.findViewById<LinearLayout>(R.id.notificationContainer)
         val optionsButton = itemView.findViewById<ImageView>(R.id.ivOptions)
         fun bind(notification: NotificationInfo) {
-            val service = when (notification.serviceType.uppercase()) {
-                "HEALTHCARE" -> "Chăm sóc"
-                "CLEANING" -> "Dọn dẹp"
-                "MAINTENANCE" -> "Bảo trì"
-                else -> "Dịch vụ khác"
-            }
-            serviceType.text = service
+//            val service = when (notification.serviceType.uppercase()) {
+//                "HEALTHCARE" -> "Chăm sóc"
+//                "CLEANING" -> "Dọn dẹp"
+//                "MAINTENANCE" -> "Bảo trì"
+//                else -> "Dịch vụ khác"
+//            }
+//            serviceType.text = service
+            serviceType.text = notification.title
             content.text = notification.content
             time.text = notification.createdAt
             
@@ -91,7 +93,8 @@ class NotificationAdapter(
             if (!notifications[position].isRead) {
                 onMenuItemClick(notifications[position], "mark_read")
             }
-            onViewDetailClicked(notifications[position].jobID)
+//            onViewDetailClicked(notifications[position].jobID)
+            onViewDetailClicked(notifications[position])
         }
     }
 
