@@ -54,9 +54,9 @@ class AuthInterceptor(
         // Thực hiện request
         val response = chain.proceed(newRequest)
         
-        // Kiểm tra nếu response là 403 (Forbidden) và cần auth
-        if (needAuth && response.code == 403) {
-            Log.d(TAG, "Received 403 error, attempting to refresh token")
+        // Kiểm tra nếu response là 401 (Unauthorized) và cần auth
+        if (needAuth && response.code == 401) {
+            Log.d(TAG, "Received 401 error, attempting to refresh token")
             
             // Đóng response cũ
             response.close()

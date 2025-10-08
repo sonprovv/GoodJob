@@ -10,7 +10,7 @@ import com.project.job.data.source.remote.api.response.UserResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+import java.net.SocketTimeoutException
 class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
     private val userRepository = UserRemote.getInstance()
 
@@ -76,7 +76,14 @@ class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel()
                     }
                 }
             } catch (e: Exception) {
-                _error.value = e.message ?: "An error occurred"
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _error.value = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại."
+                    }
+                    else -> {
+                        _error.value = e.message ?: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+                    }
+                }
                 Log.e("LoginViewModel", "Google Sign-In exception", e)
             } finally {
                 _loading.value = false
@@ -113,8 +120,15 @@ class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel()
                 }
 
             } catch (e: Exception) {
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _error.value = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại."
+                    }
+                    else -> {
+                        _error.value = e.message ?: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+                    }
+                }
                 Log.e("LoginViewModel", "Login error: ${e.message}")
-                _error.value = e.message
             } finally {
                 Log.e("LoginViewModel", "Login finally")
                 _loading.value = false

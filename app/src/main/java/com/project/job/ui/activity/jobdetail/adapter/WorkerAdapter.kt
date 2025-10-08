@@ -131,28 +131,21 @@ class WorkerAdapter (
                     llAction.visibility = View.VISIBLE
                 }
             }
-            // Xử lý sự kiện click cho card_view_reject
+            // Xử lý sự kiện click cho card_view_detail_worker
             cardViewDetailWorker.setOnClickListener {
-                // Gọi ChoideWorkerViewModel.choiceWorker với status "Rejected"
-//                viewModel.choiceWorker(token, worker.uid, "Rejected")
-                // Chhuyển sang màn
+                // Chuyển sang màn hình chi tiết worker (không gọi onWorkerStatusChanged)
                 onViewDetailClicked(worker)
-
-                // Ẩn card_view_accept
-                cardViewAccept.visibility = View.GONE
-
-                // Callback để thông báo worker đã bị reject
-                onWorkerStatusChanged()
             }
-            
+
             // Xử lý sự kiện click cho card_view_accept
             cardViewAccept.setOnClickListener {
                 // Gọi ChoideWorkerViewModel.choiceWorker với status "Accepted"
                 viewModel.choiceWorker(token, worker.uid, "Accepted")
-                
-                // Ẩn card_view_accept
+
+                // Ẩn card_view_accept sau khi accept
                 cardViewAccept.visibility = View.GONE
-                // Callback để thông báo worker đã được accept
+
+                // Callback để thông báo worker đã được accept và refresh dữ liệu
                 onWorkerStatusChanged()
             }
         }

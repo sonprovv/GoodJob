@@ -1,25 +1,32 @@
 package com.project.job
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
 import com.project.job.databinding.ActivityMainBinding
 import com.project.job.ui.activity.ActivityFragment
 import com.project.job.ui.chat.ChatFragment
+import com.project.job.ui.dialog.SessionExpiredBottomSheet
 import com.project.job.ui.home.HomeFragment
 import com.project.job.ui.profile.ProfileFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var loadingOverlay: FrameLayout
+    private lateinit var sessionExpiredReceiver: BroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,8 +35,6 @@ class MainActivity : AppCompatActivity() {
         // Gán binding trước
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        loadingOverlay = binding.flLottieLoader
 
         // Configure status bar
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -51,32 +56,33 @@ class MainActivity : AppCompatActivity() {
                     replaceFragment(HomeFragment())
                     true
                 }
+
                 R.id.activity -> {
                     replaceFragment(ActivityFragment())
                     true
                 }
+
                 R.id.chat -> {
                     replaceFragment(ChatFragment())
                     true
                 }
+
                 R.id.profile -> {
                     replaceFragment(ProfileFragment())
                     true
                 }
+
                 else -> {
                     replaceFragment(HomeFragment())
                     true
                 }
             }
         }
-    }
-    fun showLoading() {
-        loadingOverlay.visibility = View.VISIBLE
+
+        // Thiết lập BroadcastReceiver để lắng nghe session expired
+        setupSessionExpiredReceiver()
     }
 
-    fun hideLoading() {
-        loadingOverlay.visibility = View.GONE
-    }
     @SuppressLint("RestrictedApi")
     private fun setupBottomNavigation() {
         // Tắt icon tint
@@ -112,5 +118,43 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
+    }
+
+    private fun setupSessionExpiredReceiver() {
+        sessionExpiredReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == "com.project.job.SESSION_EXPIRED") {
+                    Log.d("MainActivity", "Session expired broadcast received, showing dialog")
+                    showSessionExpiredDialog()
+                }
+            }
+        }
+
+        // Đăng ký receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            sessionExpiredReceiver,
+            IntentFilter("com.project.job.SESSION_EXPIRED")
+        )
+    }
+
+    private fun showSessionExpiredDialog() {
+        try {
+            if (!isFinishing && !isDestroyed) {
+                val dialog = SessionExpiredBottomSheet()
+                dialog.show(supportFragmentManager, "SessionExpiredBottomSheet")
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Failed to show session expired dialog", e)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Hủy đăng ký receiver
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(sessionExpiredReceiver)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Failed to unregister session expired receiver", e)
+        }
     }
 }

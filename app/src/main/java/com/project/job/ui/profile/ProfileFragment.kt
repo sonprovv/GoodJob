@@ -20,6 +20,7 @@ import com.project.job.MainActivity
 import com.project.job.data.repository.TokenRepository
 import com.project.job.databinding.FragmentProfileBinding
 import com.project.job.ui.chatbot.ChatBotActivity
+import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.ChangPasswordActivity
 import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment(), LoginResultListener {
-
+    private lateinit var loadingDialog: LoadingDialog
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
@@ -104,6 +105,7 @@ class ProfileFragment : Fragment(), LoginResultListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadingDialog = LoadingDialog(requireActivity())
         // Initialize preferences manager
         preferencesManager = PreferencesManager(requireContext())
         // Initialize ViewModel
@@ -165,10 +167,10 @@ class ProfileFragment : Fragment(), LoginResultListener {
                     // Xử lý trạng thái loading tại đây
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
-                        (activity as? MainActivity)?.showLoading()
+                        loadingDialog.show()
                     } else {
                         // Ẩn ProgressBar khi không còn loading
-                        (activity as? MainActivity)?.hideLoading()
+                        loadingDialog.hide()
                     }
                 }
             }

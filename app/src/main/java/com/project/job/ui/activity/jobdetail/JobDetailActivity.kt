@@ -12,7 +12,7 @@ import com.project.job.databinding.ActivityJobDetailBinding
 import com.project.job.ui.activity.jobdetail.adapter.TabLayoutAdapter
 
 class JobDetailActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityJobDetailBinding
+    lateinit var binding: ActivityJobDetailBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -32,9 +32,9 @@ import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.databinding.FragmentLoginBinding
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
-import com.project.job.utils.addFadeClickEffect
-import com.project.job.utils.getFCMToken
 import com.project.job.utils.TokenManager
+import com.project.job.utils.UserDataBroadcastManager
+import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import okhttp3.FormBody
@@ -119,7 +119,7 @@ class LoginFragment : BottomSheetDialogFragment() {
         preferencesManager = PreferencesManager(requireContext())
         tokenManager = TokenManager.getInstance(requireContext())
         fcmToken = preferencesManager.getFCMToken() ?: ""
-        Log.d(TAG, "FCM Token: ${fcmToken.toString()}")
+        Log.d(TAG, "FCM Token: ${fcmToken}")
         viewModel = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
         loadingDialog = LoadingDialog(requireActivity())
         // Xử lý sự kiện đăng nhập thường
@@ -209,6 +209,15 @@ class LoginFragment : BottomSheetDialogFragment() {
                             Log.d(TAG, "User data received: $user")
                             preferencesManager.saveUser(user)
 
+                            // Gửi broadcast thông báo cập nhật dữ liệu người dùng
+                            val userName = user.username ?: "Người dùng"
+                            val userPhone = user.tel ?: ""
+                            UserDataBroadcastManager.sendUserDataUpdatedBroadcast(
+                                requireContext(),
+                                userName,
+                                userPhone
+                            )
+
                             // Dismiss the fragment when user data is received
                             if (isAdded && !isRemoving) {
                                 loginResultListener?.onLoginSuccess()
@@ -239,14 +248,14 @@ class LoginFragment : BottomSheetDialogFragment() {
                     }
                 }
 
-                // Handle login result
+                // Handle error messages
                 launch {
-                    viewModel.loginResult.collect { authResponse ->
-                        authResponse?.let {
-                            if (it.success && isAdded && !isRemoving) {
-                                // Dismiss the fragment on successful login
-                                dismiss()
-                            }
+                    viewModel.error.collect { errorMessage ->
+                        if (!errorMessage.isNullOrEmpty()) {
+                            Log.e(TAG, "Error received: $errorMessage")
+                            showError(errorMessage)
+                            // Re-enable Google login button after error
+                            binding.ivGoogleLogin.isEnabled = true
                         }
                     }
                 }
@@ -258,10 +267,10 @@ class LoginFragment : BottomSheetDialogFragment() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         try {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            val account = task.getResult(ApiException::class.java)
-//            val account = GoogleSignIn.getLastSignedInAccount(requireContext())
-//                ?: throw ApiException(com.google.android.gms.common.api.Status.RESULT_CANCELED)
+//            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+//            val account = task.getResult(ApiException::class.java)
+            val account = GoogleSignIn.getLastSignedInAccount(requireContext())
+                ?: throw ApiException(com.google.android.gms.common.api.Status.RESULT_CANCELED)
             // 1. Dùng ID Token login Firebase
             account.idToken?.let { token ->
                 Log.d(TAG, "idTokenPP: ${token}")

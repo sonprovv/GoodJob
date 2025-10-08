@@ -260,6 +260,16 @@ class HomeFragment : Fragment(), LoginResultListener {
         // Update UI after successful login
         // Cập nhật UI khi đăng nhập thành công
         checkLoginStatus()
+
+        // Gửi broadcast thông báo cập nhật dữ liệu người dùng
+        val userData = preferencesManager.getUserData()
+        val userName = userData["user_name"] ?: "Người dùng"
+        val userPhone = userData["user_phone"] ?: ""
+        UserDataBroadcastManager.sendUserDataUpdatedBroadcast(
+            requireContext(),
+            userName,
+            userPhone
+        )
     }
 
 
@@ -282,9 +292,14 @@ class HomeFragment : Fragment(), LoginResultListener {
     }
     
     private fun updateUserDataInUI(name: String, phone: String) {
-        // Update the header text with new user name
-        binding.tvHeaderText.text = "Xin chào $name"
-        Log.d("HomeFragment", "User data updated: Name=$name, Phone=$phone")
+        // Update the header text with new user name (giữ định dạng xuống dòng như checkLoginStatus)
+        binding.tvHeaderText.text = "Xin chào \n$name"
+
+        // Cập nhật các UI elements giống như checkLoginStatus khi đã đăng nhập
+        binding.cardViewButtonLogin.visibility = View.GONE
+        binding.tvContentHeader.setTextColor(resources.getColor(R.color.cam))
+
+        Log.d("HomeFragment", "User data updated via broadcast: Name=$name, Phone=$phone")
     }
 
     override fun onDestroyView() {

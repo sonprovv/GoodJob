@@ -8,11 +8,13 @@ import com.project.job.data.manager.TokenManagerIntegration
 import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.interceptor.AuthInterceptor
+import com.project.job.data.source.remote.interceptor.TokenAuthenticator
 import com.project.job.utils.Constant
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = Constant.BASE_URL
@@ -41,15 +43,40 @@ object RetrofitClient {
                 tokenRepository, 
                 authenticationManager
             )
-            
+
+            // Create API service first with basic client (for TokenAuthenticator)
+            val basicClient = OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .connectTimeout(15, TimeUnit.SECONDS) // Connection timeout
+                .readTimeout(30, TimeUnit.SECONDS)    // Read timeout
+                .writeTimeout(15, TimeUnit.SECONDS)   // Write timeout
+                .build()
+
+            _apiService = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(basicClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ApiService::class.java)
+
+            // Now create the full client with TokenAuthenticator
             httpClient = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
                 .addInterceptor(AuthInterceptor(
                     tokenRepository = tokenRepository,
                     authenticationManager = authenticationManager
                 ))
+                .authenticator(TokenAuthenticator(
+                    apiService = _apiService,
+                    preferencesManager = preferencesManager,
+                    context = context
+                ))
+                .connectTimeout(15, TimeUnit.SECONDS) // Connection timeout
+                .readTimeout(30, TimeUnit.SECONDS)    // Read timeout
+                .writeTimeout(15, TimeUnit.SECONDS)   // Write timeout
                 .build()
 
+            // Recreate API service with the full client
             _apiService = Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(httpClient)

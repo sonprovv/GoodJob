@@ -21,6 +21,8 @@ import com.project.job.data.source.remote.api.request.ShiftInfo
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.databinding.FragmentConfirmAndCheckoutBinding
 import com.project.job.ui.loading.LoadingDialog
+import com.project.job.ui.login.LoginFragment
+import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.payment.PaymentQrFragment
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
 import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
@@ -262,7 +264,32 @@ class ConfirmAndCheckoutFragment : Fragment() {
             val uid = preferencesManager.getUserData()["user_id"] ?: ""
 
             if (uid == "") {
-                // hiển thị fragment đăng nhập (LoginFragment)
+                // Hiển thị thông báo yêu cầu đăng nhập trước khi hiển thị LoginFragment
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Vui lòng đăng nhập để tiếp tục đăng công việc",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+
+                // Hiển thị fragment đăng nhập (LoginFragment) với callback
+                val loginFragment = LoginFragment()
+                loginFragment.setLoginResultListener(object : LoginResultListener {
+                    override fun onLoginSuccess() {
+                        // Cập nhật lại thông tin người dùng sau khi đăng nhập thành công
+                        loadUserData()
+
+                        // Gửi broadcast thông báo cập nhật dữ liệu người dùng
+                        val userData = preferencesManager.getUserData()
+                        val userName = userData["user_name"] ?: "Người dùng"
+                        val userPhone = userData["user_phone"] ?: ""
+                        UserDataBroadcastManager.sendUserDataUpdatedBroadcast(
+                            requireContext(),
+                            userName,
+                            userPhone
+                        )
+                    }
+                })
+                loginFragment.show(parentFragmentManager, "LoginFragment")
                 return@setOnClickListener
             }
 
@@ -523,7 +550,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                             val uid = newJobCleaning.userID
                             val jobID = newJobCleaning.uid
                             val serviceType = newJobCleaning.serviceType
-                            val price = newJobCleaning.price
+                            val price = newJobCleaning.price * newJobCleaning.listDays.size * 5 / 100
                             // show qr fragment với callback để finish khi dismiss
                             val qrFragment = PaymentQrFragment(
                                 uid = uid,
@@ -558,7 +585,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                             val uid = newJobHealthcare.userID
                             val jobID = newJobHealthcare.uid
                             val serviceType = newJobHealthcare.serviceType
-                            val price = newJobHealthcare.price
+                            val price = newJobHealthcare.price * newJobHealthcare.listDays.size * 5 / 100
                             // show qr fragment với callback để finish khi dismiss
                             val qrFragment = PaymentQrFragment(
                                 uid = uid,
@@ -594,7 +621,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                             val uid = newJob.userID
                             val jobID = newJob.uid
                             val serviceType = newJob.serviceType
-                            val price = newJob.price
+                            val price = newJob.price * newJob.listDays.size * 5 / 100
                             // show qr fragment với callback để finish khi dismiss
                             val qrFragment = PaymentQrFragment(
                                 uid = uid,

@@ -26,19 +26,4 @@
         app:itemActiveIndicatorStyle="@null"
         app:menu="@menu/nav_main"
         app:itemTextColor="@color/text_color_selector_orange_black" />
-    <FrameLayout
-        android:id="@+id/fl_lottieLoader"
-        android:layout_width="match_parent"
-        android:visibility="gone"
-        android:background="#80000000"
-        android:layout_height="match_parent">
-        <com.airbnb.lottie.LottieAnimationView
-            android:layout_gravity="center"
-            android:id="@+id/lottieLoader"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            app:lottie_rawRes="@raw/loading_animation"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"/>
-    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

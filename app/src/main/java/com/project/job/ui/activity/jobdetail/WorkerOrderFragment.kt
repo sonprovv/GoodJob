@@ -176,10 +176,18 @@ class WorkerOrderFragment : Fragment() {
         }
         reviewWorkerFragment.arguments = bundle
 
-        // Navigate using Activity's supportFragmentManager and replace the entire activity content
+        // Lấy reference đến Activity và hide ViewPager2 + TabLayout trước khi add fragment
+        val activity = requireActivity() as? JobDetailActivity
+        activity?.let { jobDetailActivity ->
+            // Hide TabLayout và ViewPager2 để tránh chồng lấn UI
+            jobDetailActivity.binding.tabLayoutActivity.visibility = View.GONE
+            jobDetailActivity.binding.viewPagerActivity.visibility = View.GONE
+        }
+
+        // Navigate using Activity's supportFragmentManager - add fragment vào content
         requireActivity().supportFragmentManager.beginTransaction()
-            .replace(android.R.id.content, reviewWorkerFragment)
-            .addToBackStack(null)
+            .add(android.R.id.content, reviewWorkerFragment)
+            .addToBackStack("ReviewWorkerFragment")
             .commit()
     }
 

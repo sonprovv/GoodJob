@@ -14,6 +14,7 @@ import com.project.job.data.source.remote.api.request.RegisterRequest
 import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
 import com.project.job.data.source.remote.api.request.UpdateUserRequest
+import com.project.job.data.source.remote.api.response.CancelJobResponse
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
@@ -150,6 +151,16 @@ interface ApiService {
     suspend fun postJobMaintenance(
         @Body request: CreateJobMaintenanceRequest
     ): Response<CreateJobMaintenanceResponse>
+
+    // cancel job
+    @AuthRequired
+    @PUT("api/jobs/{serviceType}/{jobID}/cancel")
+    suspend fun cancelJob(
+        @Path("serviceType")
+        serviceType: String,
+        @Path("jobID")
+        jobID: String
+    ): Response<CancelJobResponse>
 
     // get list job posted by user
     @AuthRequired

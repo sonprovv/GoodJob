@@ -55,4 +55,35 @@ class ActivityViewModel : ViewModel() {
         }
     }
 
+    fun cancelJob(serviceType: String, jobID: String) {
+        viewModelScope.launch {
+            _success.value = false
+            _loading.value = true
+            _error.value = null
+            try {
+                val response = serviceRepository.cancelJob(serviceType = serviceType, jobID = jobID)
+                Log.d("ActivityViewModel", "Activity response: $response")
+                Log.d("ActivityViewModel", "Activity response: $jobID")
+
+                when(response) {
+                    is NetworkResult.Success -> {
+                        _success.value = true
+                    }
+                    is NetworkResult.Error -> {
+                        _error.value = response.message
+                        _success.value = false
+                    }
+                }
+            }
+            catch (e: Exception) {
+                Log.e("ActivityViewModel", "Activity error: ${e.message}")
+                _error.value = e.message
+            }
+            finally {
+                Log.e("ActivityViewModel", "Activity finally")
+                _loading.value = false
+            }
+        }
+    }
+
 }

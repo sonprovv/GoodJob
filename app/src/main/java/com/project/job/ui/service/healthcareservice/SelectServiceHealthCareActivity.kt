@@ -1,6 +1,7 @@
 package com.project.job.ui.service.healthcareservice
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -27,6 +28,8 @@ import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewMode
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 
 @Suppress("DEPRECATION")
 class SelectServiceHealthCareActivity : AppCompatActivity() {
@@ -55,7 +58,7 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
         preferencesManager = PreferencesManager(this)
-        
+
         // Handle location data from MapActivity
         handleLocationFromMap()
 
@@ -89,6 +92,7 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                     location.matches(Regex("^\\d+(\\.\\d+)?,\\s*\\d+(\\.\\d+)?$")) -> { // Format: 20.123, 106.456
                 "Chưa có địa chỉ cụ thể"
             }
+
             location.contains("°") && location.contains(",") -> {
                 // Nếu có tọa độ kèm địa chỉ, lấy phần sau dấu phẩy đầu tiên
                 val firstCommaIndex = location.indexOf(",")
@@ -98,10 +102,12 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                     location
                 }
             }
+
             location.contains(",") -> {
                 // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
                 location.substringAfter(",").trim()
             }
+
             else -> location
         }
 
@@ -123,7 +129,10 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
             val intent = Intent(this, MapActivity::class.java).apply {
                 putExtra("source", "healthcare_service")
             }
-            Log.d("SelectServiceHealthCare", "Navigating to MapActivity with source: healthcare_service")
+            Log.d(
+                "SelectServiceHealthCare",
+                "Navigating to MapActivity with source: healthcare_service"
+            )
             startActivity(intent)
         }
 
@@ -131,16 +140,23 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         setupNumberInputListeners()
 
         binding.cardViewButtonNext.setOnClickListener {
+            // Validate input before proceeding
+            if (!validateServicesInput()) {
+                Log.d(TAG, "Validation failed - some services are not filled")
+                updateNextButtonState() // This will show error message
+                return@setOnClickListener
+            }
+
             val numberBaby = binding.edtNumberOfPeopleBaby.text.toString().toIntOrNull() ?: 0
             val numberAdult = binding.edtNumberOfPeopleDisable.text.toString().toIntOrNull() ?: 0
             val numberOld = binding.edtNumberOfPeopleOlder.text.toString().toIntOrNull() ?: 0
             val numberWorker = binding.edtNumberOfPeople.text.toString().toIntOrNull() ?: 1
-            
+
             // Find service data from healthcareService list
             val babyService = healthcareService.find { it?.serviceName == "Trẻ em" }
             val adultService = healthcareService.find { it?.serviceName == "Người khuyết tật" }
             val elderlyService = healthcareService.find { it?.serviceName == "Người lớn tuổi" }
-            
+
             // Navigate to SelectTimeFragment using fragment transaction
             val fragment = SelectTimeFragment().apply {
                 arguments = Bundle().apply {
@@ -173,32 +189,39 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         // Then observe ViewModel
         observeViewModel()
     }
-    
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleLocationFromMap()
     }
-    
+
     private fun handleLocationFromMap() {
         val selectedAddress = intent.getStringExtra("selected_address")
         val locationSource = intent.getStringExtra("location_source")
-        
+
         if (!selectedAddress.isNullOrEmpty() && locationSource == "map_selection") {
             Log.d(TAG, "Received location from map: $selectedAddress")
-            
+
             // Update UI with new address
             binding.tvLocation.text = selectedAddress
-            
+
             // Save to preferences
             preferencesManager.saveAddress(selectedAddress)
-            
+
             // Save coordinates if available
             val latitude = intent.getDoubleExtra("selected_latitude", 0.0)
             val longitude = intent.getDoubleExtra("selected_longitude", 0.0)
             if (latitude != 0.0 && longitude != 0.0) {
                 preferencesManager.saveLocationCoordinates(latitude, longitude)
             }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        currentFocus?.let { view ->
+            inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
         }
     }
 
@@ -214,36 +237,81 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         binding.edtNumberOfPeopleBaby.addTextChangedListener(textWatcher)
         binding.edtNumberOfPeopleDisable.addTextChangedListener(textWatcher)
         binding.edtNumberOfPeopleOlder.addTextChangedListener(textWatcher)
+
+        // Set up imeOptions listeners to hide keyboard when Done is pressed
+        binding.edtNumberOfPeopleBaby.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                updateWorkerCount()
+                return@setOnEditorActionListener true
+            }
+            false
+        }
+
+        binding.edtNumberOfPeopleDisable.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                updateWorkerCount()
+                return@setOnEditorActionListener true
+            }
+            false
+        }
+
+        binding.edtNumberOfPeopleOlder.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                updateWorkerCount()
+                return@setOnEditorActionListener true
+            }
+            false
+        }
     }
 
     @SuppressLint("SetTextI18n")
+    private fun updateTotalPrice() {
+        val workerCount = getCurrentWorkerCount()
+        // Always update totalHours from the currently selected shift BEFORE calculating totalFee
+        val baseHours = selectedShift?.workingHour ?: 1
+        this.totalHours = baseHours
+        totalFee = currentBasePrice * workerCount
+        val formattedPrice =
+            java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN")).format(totalFee)
+        binding.tvPrice.text = "$formattedPrice VND/$totalHours giờ"
+
+        // Update button state after price calculation
+        updateNextButtonState()
+    }
+
     private fun updateWorkerCount() {
         try {
             val babies = binding.edtNumberOfPeopleBaby.text.toString().toIntOrNull() ?: 0
             val disabled = binding.edtNumberOfPeopleDisable.text.toString().toIntOrNull() ?: 0
             val elderly = binding.edtNumberOfPeopleOlder.text.toString().toIntOrNull() ?: 0
-            
+
             // Calculate total people
             val totalPeople = babies + disabled + elderly
-            
+
             // Calculate required workers (total people / 3, rounded up)
             val requiredWorkers = if (totalPeople > 0) {
                 (totalPeople + 2) / 3  // This is equivalent to Math.ceil(totalPeople / 3.0)
             } else {
-                1  // Minimum 1 worker
+                0  // No workers needed when no people are selected
             }
-            
+
             // Get the current worker count before updating
             val currentWorkerCount = getCurrentWorkerCount()
-            
+
             // Update the worker count field
             binding.edtNumberOfPeople.setText(requiredWorkers.toString())
-            
+
             // If worker count changed, update the total price
             if (requiredWorkers != currentWorkerCount) {
                 updateTotalPrice()
+            } else {
+                // Still update button state even if worker count didn't change
+                updateNextButtonState()
             }
-            
+
         } catch (e: Exception) {
             Log.e(TAG, "Error calculating worker count: ${e.message}")
         }
@@ -281,9 +349,15 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
             }
             launch {
                 viewModel.shift.collectLatest { shift ->
-                    Log.d("SelectServiceHealthCareActivity", "Received shift data: ${shift.size} items")
+                    Log.d(
+                        "SelectServiceHealthCareActivity",
+                        "Received shift data: ${shift.size} items"
+                    )
                     shift.forEach { shiftItem ->
-                        Log.d("SelectServiceHealthCareActivity", "Shift: ${shiftItem?.workingHour}h - ${shiftItem?.fee} VND")
+                        Log.d(
+                            "SelectServiceHealthCareActivity",
+                            "Shift: ${shiftItem?.workingHour}h - ${shiftItem?.fee} VND"
+                        )
                     }
                     shiftAdapter.submitList(shift)
                 }
@@ -295,20 +369,34 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         currentBasePrice = price
         updateTotalPrice()
     }
-    
+
     private fun getCurrentWorkerCount(): Int {
-        return binding.edtNumberOfPeople.text.toString().toIntOrNull() ?: 1
+        return binding.edtNumberOfPeople.text.toString().toIntOrNull() ?: 0
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateTotalPrice() {
-        val workerCount = getCurrentWorkerCount()
-        // Always update totalHours from the currently selected shift BEFORE calculating totalFee
-        val baseHours = selectedShift?.workingHour ?: 1
-        this.totalHours = baseHours
-        totalFee = currentBasePrice * workerCount
-        val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN")).format(totalFee)
-        binding.tvPrice.text = "$formattedPrice VND/$totalHours giờ"
+    private fun validateServicesInput(): Boolean {
+        val babyCount = binding.edtNumberOfPeopleBaby.text.toString().toIntOrNull() ?: 0
+        val adultCount = binding.edtNumberOfPeopleDisable.text.toString().toIntOrNull() ?: 0
+        val elderlyCount = binding.edtNumberOfPeopleOlder.text.toString().toIntOrNull() ?: 0
+
+        // Check if at least one service has count >= 1
+        return (babyCount >= 1) || (adultCount >= 1) || (elderlyCount >= 1)
     }
 
+    private fun updateNextButtonState() {
+        val isValid = validateServicesInput()
+
+        if (isValid) {
+            // Enable button and hide error message
+            binding.cardViewButtonNext.isEnabled = true
+            binding.cardViewButtonNext.alpha = 1.0f
+            binding.tvErrorMessage.visibility = View.GONE
+        } else {
+            // Disable button and show error message
+            binding.cardViewButtonNext.isEnabled = false
+            binding.cardViewButtonNext.alpha = 0.5f
+            binding.tvErrorMessage.visibility = View.VISIBLE
+        }
+    }
 }

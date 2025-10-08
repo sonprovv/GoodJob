@@ -1,9 +1,10 @@
 package com.project.job.ui.reviewworker
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -11,8 +12,8 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
-import com.project.job.databinding.FragmentReviewWorkerBinding
 import com.project.job.data.source.remote.api.response.ExtendedReview
+import com.project.job.databinding.FragmentReviewWorkerBinding
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
 import com.project.job.ui.notification.NotificationActivity
 import kotlinx.coroutines.flow.collectLatest
@@ -64,6 +65,13 @@ class ReviewWorkerFragment : Fragment() {
         binding.tvEmail.text = workerEmail
 
         binding.ivClose.setOnClickListener {
+            // Show lại TabLayout và ViewPager2 trước khi đóng fragment
+            val activity = requireActivity() as? com.project.job.ui.activity.jobdetail.JobDetailActivity
+            activity?.let { jobDetailActivity ->
+                jobDetailActivity.binding.tabLayoutActivity.visibility = View.VISIBLE
+                jobDetailActivity.binding.viewPagerActivity.visibility = View.VISIBLE
+            }
+
             requireActivity().supportFragmentManager.popBackStack()
         }
         binding.tvViewReview.setOnClickListener{
@@ -103,17 +111,52 @@ class ReviewWorkerFragment : Fragment() {
         }
     }
     
+    @SuppressLint("DefaultLocale")
     private fun displayExperienceRatings(ratings: Map<String, Double>) {
         val cleaningRating = ratings["CLEANING"] ?: 0.0
         val healthcareRating = ratings["HEALTHCARE"] ?: 0.0
         val maintenanceRating = ratings["MAINTENANCE"] ?: 0.0
-        
+
         val experienceText = buildString {
-            if (cleaningRating > 0) append("- Dọn dẹp: ${String.format("%.1f", cleaningRating)} ⭐\n")
-            if (healthcareRating > 0) append("- Chăm sóc: ${String.format("%.1f", healthcareRating)} ⭐\n")
-            if (maintenanceRating > 0) append("- Bảo trì: ${String.format("%.1f", maintenanceRating)} ⭐")
+            if (cleaningRating > 0) append(
+                "- Dọn dẹp: ${
+                    String.format(
+                        "%.1f",
+                        cleaningRating
+                    )
+                } ⭐\n"
+            )
+            if (healthcareRating > 0) append(
+                "- Chăm sóc: ${
+                    String.format(
+                        "%.1f",
+                        healthcareRating
+                    )
+                } ⭐\n"
+            )
+            if (maintenanceRating > 0) append(
+                "- Bảo trì: ${
+                    String.format(
+                        "%.1f",
+                        maintenanceRating
+                    )
+                } ⭐"
+            )
         }
+        binding.tvExperience.text = experienceText.ifEmpty { "Chưa có đánh giá nào" }
+    }
         
-        binding.tvExperience.text = experienceText.ifEmpty { "Chưa có đánh giá" }
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // Show lại TabLayout và ViewPager2 khi fragment bị destroy (bao gồm cả back button)
+        val activity = requireActivity() as? com.project.job.ui.activity.jobdetail.JobDetailActivity
+        activity?.let { jobDetailActivity ->
+            // Sử dụng post để đảm bảo UI được cập nhật sau khi fragment bị remove khỏi view hierarchy
+            jobDetailActivity.binding.root.post {
+                jobDetailActivity.binding.tabLayoutActivity.visibility = View.VISIBLE
+                jobDetailActivity.binding.viewPagerActivity.visibility = View.VISIBLE
+            }
+        }
     }
 }

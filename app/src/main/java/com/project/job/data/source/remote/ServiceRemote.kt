@@ -11,6 +11,7 @@ import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
 import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.ShiftInfo
+import com.project.job.data.source.remote.api.response.CancelJobResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
@@ -131,6 +132,15 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource {
                     location = location
                 )
             )
+        }
+    }
+
+    override suspend fun cancelJob(
+        serviceType: String,
+        jobID: String
+    ): NetworkResult<CancelJobResponse> {
+        return safeApiCall {
+            apiService.cancelJob(serviceType = serviceType, jobID = jobID)
         }
     }
 
