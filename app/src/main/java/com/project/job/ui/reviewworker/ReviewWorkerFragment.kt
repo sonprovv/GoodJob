@@ -41,7 +41,6 @@ class ReviewWorkerFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         preferencesManager = PreferencesManager(requireContext())
-        val token = preferencesManager.getAuthToken()?:""
         viewModel = JobDetailViewModel()
 
         val workerId = arguments?.getString("worker_id") ?: ""

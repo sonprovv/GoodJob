@@ -40,6 +40,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
     private var healthcareServiceList : List<HealthcareService> = emptyList()
     private var maintenanceServiceList : List<MaintenanceData> = emptyList()
     private var isCancellingJob = false // Flag để track khi đang cancel job
+    private var cancellingJobId: String? = null // Lưu jobId đang được cancel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -78,8 +79,9 @@ class ActivityFragment : Fragment(), LoginResultListener {
         // Set listener để xử lý cancel job khi swipe
         jobAdapter.setOnJobCancelListener(object : OnJobCancelListener {
             override fun onJobCancel(jobId: String, serviceType: String) {
-                // Đánh dấu đang cancel job và gọi API
+                // Đánh dấu đang cancel job và lưu jobId
                 isCancellingJob = true
+                cancellingJobId = jobId
                 viewModel.cancelJob(serviceType.lowercase(), jobId)
             }
         })
@@ -164,18 +166,20 @@ class ActivityFragment : Fragment(), LoginResultListener {
             // Observe success state for cancel job (chỉ hiển thị khi thực sự cancel job thành công)
             launch {
                 viewModel.success_change.collectLatest { isSuccess ->
-                    if (isSuccess == true && isCancellingJob) {
+                    if (isSuccess == true && isCancellingJob && cancellingJobId != null) {
                         // Chỉ hiển thị Toast khi thực sự cancel job thành công
                         Toast.makeText(
                             requireContext(),
                             "Huỷ bài đăng thành công!",
                             Toast.LENGTH_SHORT
                         ).show()
-                        // Reset flag sau khi hiển thị toast
+                        
+                        // Cập nhật status của job đó thành "Cancel" thay vì reload toàn bộ list
+                        jobAdapter.updateJobStatus(cancellingJobId!!, "Cancel")
+                        
+                        // Reset flags sau khi cập nhật
                         isCancellingJob = false
-                        // Reload danh sách job để cập nhật UI sau khi cancel thành công
-                        val uid = preferencesManager.getUserData()["user_id"] ?: ""
-                        viewModel.getListJob(uid = uid)
+                        cancellingJobId = null
                     }
                 }
             }

@@ -69,6 +69,24 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
         this.onJobCancelListener = listener
     }
 
+    // Method to update job status without reloading entire list
+    fun updateJobStatus(jobId: String, newStatus: String) {
+        val position = jobList.indexOfFirst { it.uid == jobId }
+        if (position != -1) {
+            // Update the job status in the list
+            val updatedJob = jobList[position].copy(status = newStatus)
+            val mutableList = jobList.toMutableList()
+            mutableList[position] = updatedJob
+            jobList = mutableList
+            
+            // Only notify this specific item changed
+            notifyItemChanged(position)
+            Log.d("JobAdapter", "Updated job $jobId status to $newStatus at position $position")
+        } else {
+            Log.w("JobAdapter", "Job $jobId not found in list for status update")
+        }
+    }
+
     // ItemTouchHelper for swipe functionality
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
         0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT  // Enable both directions for debugging
@@ -100,8 +118,8 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                     }
                 }
 
-                // Reset the view
-                notifyItemChanged(position)
+                // No need to notify item changed - let the parent handle list updates
+                // notifyItemChanged(position) // Removed to prevent unnecessary re-rendering
             }
         }
 
