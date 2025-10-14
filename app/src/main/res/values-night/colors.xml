@@ -4,4 +4,16 @@
     <color name="colorPrimary">@color/xanh</color>
     <color name="colorPrimaryDark">#0E7A3D</color>
     <color name="colorAccent">#4CAF50</color>
+    
+    <!-- ChatBot colors for dark mode -->
+    <color name="blue_600">#3B82F6</color>
+    <color name="orange_600">#F97316</color>
+    <color name="green_600">#22C55E</color>
+    <color name="purple_600">#A855F7</color>
+    <color name="gray_50">#111827</color>
+    <color name="gray_400">#6B7280</color>
+    <color name="gray_500">#9CA3AF</color>
+    <color name="gray_600">#D1D5DB</color>
+    <color name="gray_700">#E5E7EB</color>
+    <color name="gray_800">#F3F4F6</color>
 </resources>

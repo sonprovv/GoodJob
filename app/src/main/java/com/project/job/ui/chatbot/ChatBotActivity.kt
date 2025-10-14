@@ -5,17 +5,22 @@ import android.os.Handler
 import android.os.Looper
 import android.view.inputmethod.EditorInfo
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.data.model.ChatMessage
+import com.project.job.data.model.ChatMessageType
 import com.project.job.databinding.ActivityChatBotBinding
+import kotlinx.coroutines.launch
 
 class ChatBotActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBotBinding
     private lateinit var chatBotAdapter: ChatBotAdapter
     private val chatMessages = mutableListOf<ChatMessage>()
+    private val viewModel: ChatBotViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +31,7 @@ class ChatBotActivity : AppCompatActivity() {
         setupWindowInsets()
         setupRecyclerView()
         setupClickListeners()
+        setupObservers()
         showWelcomeMessage()
         
         // Debug: Check if input layout is visible
@@ -117,8 +123,8 @@ class ChatBotActivity : AppCompatActivity() {
             // Show typing indicator
             showTypingIndicator()
 
-            // Simulate AI response (replace with actual API call)
-            simulateAIResponse(messageText)
+            // Call actual API through ViewModel
+            viewModel.chatBot(messageText)
         }
     }
 
@@ -129,6 +135,47 @@ class ChatBotActivity : AppCompatActivity() {
         scrollToBottom()
     }
 
+    private fun setupObservers() {
+        lifecycleScope.launch {
+            viewModel.loading.collect { isLoading ->
+                // Loading state is handled by typing indicator
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.success_change.collect { success ->
+                if (success == true) {
+                    hideTypingIndicator()
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.error.collect { error ->
+                if (!error.isNullOrEmpty()) {
+                    hideTypingIndicator()
+                    addErrorMessage(error)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.response_text.collect { text ->
+                if (!text.isNullOrEmpty()) {
+                    addInfoMessage(text)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.response_jobs.collect { jobs ->
+                if (!jobs.isNullOrEmpty()) {
+                    addJobListMessage(jobs)
+                }
+            }
+        }
+    }
+
     private fun hideTypingIndicator() {
         val typingIndex = chatMessages.indexOfFirst { it.isTyping }
         if (typingIndex != -1) {
@@ -137,45 +184,43 @@ class ChatBotActivity : AppCompatActivity() {
         }
     }
 
-    private fun simulateAIResponse(userMessage: String) {
-        // Simulate API call delay
-        Handler(Looper.getMainLooper()).postDelayed({
-            // Remove typing indicator
-            hideTypingIndicator()
-
-            // Generate AI response
-            val aiResponse = generateAIResponse(userMessage)
-            val aiMessage = ChatMessage(aiResponse, false, System.currentTimeMillis())
-
-            chatMessages.add(aiMessage)
-            chatBotAdapter.notifyItemInserted(chatMessages.size - 1)
-            scrollToBottom()
-        }, 1500) // 1.5 seconds delay
+    private fun addInfoMessage(text: String) {
+        val aiMessage = ChatMessage(
+            text = text,
+            isUser = false,
+            timestamp = System.currentTimeMillis(),
+            messageType = ChatMessageType.INFO
+        )
+        chatMessages.add(aiMessage)
+        chatBotAdapter.notifyItemInserted(chatMessages.size - 1)
+        scrollToBottom()
     }
 
-    private fun generateAIResponse(userMessage: String): String {
-        // Simple response logic - replace with actual AI API integration
-        return when {
-            userMessage.contains("hello", ignoreCase = true) ->
-                "Hello! I'm your AI assistant. How can I help you with your job search today?"
-
-            userMessage.contains("job", ignoreCase = true) ->
-                "I can help you find job opportunities. What type of job are you looking for?"
-
-            userMessage.contains("salary", ignoreCase = true) ->
-                "Salary expectations vary by industry and experience. Could you tell me more about your field?"
-
-            userMessage.contains("thank", ignoreCase = true) ->
-                "You're welcome! Is there anything else I can help you with?"
-
-            userMessage.contains("help", ignoreCase = true) ->
-                "I can assist you with:\n• Job search tips\n• Resume advice\n• Interview preparation\n• Career guidance\n\nWhat would you like to know?"
-
-            else ->
-                "I understand you're asking about: \"$userMessage\". This is a great topic! " +
-                        "Could you provide more details so I can give you the best assistance?"
-        }
+    private fun addJobListMessage(jobs: List<com.project.job.data.source.remote.api.response.QueryJobs>) {
+        val jobMessage = ChatMessage(
+            text = "Danh sách công việc",
+            isUser = false,
+            timestamp = System.currentTimeMillis(),
+            messageType = ChatMessageType.JOB_LIST,
+            jobList = jobs
+        )
+        chatMessages.add(jobMessage)
+        chatBotAdapter.notifyItemInserted(chatMessages.size - 1)
+        scrollToBottom()
     }
+
+    private fun addErrorMessage(error: String) {
+        val errorMessage = ChatMessage(
+            text = "Xin lỗi, đã có lỗi xảy ra: $error",
+            isUser = false,
+            timestamp = System.currentTimeMillis(),
+            messageType = ChatMessageType.TEXT
+        )
+        chatMessages.add(errorMessage)
+        chatBotAdapter.notifyItemInserted(chatMessages.size - 1)
+        scrollToBottom()
+    }
+
 
     private fun scrollToBottom() {
         if (chatMessages.isNotEmpty()) {
@@ -188,9 +233,12 @@ class ChatBotActivity : AppCompatActivity() {
     private fun showWelcomeMessage() {
         Handler(Looper.getMainLooper()).postDelayed({
             val welcomeMessage = ChatMessage(
-                "👋 Hello! I'm your Job Assistant AI. I can help you with:\n\n" +
-                        "• Job search strategies\n• Resume optimization\n• Interview tips\n• Career advice\n\n" +
-                        "What would you like to know today?",
+                "👋 Xin chào! Mình là **Trợ lý việc làm AI** của bạn. Mình có thể giúp bạn với:\n\n" +
+                        "• Chiến lược tìm kiếm việc làm\n" +
+                        "• Tối ưu hóa CV / hồ sơ xin việc\n" +
+                        "• Mẹo phỏng vấn hiệu quả\n" +
+                        "• Định hướng và tư vấn nghề nghiệp\n\n" +
+                        "Hôm nay bạn muốn mình hỗ trợ về điều gì?",
                 false,
                 System.currentTimeMillis()
             )

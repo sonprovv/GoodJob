@@ -71,9 +71,9 @@ object RetrofitClient {
                     preferencesManager = preferencesManager,
                     context = context
                 ))
-                .connectTimeout(15, TimeUnit.SECONDS) // Connection timeout
-                .readTimeout(30, TimeUnit.SECONDS)    // Read timeout
-                .writeTimeout(15, TimeUnit.SECONDS)   // Write timeout
+                .connectTimeout(60, TimeUnit.SECONDS) // Connection timeout
+                .readTimeout(60, TimeUnit.SECONDS)    // Read timeout
+                .writeTimeout(60, TimeUnit.SECONDS)   // Write timeout
                 .build()
 
             // Recreate API service with the full client

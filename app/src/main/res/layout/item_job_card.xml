@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Service Type and Status Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <!-- Service Type Badge -->
+            <TextView
+                android:id="@+id/tvServiceType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/badge_service_type"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                tools:text="HEALTHCARE"
+                android:textSize="10sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Status Badge -->
+<!--            <TextView-->
+<!--                android:id="@+id/tvStatus"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@drawable/badge_status"-->
+<!--                android:paddingHorizontal="8dp"-->
+<!--                android:paddingVertical="4dp"-->
+<!--                android:text="Not Payment"-->
+<!--                android:textSize="10sp"-->
+<!--                android:textColor="@color/orange_600" />-->
+
+        </LinearLayout>
+
+        <!-- Location -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_location"
+                android:layout_marginEnd="6dp"
+                app:tint="@color/gray_500" />
+
+            <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:text="TP Thái Bình"
+                android:textSize="13sp"
+                android:textColor="@color/gray_700" />
+
+        </LinearLayout>
+
+        <!-- Price and Time Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <!-- Price -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_money"
+                    android:layout_marginEnd="6dp"
+                    app:tint="@color/green_600" />
+
+                <TextView
+                    android:id="@+id/tvPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="350,000 VND"
+                    android:textSize="13sp"
+                    android:textColor="@color/green_600"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Start Time -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_time"
+                    android:layout_marginEnd="6dp"
+                    app:tint="@color/blue_600" />
+
+                <TextView
+                    android:id="@+id/tvStartTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="08:00"
+                    android:textSize="13sp"
+                    android:textColor="@color/blue_600" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Working Days -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_calendar_job_in_chat_box"
+                android:layout_marginEnd="6dp"
+                app:tint="@color/purple_600" />
+
+            <TextView
+                android:id="@+id/tvWorkingDays"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:text="09/05, 13/05, 20/05"
+                android:textSize="12sp"
+                android:textColor="@color/purple_600" />
+
+        </LinearLayout>
+
+        <!-- Created Date -->
+        <TextView
+            android:id="@+id/tvCreatedAt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            tools:text="Tạo: 06/10/2025"
+            android:textSize="10sp"
+            android:textColor="@color/gray_400"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

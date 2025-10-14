@@ -14,4 +14,16 @@
     <color name="primary_color">@color/xanh</color>
     <color name="gray_light">#E0E0E0</color>
     <color name="background_color">#F5F5F5</color>
+    
+    <!-- ChatBot colors -->
+    <color name="blue_600">#2563EB</color>
+    <color name="orange_600">#EA580C</color>
+    <color name="green_600">#16A34A</color>
+    <color name="purple_600">#9333EA</color>
+    <color name="gray_50">#F9FAFB</color>
+    <color name="gray_400">#9CA3AF</color>
+    <color name="gray_500">#6B7280</color>
+    <color name="gray_600">#4B5563</color>
+    <color name="gray_700">#374151</color>
+    <color name="gray_800">#1F2937</color>
 </resources>

@@ -4,7 +4,6 @@ plugins {
     id("kotlin-kapt")
     id("com.google.gms.google-services")
     id("androidx.navigation.safeargs.kotlin")
-    id("dagger.hilt.android.plugin")
     id ("kotlin-parcelize")
 }
 
@@ -80,12 +79,6 @@ dependencies {
 // CircleIndicator
     implementation("me.relex:circleindicator:2.1.6")
 
-// Media3 ExoPlayer
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-ui:1.4.1")
-    implementation("androidx.media3:media3-common:1.4.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.4.1")
-
     // Room
     implementation("androidx.room:room-ktx:2.7.1")
     implementation("androidx.room:room-runtime:2.7.1")
@@ -132,10 +125,6 @@ dependencies {
 
     // json
     implementation("org.json:json:20230227")
-
-    // hilt
-    implementation ("com.google.dagger:hilt-android:2.48")
-    kapt ("com.google.dagger:hilt-compiler:2.48")
 
     // If using ViewModels with Hilt
     implementation ("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")

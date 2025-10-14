@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="28dp"
-            android:text="Lịch sử"
+            android:text="Lịch sử thanh toán"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -117,7 +117,6 @@
             android:visibility="gone">
 
             <ScrollView
-                android:background="@drawable/bg_edt_white"
                 android:scrollbars="none"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -126,7 +125,7 @@
                     android:id="@+id/rcv_history"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:listitem="@layout/item_job_activity"
+                    tools:listitem="@layout/item_payment_history"
                     />
             </ScrollView>
         </LinearLayout>

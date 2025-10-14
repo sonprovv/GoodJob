@@ -1,6 +1,8 @@
 package com.project.job.data.network
 
+import com.project.job.data.source.remote.BaseResponse
 import com.project.job.data.source.remote.api.request.ChangePasswordRequest
+import com.project.job.data.source.remote.api.request.ChatBotRequest
 import com.project.job.data.source.remote.api.request.ChoiceWorkerRequest
 import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
 import com.project.job.data.source.remote.api.request.CreateJobMaintenanceRequest
@@ -14,8 +16,11 @@ import com.project.job.data.source.remote.api.request.RegisterRequest
 import com.project.job.data.source.remote.api.request.ReviewWorkerRequest
 import com.project.job.data.source.remote.api.request.SendMailRequest
 import com.project.job.data.source.remote.api.request.UpdateUserRequest
+import com.project.job.data.source.remote.api.request.chat.SendMessageRequest
+import com.project.job.data.source.remote.api.request.chat.UpdateStatusRequest
 import com.project.job.data.source.remote.api.response.CancelJobResponse
 import com.project.job.data.source.remote.api.response.ChangePasswordResponse
+import com.project.job.data.source.remote.api.response.ChatBotResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CreateJobHealthcareResponse
 import com.project.job.data.source.remote.api.response.CreateJobMaintenanceResponse
@@ -25,6 +30,7 @@ import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
 import com.project.job.data.source.remote.api.response.GetNotificationResponse
 import com.project.job.data.source.remote.api.response.GetNotificationsResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
+import com.project.job.data.source.remote.api.response.PaymentResponse
 import com.project.job.data.source.remote.api.response.RefreshTokenResponse
 import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.SendMailResponse
@@ -36,6 +42,10 @@ import com.project.job.data.source.remote.api.response.UpdateUserResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
+import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
+import com.project.job.data.source.remote.api.response.chat.ConversationResponse
+import com.project.job.data.source.remote.api.response.chat.MessageResponse
+import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 import com.project.job.utils.AuthRequired
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -50,7 +60,7 @@ import retrofit2.http.Query
 import retrofit2.http.DELETE
 
 interface ApiService {
-    // fcm token
+    // ----------------- fcm token ---------------------
     @AuthRequired
     @POST("api/devices")
     suspend fun postFcmToken(
@@ -62,20 +72,20 @@ interface ApiService {
     suspend fun deleteFcmToken(
         @Body request: FCMTokenRequest
     ): Response<FCMTokenResponse>
-
-    // notification
+    // ------------------ end fcm token -----------------------------
+    // ------------------ notification ------------------------------
     @AuthRequired
     @GET("api/notifications")
     suspend fun getNotifications(
     ): Response<GetNotificationsResponse>
-
     @AuthRequired
     @PUT("api/notifications/{notificationID}")
     suspend fun markNotificationAsRead(
         @Path("notificationID") notificationID: String
     ): Response<GetNotificationResponse>
+    // ------------------- end notification ---------------------------
 
-    // auth
+    // ------------------- auth -----------------------------------
     @POST("api/auth/client/refreshToken")
     suspend fun refreshToken(
         @Body request: RefreshTokenRequest
@@ -123,8 +133,8 @@ interface ApiService {
     suspend fun updateAvatar(
         @Part image: MultipartBody.Part
     ): Response<UpdateAvatarResponse>
-
-    // services
+    // --------------------- end auth ----------------------
+    // --------------------- services ----------------------
     @GET("api/services/cleaning")
     suspend fun getCleaningServices(): Response<ServiceCleaningResponse>
 
@@ -151,8 +161,8 @@ interface ApiService {
     suspend fun postJobMaintenance(
         @Body request: CreateJobMaintenanceRequest
     ): Response<CreateJobMaintenanceResponse>
-
-    // cancel job
+    // --------------- end service --------------------
+    // ---------------- cancel job ---------------------
     @AuthRequired
     @PUT("api/jobs/{serviceType}/{jobID}/cancel")
     suspend fun cancelJob(
@@ -161,29 +171,34 @@ interface ApiService {
         @Path("jobID")
         jobID: String
     ): Response<CancelJobResponse>
-
-    // get list job posted by user
+    // --------------- end cancel job --------------------
+    // --------- get list job posted by user ---------------
     @AuthRequired
     @GET("api/jobs/user/{uid}/job")
     suspend fun getUserPostJobs(
         @Path("uid") uid: String
     ): Response<UserPostJobsResponse>
-
-    // get list worker in 1 job
+    // ------- end get list job posted by user --------------
+    // -------- history payment ----------------------
+    @AuthRequired
+    @GET("api/payments")
+    suspend fun getHistoryPayment(): Response<PaymentResponse>
+    // -------- history payment ----------------------
+    // ------- get list worker in 1 job -------------------
     @AuthRequired
     @GET("api/orders/{jobID}")
     suspend fun getWorkerInJob(
         @Path("jobID") jobID: String
     ): Response<WorkerOrderJobResponse>
-
-    // choice worker (accept or reject)
+    // ------- end get list worker in 1 job ----------------
+    // --------- choice worker (accept or reject) --------------
     @AuthRequired
     @PUT("api/orders/update")
     suspend fun choiceWorker(
         @Body request: ChoiceWorkerRequest
     ) : Response<ChoiceWorkerResponse>
-
-    // review worker
+    // ----------- end choice worker (accept or reject) -----------------
+    // ----------- review worker --------------------------------------
     @AuthRequired
     @POST("api/reviews/create")
     suspend fun reviewWorker(
@@ -195,56 +210,63 @@ interface ApiService {
     suspend fun getWorkerReviews(
         @Path("workerID") workerID: String
     ): Response<GetReviewWorkerResponse>
-
+    // ----------- end review worker --------------------------------------
+    // ----------- AI chat bot --------------------------------------
+    @AuthRequired
+    @POST("api/chatbox")
+    suspend fun chatBot(
+        @Body request : ChatBotRequest
+    ) : Response<ChatBotResponse>
+    // ----------- end AI chat bot --------------------------------------
     // ---------------- Chat ----------------
     @AuthRequired
     @POST("api/chat/send")
     suspend fun chatSendMessage(
-        @Body request: com.project.job.data.source.remote.api.request.chat.SendMessageRequest
-    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.MessageResponse>>
+        @Body request: SendMessageRequest
+    ): Response<BaseResponse<MessageResponse>>
 
     @AuthRequired
     @GET("api/chat/messages/{userId}")
     suspend fun chatGetMessages(
         @Path("userId") userId: String,
         @Query("limit") limit: Int = 50
-    ): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.MessageResponse>>>
+    ): Response<BaseResponse<List<MessageResponse>>>
 
     @AuthRequired
     @GET("api/chat/conversations")
-    suspend fun chatGetConversations(): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.ConversationResponse>>>
+    suspend fun chatGetConversations(): Response<BaseResponse<List<ConversationResponse>>>
 
     @AuthRequired
     @GET("api/chat/available-users")
-    suspend fun chatGetAvailableUsers(): Response<com.project.job.data.source.remote.BaseResponse<List<com.project.job.data.source.remote.api.response.chat.ChatUserResponse>>>
+    suspend fun chatGetAvailableUsers(): Response<BaseResponse<List<ChatUserResponse>>>
 
     @AuthRequired
     @PUT("api/chat/read/{userId}")
     suspend fun chatMarkAsRead(
         @Path("userId") userId: String
-    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+    ): Response<BaseResponse<Unit>>
 
     @AuthRequired
     @DELETE("api/chat/message/{conversationId}/{messageId}")
     suspend fun chatDeleteMessage(
         @Path("conversationId") conversationId: String,
         @Path("messageId") messageId: String
-    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+    ): Response<BaseResponse<Unit>>
 
     @AuthRequired
     @DELETE("api/chat/conversation/{userId}")
     suspend fun chatDeleteConversation(
         @Path("userId") userId: String
-    ): Response<com.project.job.data.source.remote.BaseResponse<Unit>>
+    ): Response<BaseResponse<Unit>>
 
     @GET("api/chat/status/{userId}")
     suspend fun chatGetUserStatus(
         @Path("userId") userId: String
-    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.UserStatusResponse>>
+    ): Response<BaseResponse<UserStatusResponse>>
 
     @AuthRequired
     @POST("api/chat/status")
     suspend fun chatUpdateStatus(
-        @Body request: com.project.job.data.source.remote.api.request.chat.UpdateStatusRequest
-    ): Response<com.project.job.data.source.remote.BaseResponse<com.project.job.data.source.remote.api.response.chat.UserStatusResponse>>
+        @Body request: UpdateStatusRequest
+    ): Response<BaseResponse<UserStatusResponse>>
 }
