@@ -90,7 +90,7 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
 
     // ItemTouchHelper for swipe functionality
     private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-        0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT  // Enable both directions for debugging
+        0, ItemTouchHelper.LEFT  // Enable both directions for debugging
     ) {
         override fun onMove(
             recyclerView: RecyclerView,

@@ -7,6 +7,7 @@ import com.project.job.data.source.remote.api.request.CreateJobHealthcareRequest
 import com.project.job.data.source.remote.api.request.CreateJobRequest
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
 import com.project.job.data.source.remote.api.request.ShiftInfo
+import com.project.job.data.source.remote.api.response.CancelJobResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningData
 import com.project.job.data.source.remote.api.response.CleaningDuration
@@ -19,7 +20,7 @@ import com.project.job.data.source.remote.api.response.ReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 
-class ServiceRepository (
+class ServiceRepository(
 //    private val local: ServiceLocal,
 //    private val remote : ServiceRemote
 ) : ServiceRepositoryImpl {
@@ -50,7 +51,11 @@ class ServiceRepository (
                 if (serviceResponse?.success == true) {
                     Result.success(serviceResponse.data)
                 } else {
-                    Result.failure(Exception(serviceResponse?.message ?: "Failed to get cleaning service data"))
+                    Result.failure(
+                        Exception(
+                            serviceResponse?.message ?: "Failed to get cleaning service data"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -68,7 +73,11 @@ class ServiceRepository (
                 if (serviceResponse?.success == true) {
                     Result.success(serviceResponse.data)
                 } else {
-                    Result.failure(Exception(serviceResponse?.message ?: "Failed to get maintenance service data"))
+                    Result.failure(
+                        Exception(
+                            serviceResponse?.message ?: "Failed to get maintenance service data"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -86,7 +95,11 @@ class ServiceRepository (
                 if (serviceResponse?.success == true) {
                     Result.success(serviceResponse.data)
                 } else {
-                    Result.failure(Exception(serviceResponse?.message ?: "Failed to get healthcare service data"))
+                    Result.failure(
+                        Exception(
+                            serviceResponse?.message ?: "Failed to get healthcare service data"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -166,7 +179,11 @@ class ServiceRepository (
                 if (jobResponse?.success == true) {
                     Result.success(jobResponse)
                 } else {
-                    Result.failure(Exception(jobResponse?.message ?: "Failed to post healthcare job"))
+                    Result.failure(
+                        Exception(
+                            jobResponse?.message ?: "Failed to post healthcare job"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -176,7 +193,7 @@ class ServiceRepository (
         }
     }
 
-    override suspend fun getUserPostJobs(uid : String): Result<UserPostJobsResponse> {
+    override suspend fun getUserPostJobs(uid: String): Result<UserPostJobsResponse> {
         return try {
             val response = apiService.getUserPostJobs(uid)
             if (response.isSuccessful) {
@@ -184,7 +201,11 @@ class ServiceRepository (
                 if (jobsResponse?.success == true) {
                     Result.success(jobsResponse)
                 } else {
-                    Result.failure(Exception(jobsResponse?.message ?: "Failed to get user post jobs"))
+                    Result.failure(
+                        Exception(
+                            jobsResponse?.message ?: "Failed to get user post jobs"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -194,7 +215,7 @@ class ServiceRepository (
         }
     }
 
-    override suspend fun getWorkerOrderJob(jobID : String): Result<WorkerOrderJobResponse> {
+    override suspend fun getWorkerOrderJob(jobID: String): Result<WorkerOrderJobResponse> {
         return try {
             val response = apiService.getWorkerInJob(jobID)
             if (response.isSuccessful) {
@@ -202,7 +223,11 @@ class ServiceRepository (
                 if (workerResponse?.success == true) {
                     Result.success(workerResponse)
                 } else {
-                    Result.failure(Exception(workerResponse?.message ?: "Failed to get workers in job"))
+                    Result.failure(
+                        Exception(
+                            workerResponse?.message ?: "Failed to get workers in job"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -212,7 +237,10 @@ class ServiceRepository (
         }
     }
 
-    override suspend fun updateChoiceWorker(uid : String, status : String) : Result<ChoiceWorkerResponse> {
+    override suspend fun updateChoiceWorker(
+        uid: String,
+        status: String
+    ): Result<ChoiceWorkerResponse> {
         return try {
             val response = apiService.choiceWorker(
                 ChoiceWorkerRequest(
@@ -225,7 +253,11 @@ class ServiceRepository (
                 if (choiceResponse?.success == true) {
                     Result.success(choiceResponse)
                 } else {
-                    Result.failure(Exception(choiceResponse?.message ?: "Failed to update choice worker"))
+                    Result.failure(
+                        Exception(
+                            choiceResponse?.message ?: "Failed to update choice worker"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -243,7 +275,11 @@ class ServiceRepository (
                 if (reviewResponse?.success == true) {
                     Result.success(reviewResponse)
                 } else {
-                    Result.failure(Exception(reviewResponse?.message ?: "Failed to get worker reviews"))
+                    Result.failure(
+                        Exception(
+                            reviewResponse?.message ?: "Failed to get worker reviews"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -260,7 +296,7 @@ class ServiceRepository (
         rating: Int,
         comment: String,
         serviceType: String
-    ) : Result<ReviewWorkerResponse> {
+    ): Result<ReviewWorkerResponse> {
         return try {
             val response = apiService.reviewWorker(
                 com.project.job.data.source.remote.api.request.ReviewWorkerRequest(
@@ -277,7 +313,11 @@ class ServiceRepository (
                 if (reviewResponse?.success == true) {
                     Result.success(reviewResponse)
                 } else {
-                    Result.failure(Exception(reviewResponse?.message ?: "Failed to post worker review"))
+                    Result.failure(
+                        Exception(
+                            reviewResponse?.message ?: "Failed to post worker review"
+                        )
+                    )
                 }
             } else {
                 Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
@@ -287,4 +327,22 @@ class ServiceRepository (
         }
     }
 
+    override suspend fun cancelJob(serviceType: String, jobID: String): Result<CancelJobResponse> {
+        return try {
+
+            val response = apiService.cancelJob(serviceType, jobID)
+            if (response.isSuccessful) {
+                val cancelResponse = response.body()
+                if (cancelResponse?.success == "true") {
+                    Result.success(cancelResponse)
+                } else {
+                    Result.failure(Exception(cancelResponse?.message ?: "Failed to cancel job"))
+                }
+            } else {
+                Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

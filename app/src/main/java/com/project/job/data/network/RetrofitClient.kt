@@ -72,7 +72,7 @@ object RetrofitClient {
                     context = context
                 ))
                 .connectTimeout(60, TimeUnit.SECONDS) // Connection timeout
-                .readTimeout(60, TimeUnit.SECONDS)    // Read timeout
+                .readTimeout(120, TimeUnit.SECONDS)    // Read timeout - Tăng cho cancelJob
                 .writeTimeout(60, TimeUnit.SECONDS)   // Write timeout
                 .build()
 

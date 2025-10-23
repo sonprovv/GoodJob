@@ -2,6 +2,7 @@ package com.project.job.data.repository.implement
 
 import com.project.job.data.source.remote.api.request.ServiceInfoHealthcare
 import com.project.job.data.source.remote.api.request.ShiftInfo
+import com.project.job.data.source.remote.api.response.CancelJobResponse
 import com.project.job.data.source.remote.api.response.ChoiceWorkerResponse
 import com.project.job.data.source.remote.api.response.CleaningData
 import com.project.job.data.source.remote.api.response.CleaningDuration
@@ -43,6 +44,9 @@ interface ServiceRepositoryImpl {
         shift: ShiftInfo,
         services: List<ServiceInfoHealthcare>
     ): Result<CreateJobHealthcareResponse>
+
+    suspend fun cancelJob( serviceType : String, jobID : String) : Result<CancelJobResponse>
+
 
     suspend fun getUserPostJobs( uid : String): Result<UserPostJobsResponse>
 

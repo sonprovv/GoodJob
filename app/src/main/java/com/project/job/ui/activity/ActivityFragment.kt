@@ -82,7 +82,13 @@ class ActivityFragment : Fragment(), LoginResultListener {
                 // Đánh dấu đang cancel job và lưu jobId
                 isCancellingJob = true
                 cancellingJobId = jobId
-                viewModel.cancelJob(serviceType.lowercase(), jobId)
+
+                // Debug logging
+                Log.d("ActivityFragment", "Original serviceType: '$serviceType'")
+                val formattedServiceType = serviceType.lowercase()
+                Log.d("ActivityFragment", "Formatted serviceType: '$formattedServiceType'")
+
+                viewModel.cancelJob(formattedServiceType, jobId)
             }
         })
 
@@ -173,11 +179,34 @@ class ActivityFragment : Fragment(), LoginResultListener {
                             "Huỷ bài đăng thành công!",
                             Toast.LENGTH_SHORT
                         ).show()
-                        
+
                         // Cập nhật status của job đó thành "Cancel" thay vì reload toàn bộ list
                         jobAdapter.updateJobStatus(cancellingJobId!!, "Cancel")
-                        
+
                         // Reset flags sau khi cập nhật
+                        isCancellingJob = false
+                        cancellingJobId = null
+                    }
+                }
+            }
+
+            // Observe error state for cancel job
+            launch {
+                viewModel.error.collectLatest { errorMessage ->
+                    if (errorMessage != null && isCancellingJob && cancellingJobId != null) {
+                        // Hiển thị error message khi cancel job thất bại
+                        Toast.makeText(
+                            requireContext(),
+                            "Lỗi: $errorMessage",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        // Reset item về vị trí ban đầu nếu có lỗi
+                        jobAdapter.notifyItemChanged(
+                            jobAdapter.jobList.indexOfFirst { it.uid == cancellingJobId }
+                        )
+
+                        // Reset flags
                         isCancellingJob = false
                         cancellingJobId = null
                     }
