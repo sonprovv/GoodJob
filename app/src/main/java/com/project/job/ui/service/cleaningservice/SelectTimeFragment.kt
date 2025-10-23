@@ -143,7 +143,12 @@ class SelectTimeFragment : Fragment() {
             .format(totalFee)
 
         // Update price and duration description
-        binding.tvPrice.text = "$formattedPrice VND/${totalHours}h"
+        if(totalHours > 0) {
+            binding.tvPrice.text = "$formattedPrice VND/${totalHours}h"
+        } else {
+            binding.tvPrice.text = "$formattedPrice VND"
+        }
+
 
 
         // Update extra services display

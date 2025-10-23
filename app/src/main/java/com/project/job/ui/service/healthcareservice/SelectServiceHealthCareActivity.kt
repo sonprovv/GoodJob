@@ -103,10 +103,10 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                 }
             }
 
-            location.contains(",") -> {
-                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
-                location.substringAfter(",").trim()
-            }
+//            location.contains(",") -> {
+//                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
+//                location.substringAfter(",").trim()
+//            }
 
             else -> location
         }

@@ -161,7 +161,11 @@ class ConfirmAndCheckoutFragment : Fragment() {
         }
 
         // Update UI with the received data
-        binding.tvTotalTime.text = "$selectedTime (${totalHours}h)"
+        if(totalHours == 0) {
+            binding.tvTotalTime.text = selectedTime
+        } else {
+            binding.tvTotalTime.text = "$selectedTime (${totalHours}h)"
+        }
         binding.tvTotalPrice.text = "$formattedPrice VND"
         binding.tvServiceExtras.text = serviceExtras
 
@@ -244,7 +248,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
             binding.llTotalNumber.visibility = View.GONE
             binding.tvTotalJobArea.text = durationDescription
             // Hiển thị thông tin maintenance với format phù hợp
-            binding.tvTotalTime.text = "$selectedTime (${totalHours}h)"
+            // binding.tvTotalTime.text = "$selectedTime (${totalHours}h)"
         }
 
 
@@ -668,10 +672,10 @@ class ConfirmAndCheckoutFragment : Fragment() {
                 }
             }
 
-            location.contains(",") -> {
-                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
-                location.substringAfter(",").trim()
-            }
+//            location.contains(",") -> {
+//                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
+//                location.substringAfter(",").trim()
+//            }
 
             else -> location
         }

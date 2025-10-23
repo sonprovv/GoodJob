@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -97,6 +98,23 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
             target: RecyclerView.ViewHolder
         ): Boolean = false
 
+        // Override getSwipeDirs để chỉ cho phép swipe với status "Not Payment" hoặc "Hiring"
+        override fun getSwipeDirs(
+            recyclerView: RecyclerView,
+            viewHolder: RecyclerView.ViewHolder
+        ): Int {
+            val position = viewHolder.adapterPosition
+            if (position == RecyclerView.NO_POSITION) return 0
+            
+            val job = jobList[position]
+            // Chỉ cho phép swipe nếu status là "Not Payment" hoặc "Hiring"
+            return if (job.status == "Not Payment" || job.status == "Hiring") {
+                ItemTouchHelper.LEFT
+            } else {
+                0 // Disable swipe cho các status khác
+            }
+        }
+
         override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
             val position = viewHolder.adapterPosition
             Log.d("JobAdapter", "onSwiped called for position $position, direction: $direction")
@@ -105,21 +123,21 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
 
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
-                        // Swipe left - cancel job
+                        // Swipe left - show cancel confirmation dialog
                         if (job.status == "Not Payment" || job.status == "Hiring") {
-                            Log.d("JobAdapter", "Calling cancel listener for job ${job.uid}")
-                            onJobCancelListener?.onJobCancel(job.uid, job.serviceType)
+                            Log.d("JobAdapter", "Showing cancel confirmation dialog for job ${job.uid}")
+                            showCancelConfirmationDialog(viewHolder.itemView.context, job, position)
+                        } else {
+                            // Nếu không phải status hợp lệ, reset item về vị trí ban đầu
+                            notifyItemChanged(position)
                         }
                     }
                     ItemTouchHelper.RIGHT -> {
-                        // Swipe right - some other action (optional)
-                        Log.d("JobAdapter", "Right swipe for job ${job.uid}")
-                        // You can add other actions here if needed
+                        // Swipe right - reset về vị trí ban đầu (không có action)
+                        Log.d("JobAdapter", "Right swipe for job ${job.uid} - resetting")
+                        notifyItemChanged(position)
                     }
                 }
-
-                // No need to notify item changed - let the parent handle list updates
-                // notifyItemChanged(position) // Removed to prevent unnecessary re-rendering
             }
         }
 
@@ -166,32 +184,7 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                         centerY + 16f,
                         paint
                     )
-                } else if (dX > 0) { // Swiping right
-                    Log.d("JobAdapter", "Drawing swipe background RIGHT for job ${job.uid}")
-                    val background = ColorDrawable(ContextCompat.getColor(recyclerView.context, Color.BLUE))
-                    background.setBounds(
-                        itemView.left,
-                        itemView.top,
-                        itemView.left + dX.toInt(),
-                        itemView.bottom
-                    )
-                    background.draw(c)
-
-                    // Draw some text for right swipe
-                    val paint = Paint()
-                    paint.color = Color.WHITE
-                    paint.textSize = 48f
-                    paint.textAlign = Paint.Align.CENTER
-
-                    val centerY = itemView.top + itemView.height / 2
-
-                    c.drawText(
-                        "Action",
-                        itemView.left + dX / 2,
-                        centerY + 16f,
-                        paint
-                    )
-                }
+                } 
             }
 
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
@@ -212,6 +205,34 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
             }
         }
     })
+
+    // Hiển thị dialog xác nhận hủy bài đăng
+    private fun showCancelConfirmationDialog(context: android.content.Context, job: DataJobs, position: Int) {
+        val message = "Bạn có chắc chắn muốn hủy bài đăng này?"
+
+
+        AlertDialog.Builder(context)
+            .setTitle("⚠️ Xác nhận hủy bài đăng")
+            .setMessage(message)
+            .setPositiveButton("Hủy bài đăng") { dialog, _ ->
+                // User xác nhận hủy
+                Log.d("JobAdapter", "User confirmed cancel for job ${job.uid}")
+                onJobCancelListener?.onJobCancel(job.uid, job.serviceType)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Quay lại") { dialog, _ ->
+                // User không muốn hủy, reset item về vị trí ban đầu
+                Log.d("JobAdapter", "User cancelled the cancel action, resetting item")
+                notifyItemChanged(position)
+                dialog.dismiss()
+            }
+            .setOnCancelListener {
+                // Nếu user nhấn ngoài dialog hoặc back, reset item
+                Log.d("JobAdapter", "Dialog cancelled, resetting item")
+                notifyItemChanged(position)
+            }
+            .show()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {
         val view = LayoutInflater.from(parent.context).inflate(

@@ -169,8 +169,7 @@ class JobInfoFragment : Fragment() {
                         }
                     }
                     binding.llServiceExtras.visibility = View.GONE
-                    binding.tvTotalTime.text =
-                        job.startTime + " (" + totalHourDependByQuantity.toString() + " h)"
+                    binding.tvTotalTime.text = job.startTime
                 }
             }
             val listDays = job.listDays

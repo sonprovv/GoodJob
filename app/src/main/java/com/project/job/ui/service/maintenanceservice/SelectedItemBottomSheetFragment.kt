@@ -123,18 +123,18 @@ class SelectedItemBottomSheetFragment : BottomSheetDialogFragment() {
     private fun updateTotalInfo() {
         val totalSelectedCount = arguments?.getInt("total_selected_count") ?: 0
         val totalPrice = arguments?.getInt("total_price") ?: 0
-        val totalHours = arguments?.getInt("total_hours") ?: 0
+//        val totalHours = arguments?.getInt("total_hours") ?: 0
 
         // Hiển thị số lượng items đã chọn
         binding.tvTotalSelectedItems.text = totalSelectedCount.toString()
 
         // Hiển thị tổng giá với thông tin thời gian
         if (totalPrice > 0) {
-            if (totalHours > 0) {
-                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ/${totalHours}h"
-            } else {
-                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ"
-            }
+//            if (totalHours > 0) {
+//                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ/${totalHours}h"
+//            } else {
+                binding.tvPrice.text = "${String.format("%,d", totalPrice)} VND"
+//            }
         } else {
             binding.tvPrice.text = "Chọn dịch vụ"
         }

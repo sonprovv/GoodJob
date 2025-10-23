@@ -94,10 +94,10 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                 }
             }
 
-            location.contains(",") -> {
-                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
-                location.substringAfter(",").trim()
-            }
+//            location.contains(",") -> {
+//                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
+//                location.substringAfter(",").trim()
+//            }
 
             else -> location
         }
@@ -173,7 +173,7 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
         navigateToSelectTimeFragment(
             serviceNames = serviceNames,
             serviceDescriptions = serviceDescriptions,
-            totalHours = totalHours,
+//            totalHours = totalHours,
             totalPrice = totalPrice,
             selectedItems = selectedItemsData,
             serviceUids = serviceUids,
@@ -357,11 +357,11 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
         val hasSelectedItems = allSelectedItems.any { it.powerItem.quantity > 0 }
 
         if (hasSelectedItems && totalPrice > 0) {
-            if (totalHours > 0) {
-                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ/${totalHours}h"
-            } else {
-                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ"
-            }
+//            if (totalHours > 0) {
+//                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ/${totalHours}h"
+//            } else {
+                binding.tvPrice.text = "${String.format("%,d", totalPrice)} VND"
+//            }
             binding.tvPrice.visibility = View.VISIBLE
             binding.llBottomSheetBaoGia.visibility = View.VISIBLE
         } else {
@@ -411,7 +411,7 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                 val totalHours = calculateTotalHours()
                 putInt("total_selected_count", totalSelectedCount)
                 putInt("total_price", totalPrice)
-                putInt("total_hours", totalHours)
+//                putInt("total_hours", totalHours)
             }
 
             // Thiết lập listener để nhận callback từ bottom sheet
@@ -454,7 +454,7 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
     private fun navigateToSelectTimeFragment(
         serviceNames: List<String>,
         serviceDescriptions: List<String>,
-        totalHours: Int,
+//        totalHours: Int,
         totalPrice: Int,
         selectedItems: List<ServicePowerItem>,
         serviceUids: List<String>,
@@ -491,12 +491,12 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                     arguments = Bundle().apply {
                         // Thông tin cơ bản về service
                         putString("serviceType", "maintenance")
-                        putInt("totalHours", totalHours)
+//                        putInt("totalHours", totalHours)
                         putInt("totalFee", totalPrice)
 
                         // Thông tin về duration với format mới
                         putString("durationDescription", finalDescription)
-                        putInt("durationWorkingHour", totalHours)
+//                        putInt("durationWorkingHour", totalHours)
                         putInt("durationFee", totalPrice)
                         putString("durationId", "maintenance_${System.currentTimeMillis()}")
 
@@ -506,7 +506,7 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
 
                         // Thông tin về shift (có thể điều chỉnh theo nhu cầu)
                         putString("selectedShiftId", "maintenance_shift")
-                        putInt("selectedShiftWorkingHour", totalHours)
+//                        putInt("selectedShiftWorkingHour", totalHours)
                         putInt("selectedShiftFee", totalPrice)
 
                         // Thông tin chi tiết về các items đã chọn để tạo ServicePowerInfo chính xác
@@ -521,7 +521,7 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                         // Debug logging
                         Log.d(TAG, "Navigating to SelectTimeFragment with:")
                         Log.d(TAG, "  - Service names: ${serviceNames.joinToString(", ")}")
-                        Log.d(TAG, "  - Total hours: $totalHours")
+//                        Log.d(TAG, "  - Total hours: $totalHours")
                         Log.d(TAG, "  - Total price: $totalPrice")
                         Log.d(TAG, "  - Selected items count: ${selectedItems.size}")
                         Log.d(TAG, "  - Service UIDs: ${serviceUids.joinToString(", ")}")

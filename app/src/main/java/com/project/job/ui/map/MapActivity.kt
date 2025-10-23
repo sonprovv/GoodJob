@@ -11,7 +11,10 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -21,6 +24,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
@@ -35,6 +41,8 @@ import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
 import com.project.job.R
+import com.project.job.data.model.NominatimReverseResult
+import com.project.job.data.model.NominatimSearchResult
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityMapBinding
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
@@ -47,7 +55,6 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONObject
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -68,6 +75,15 @@ class MapActivity : ComponentActivity(), LocationListener {
     // Biến lưu vị trí và địa chỉ được chọn bằng cách kéo thả/chạm
     private var selectedLocation: Point? = null
     private var selectedAddress: String? = null
+
+    // Search results adapter
+    private lateinit var searchResultsAdapter: SearchResultsAdapter
+    private val gson = Gson()
+    
+    // Debounce search
+    private val searchHandler = Handler(Looper.getMainLooper())
+    private var searchRunnable: Runnable? = null
+    private val SEARCH_DELAY_MS = 500L // 500ms delay sau khi user dừng gõ
 
     // Activity result launcher for location permissions
     private val locationPermissionRequest = registerForActivityResult(
@@ -120,12 +136,56 @@ class MapActivity : ComponentActivity(), LocationListener {
             finish()
         }
 
-        // Xử lý sự kiện tìm kiếm
+        // Setup RecyclerView cho kết quả tìm kiếm
+        searchResultsAdapter = SearchResultsAdapter { result ->
+            // Khi user click vào một kết quả
+            onSearchResultSelected(result)
+        }
+        binding?.rvSearchResults?.apply {
+            layoutManager = LinearLayoutManager(this@MapActivity)
+            adapter = searchResultsAdapter
+        }
+
+        // Xử lý sự kiện tìm kiếm real-time với debouncing
+        binding?.searchBar?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not needed
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Cancel pending search
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
+                
+                val query = s?.toString()?.trim() ?: ""
+                
+                if (query.isEmpty()) {
+                    // Nếu search bar trống, ẩn results
+                    hideSearchResults()
+                } else if (query.length >= 2) {
+                    // Chỉ search khi nhập >= 2 ký tự
+                    // Tạo runnable mới để search sau SEARCH_DELAY_MS
+                    searchRunnable = Runnable {
+                        Log.d(TAG, "Auto-searching for: $query")
+                        searchLocation(query)
+                    }
+                    searchHandler.postDelayed(searchRunnable!!, SEARCH_DELAY_MS)
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // Not needed
+            }
+        })
+        
+        // Vẫn giữ listener cho Enter key để search ngay lập tức
         binding?.searchBar?.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
+                // Cancel debounce và search ngay
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
+                
                 val query = binding?.searchBar?.text.toString().trim()
                 if (query.isNotEmpty()) {
-                    Log.d(TAG, "Searching for: $query")
+                    Log.d(TAG, "Manual search (Enter pressed): $query")
                     searchLocation(query)
                 } else {
                     Toast.makeText(this, "Vui lòng nhập địa điểm", Toast.LENGTH_SHORT).show()
@@ -386,6 +446,9 @@ class MapActivity : ComponentActivity(), LocationListener {
             // Thêm listener cho việc chạm/kéo thả trên map
             setupMapClickListener()
 
+            // Nếu có saved location từ profile, add marker tại đó
+            checkAndMarkSavedLocation()
+
             // Bắt đầu theo dõi vị trí
             startLocationTracking()
 
@@ -395,9 +458,43 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    // Kiểm tra và mark saved location từ profile
+    private fun checkAndMarkSavedLocation() {
+        val savedCoordinates = preferencesManager.getLocationCoordinates()
+        
+        if (savedCoordinates != null) {
+            val (lat, lng) = savedCoordinates
+            val location = Point.fromLngLat(lng, lat)
+            
+            Log.d(TAG, "Found saved location from profile: Lat=$lat, Lng=$lng")
+            
+            // Set làm selected location
+            selectedLocation = location
+            
+            // Lấy địa chỉ đã lưu nếu có
+            val savedAddress = intent.getStringExtra("current_location")
+            if (!savedAddress.isNullOrEmpty() && savedAddress != "Chưa cập nhật") {
+                // Có địa chỉ đã lưu, sử dụng luôn
+                selectedAddress = savedAddress
+                addMarkerAtSelectedLocation(location, savedAddress)
+                showConfirmButton()
+                Log.d(TAG, "Using saved address: $savedAddress")
+            } else {
+                // Không có địa chỉ, reverse geocode để lấy
+                reverseGeocode(lat, lng)
+                showConfirmButton()
+            }
+        } else {
+            Log.d(TAG, "No saved location found")
+        }
+    }
+
     // Thiết lập listener cho việc chạm vào map
     private fun setupMapClickListener() {
         mapView.mapboxMap.addOnMapClickListener(OnMapClickListener { point ->
+            // Ẩn search results nếu đang hiển thị
+            hideSearchResults()
+            
             // Lưu vị trí được chọn
             selectedLocation = point
 
@@ -417,144 +514,24 @@ class MapActivity : ComponentActivity(), LocationListener {
         })
     }
 
-    // Chuyển đổi tọa độ thành địa chỉ (Reverse Geocoding)
+    // Chuyển đổi tọa độ thành địa chỉ (Reverse Geocoding) - Nominatim
     private fun reverseGeocode(latitude: Double, longitude: Double) {
-        Log.d(TAG, "Starting reverse geocoding for: $latitude, $longitude")
+        Log.d(TAG, "Starting Nominatim reverse geocoding for: $latitude, $longitude")
 
-        if (Constant.API_KEY_MAP.isEmpty()) {
-            Toast.makeText(this, "API Key không được cấu hình", Toast.LENGTH_SHORT).show()
-            showFallbackLocation(latitude, longitude)
-            return
-        }
+        // Nominatim Reverse Geocoding API
+        val url = "https://nominatim.openstreetmap.org/reverse?lat=$latitude&lon=$longitude&format=json&addressdetails=1&zoom=18"
 
-        // Thử nhiều phương pháp để lấy địa chỉ chi tiết
-        tryDetailedGeocodingApproaches(latitude, longitude)
-    }
-
-    private fun tryDetailedGeocodingApproaches(latitude: Double, longitude: Double) {
-        // Approach 1: Sử dụng SerpAPI với type=place để lấy địa chỉ chi tiết
-        val serpApiKey = Constant.API_KEY_MAP
-        val url = "https://serpapi.com/search.json?engine=google_maps&q=$latitude,$longitude&location=Vietnam&hl=vi&gl=vn&api_key=$serpApiKey&type=place"
-
-        Log.d(TAG, "Detailed reverse geocoding URL: $url")
+        Log.d(TAG, "Nominatim Reverse URL: $url")
 
         val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("User-Agent", "GoodJobApp/1.0") // Nominatim requires User-Agent
+            .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "Detailed reverse geocoding failed, trying fallback", e)
-                // Fallback to basic approach
-                tryBasicReverseGeocoding(latitude, longitude)
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                val json = response.body?.string()
-                Log.d(TAG, "Detailed reverse geocoding response: $json")
-
-                try {
-                    val jsonObject = JSONObject(json ?: "")
-                    var detailedAddress: String? = null
-
-                    // Thử lấy địa chỉ chi tiết từ các nguồn khác nhau
-                    detailedAddress = extractDetailedAddress(jsonObject)
-
-                    runOnUiThread {
-                        if (!detailedAddress.isNullOrEmpty()) {
-                            selectedAddress = detailedAddress
-                            showAddressResult(latitude, longitude, detailedAddress)
-                            addMarkerAtSelectedLocation(selectedLocation!!, detailedAddress)
-                        } else {
-                            // Fallback to basic approach
-                            tryBasicReverseGeocoding(latitude, longitude)
-                        }
-                    }
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing detailed geocoding response", e)
-                    runOnUiThread {
-                        tryBasicReverseGeocoding(latitude, longitude)
-                    }
-                }
-            }
-        })
-    }
-
-    private fun extractDetailedAddress(jsonObject: JSONObject): String? {
-        var address: String? = null
-
-        // 1. Thử lấy từ place_results với nhiều field
-        val placeResults = jsonObject.optJSONObject("place_results")
-        if (placeResults != null) {
-            // Thử lấy address đầy đủ
-            address = placeResults.optString("address", null)
-            
-            if (address.isNullOrEmpty()) {
-                // Thử kết hợp title + plus_code để tạo địa chỉ có ý nghĩa
-                val title = placeResults.optString("title", null)
-                val plusCode = placeResults.optString("plus_code", null)
-                
-                if (!plusCode.isNullOrEmpty()) {
-                    // Parse plus_code để lấy thông tin khu vực
-                    address = parseAddressFromPlusCode(plusCode, title)
-                }
-            }
-        }
-
-        // 2. Thử lấy từ local_results
-        if (address.isNullOrEmpty()) {
-            val localResults = jsonObject.optJSONArray("local_results")
-            if (localResults != null && localResults.length() > 0) {
-                for (i in 0 until localResults.length()) {
-                    val result = localResults.getJSONObject(i)
-                    val resultAddress = result.optString("address", null)
-                    val resultTitle = result.optString("title", null)
-                    
-                    if (!resultAddress.isNullOrEmpty()) {
-                        address = resultAddress
-                        break
-                    } else if (!resultTitle.isNullOrEmpty() && resultTitle.contains(",")) {
-                        // Nếu title có dấu phẩy, có thể là địa chỉ
-                        address = resultTitle
-                        break
-                    }
-                }
-            }
-        }
-
-        return address
-    }
-
-    private fun parseAddressFromPlusCode(plusCode: String, title: String?): String? {
-        // Parse plus_code format: "98PV+MGG Vũ Thư, Thái Bình, Việt Nam"
-        if (plusCode.contains(" ")) {
-            val parts = plusCode.split(" ", limit = 2)
-            if (parts.size >= 2) {
-                val locationPart = parts[1] // "Vũ Thư, Thái Bình, Việt Nam"
-                
-                // Tạo địa chỉ có ý nghĩa hơn
-                return if (!title.isNullOrEmpty() && title != parts[0]) {
-                    "$title, $locationPart"
-                } else {
-                    locationPart
-                }
-            }
-        }
-        return plusCode
-    }
-
-    private fun tryBasicReverseGeocoding(latitude: Double, longitude: Double) {
-        val serpApiKey = Constant.API_KEY_MAP
-        val url = "https://serpapi.com/search.json?engine=google_maps&q=$latitude,$longitude&location=Vietnam&hl=vi&gl=vn&api_key=$serpApiKey&type=search"
-
-        Log.d(TAG, "Basic reverse geocoding URL: $url")
-
-        val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "Basic reverse geocoding failed", e)
+                Log.e(TAG, "Nominatim reverse geocoding failed", e)
                 runOnUiThread {
                     Toast.makeText(this@MapActivity, "Không thể lấy địa chỉ: ${e.message}", Toast.LENGTH_SHORT).show()
                     showFallbackLocation(latitude, longitude)
@@ -563,24 +540,27 @@ class MapActivity : ComponentActivity(), LocationListener {
 
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
-                Log.d(TAG, "Basic reverse geocoding response: $json")
+                Log.d(TAG, "Nominatim reverse response: $json")
 
                 try {
-                    val jsonObject = JSONObject(json ?: "")
-                    val address = extractDetailedAddress(jsonObject)
-
-                    runOnUiThread {
-                        if (!address.isNullOrEmpty()) {
-                            selectedAddress = address
-                            showAddressResult(latitude, longitude, address)
-                            addMarkerAtSelectedLocation(selectedLocation!!, address)
-                        } else {
+                    if (json.isNullOrEmpty()) {
+                        runOnUiThread {
                             showFallbackLocation(latitude, longitude)
                         }
+                        return
+                    }
+
+                    val result: NominatimReverseResult = gson.fromJson(json, NominatimReverseResult::class.java)
+                    val address = result.getFormattedAddress()
+
+                    runOnUiThread {
+                        selectedAddress = address
+                        showAddressResult(latitude, longitude, address)
+                        addMarkerAtSelectedLocation(selectedLocation!!, address)
                     }
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing basic geocoding response", e)
+                    Log.e(TAG, "Error parsing Nominatim reverse response", e)
                     runOnUiThread {
                         Toast.makeText(this@MapActivity, "Lỗi xử lý dữ liệu địa chỉ", Toast.LENGTH_SHORT).show()
                         showFallbackLocation(latitude, longitude)
@@ -835,6 +815,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         currentLocation?.let { location ->
             Log.d(TAG, "Moving to location: ${location.latitude()}, ${location.longitude()}")
 
+            // Di chuyển camera đến vị trí hiện tại
             mapView.mapboxMap.setCamera(
                 CameraOptions.Builder()
                     .center(location)
@@ -842,7 +823,16 @@ class MapActivity : ComponentActivity(), LocationListener {
                     .build()
             )
 
-            Toast.makeText(this, "Đã di chuyển đến vị trí hiện tại", Toast.LENGTH_SHORT).show()
+            // Set làm selected location
+            selectedLocation = location
+            
+            // Hiển thị nút confirm
+            showConfirmButton()
+            
+            // Add marker và reverse geocode để lấy địa chỉ
+            reverseGeocode(location.latitude(), location.longitude())
+
+            Toast.makeText(this, "📍 Đã di chuyển đến vị trí hiện tại", Toast.LENGTH_SHORT).show()
         } ?: run {
             Log.w(TAG, "Current location is null, requesting fresh location")
             Toast.makeText(this, "Đang tìm vị trí hiện tại...", Toast.LENGTH_SHORT).show()
@@ -896,79 +886,103 @@ class MapActivity : ComponentActivity(), LocationListener {
     }
 
     private fun searchLocation(query: String) {
-        Log.d(TAG, "Starting location search for: $query")
+        Log.d(TAG, "Starting Nominatim search for: $query")
 
-        if (Constant.API_KEY_MAP.isEmpty()) {
-            Toast.makeText(this, "API Key không được cấu hình", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val serpApiKey = Constant.API_KEY_MAP
         val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
-        val url = "https://serpapi.com/search.json?engine=google_maps&q=$encodedQuery&location=Vietnam&hl=vi&gl=vn&api_key=$serpApiKey&type=search"
+        // Nominatim Search API - Forward Geocoding
+        val url = "https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&addressdetails=1&limit=10&countrycodes=vn"
 
-        Log.d(TAG, "Search URL: $url")
+        Log.d(TAG, "Nominatim Search URL: $url")
 
         val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("User-Agent", "GoodJobApp/1.0") // Nominatim requires User-Agent
+            .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.e(TAG, "Search request failed", e)
+                Log.e(TAG, "Nominatim search request failed", e)
                 runOnUiThread {
                     Toast.makeText(this@MapActivity, "Tìm kiếm thất bại: ${e.message}", Toast.LENGTH_SHORT).show()
+                    hideSearchResults()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val json = response.body?.string()
-                Log.d(TAG, "Search response: $json")
+                Log.d(TAG, "Nominatim search response: $json")
 
                 try {
-                    val jsonObject = JSONObject(json ?: "")
-                    val localResults = jsonObject.optJSONArray("local_results")
+                    if (json.isNullOrEmpty()) {
+                        runOnUiThread {
+                            Toast.makeText(this@MapActivity, "Không tìm thấy kết quả", Toast.LENGTH_SHORT).show()
+                            hideSearchResults()
+                        }
+                        return
+                    }
 
-                    if (localResults != null && localResults.length() > 0) {
-                        val firstResult = localResults.getJSONObject(0)
-                        val gpsCoordinates = firstResult.optJSONObject("gps_coordinates")
-                        handleCoordinates(gpsCoordinates, firstResult.optString("title", query))
-                    } else {
-                        // fallback sang place_results
-                        val placeResults = jsonObject.optJSONObject("place_results")
-                        if (placeResults != null) {
-                            val gpsCoordinates = placeResults.optJSONObject("gps_coordinates")
-                            handleCoordinates(gpsCoordinates, placeResults.optString("title", query))
+                    // Parse JSON array to List<NominatimSearchResult>
+                    val type = object : TypeToken<List<NominatimSearchResult>>() {}.type
+                    val results: List<NominatimSearchResult> = gson.fromJson(json, type)
+
+                    runOnUiThread {
+                        if (results.isNotEmpty()) {
+                            Log.d(TAG, "Found ${results.size} results")
+                            showSearchResults(results)
                         } else {
-                            runOnUiThread {
-                                Toast.makeText(this@MapActivity, "Không tìm thấy kết quả cho '$query'", Toast.LENGTH_SHORT).show()
-                            }
+                            Toast.makeText(this@MapActivity, "Không tìm thấy kết quả cho '$query'", Toast.LENGTH_SHORT).show()
+                            hideSearchResults()
                         }
                     }
+
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error parsing search response", e)
+                    Log.e(TAG, "Error parsing Nominatim search response", e)
                     runOnUiThread {
                         Toast.makeText(this@MapActivity, "Lỗi xử lý dữ liệu: ${e.message}", Toast.LENGTH_SHORT).show()
+                        hideSearchResults()
                     }
                 }
             }
         })
     }
 
-    private fun handleCoordinates(gpsCoordinates: JSONObject?, title: String) {
-        if (gpsCoordinates != null) {
-            val lat = gpsCoordinates.optDouble("latitude", Double.NaN)
-            val lng = gpsCoordinates.optDouble("longitude", Double.NaN)
-            if (!lat.isNaN() && !lng.isNaN()) {
-                val location = Point.fromLngLat(lng, lat)
-                runOnUiThread {
-                    showLocationOnMap(location, title)
-                    // Tự động set làm vị trí đã chọn
-                    selectedLocation = location
-                    selectedAddress = title
-                    showConfirmButton()
-                }
-            }
-        }
+    // Show search results in RecyclerView
+    private fun showSearchResults(results: List<NominatimSearchResult>) {
+        searchResultsAdapter.submitList(results)
+        binding?.searchResultsContainer?.visibility = View.VISIBLE
+        Log.d(TAG, "Showing ${results.size} search results")
+    }
+
+    // Hide search results RecyclerView
+    private fun hideSearchResults() {
+        binding?.searchResultsContainer?.visibility = View.GONE
+        searchResultsAdapter.clearResults()
+        Log.d(TAG, "Search results hidden")
+    }
+
+    // Handle when user selects a search result
+    private fun onSearchResultSelected(result: NominatimSearchResult) {
+        Log.d(TAG, "Search result selected: ${result.displayName}")
+        
+        val location = Point.fromLngLat(result.getLongitude(), result.getLatitude())
+        val address = result.getShortAddress()
+        
+        // Hide search results
+        hideSearchResults()
+        
+        // Clear search bar
+        binding?.searchBar?.setText("")
+        
+        // Show location on map
+        showLocationOnMap(location, address)
+        
+        // Set as selected location
+        selectedLocation = location
+        selectedAddress = address
+        showConfirmButton()
+        
+        Toast.makeText(this, "Đã chọn: $address", Toast.LENGTH_SHORT).show()
     }
 
     private fun showLocationOnMap(location: Point, title: String) {
@@ -1045,6 +1059,10 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         // Dừng location tracking
         stopLocationTracking()
+        
+        // Cleanup search handler để tránh memory leak
+        searchRunnable?.let { searchHandler.removeCallbacks(it) }
+        searchRunnable = null
 
         binding = null
     }
