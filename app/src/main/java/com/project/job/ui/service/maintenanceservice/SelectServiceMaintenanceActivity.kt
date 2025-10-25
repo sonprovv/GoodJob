@@ -54,6 +54,11 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
     // Mapping giữa tên service và UID của service từ API
     private val serviceUidMap = mutableMapOf<String, String>()
 
+    // Location tạm cho job hiện tại (không update user profile)
+    private var jobLocationAddress: String? = null
+    private var jobLocationLatitude: Double = 0.0
+    private var jobLocationLongitude: Double = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -220,18 +225,22 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
         if (!selectedAddress.isNullOrEmpty() && locationSource == "map_selection") {
             Log.d(TAG, "Received location from map: $selectedAddress")
 
-            // Update UI with new address
-            binding.tvLocation.text = selectedAddress
-
-            // Save to preferences
-            preferencesManager.saveAddress(selectedAddress)
-
-            // Save coordinates if available
+            // Lưu location tạm cho job này (KHÔNG update user profile)
+            jobLocationAddress = selectedAddress
+            
+            // Lưu coordinates tạm
             val latitude = intent.getDoubleExtra("selected_latitude", 0.0)
             val longitude = intent.getDoubleExtra("selected_longitude", 0.0)
             if (latitude != 0.0 && longitude != 0.0) {
-                preferencesManager.saveLocationCoordinates(latitude, longitude)
+                jobLocationLatitude = latitude
+                jobLocationLongitude = longitude
+                Log.d(TAG, "Saved job location: Lat=$latitude, Lng=$longitude")
             }
+
+            // Update UI với location cho job này
+            binding.tvLocation.text = selectedAddress
+            
+            Log.d(TAG, "Job location updated (user profile NOT changed): $selectedAddress")
         }
     }
 
@@ -517,6 +526,23 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                             "selectedMaintenanceQuantities",
                             ArrayList(maintenanceQuantities.map { it ?: 0 })
                         )
+
+                        // Truyền location đã chọn cho job này
+                        val locationForJob = jobLocationAddress 
+                            ?: preferencesManager.getUserData()["user_location"] 
+                            ?: ""
+                        
+                        // Debug logging
+                        Log.d(TAG, "==================== LOCATION DEBUG ====================")
+                        Log.d(TAG, "jobLocationAddress = $jobLocationAddress")
+                        Log.d(TAG, "User profile location = ${preferencesManager.getUserData()["user_location"]}")
+                        Log.d(TAG, "Final locationForJob = $locationForJob")
+                        Log.d(TAG, "Coordinates: Lat=$jobLocationLatitude, Lng=$jobLocationLongitude")
+                        Log.d(TAG, "=======================================================")
+                        
+                        putString("jobLocationAddress", locationForJob)
+                        putDouble("jobLocationLatitude", jobLocationLatitude)
+                        putDouble("jobLocationLongitude", jobLocationLongitude)
 
                         // Debug logging
                         Log.d(TAG, "Navigating to SelectTimeFragment with:")

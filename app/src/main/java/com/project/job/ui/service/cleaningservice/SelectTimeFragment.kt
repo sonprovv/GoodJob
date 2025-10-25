@@ -67,6 +67,11 @@ class SelectTimeFragment : Fragment() {
     private var selectedPowerUids = arrayListOf<String>()
     private var selectedQuantities = arrayListOf<Int>()
     private var selectedMaintenanceQuantities = arrayListOf<Int>()
+    
+    // Job location (lưu trữ để tránh mất dữ liệu)
+    private var jobLocationAddress: String? = null
+    private var jobLocationLatitude: Double = 0.0
+    private var jobLocationLongitude: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -126,7 +131,15 @@ class SelectTimeFragment : Fragment() {
         babyServiceName = arguments?.getString("babyServiceName") ?: ""
         adultServiceName = arguments?.getString("adultServiceName") ?: ""
         elderlyServiceName = arguments?.getString("elderlyServiceName") ?: ""
-
+        
+        // Lưu job location từ arguments
+        jobLocationAddress = arguments?.getString("jobLocationAddress")
+        jobLocationLatitude = arguments?.getDouble("jobLocationLatitude", 0.0) ?: 0.0
+        jobLocationLongitude = arguments?.getDouble("jobLocationLongitude", 0.0) ?: 0.0
+        
+        Log.d("SelectTimeFragment", "📍 Job location loaded: $jobLocationAddress")
+        Log.d("SelectTimeFragment", "📍 Coordinates: Lat=$jobLocationLatitude, Lng=$jobLocationLongitude")
+        
         extraServices = arguments?.getStringArrayList("extraServices") ?: arrayListOf()
 //        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
 //        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
@@ -212,8 +225,11 @@ class SelectTimeFragment : Fragment() {
                 val totalHours = arguments?.getInt("totalHours") ?: 0
                 val totalFee = arguments?.getInt("totalFee") ?: 0
                 
+                Log.d("SelectTimeFragment", "🔥🔥🔥 Creating ConfirmAndCheckoutFragment 🔥🔥🔥")
+                
                 val fragment = ConfirmAndCheckoutFragment().apply {
                     arguments = Bundle().apply {
+                        Log.d("SelectTimeFragment", "🔥 Preparing arguments bundle...")
                         putString("serviceType", serviceType)
                         putStringArray("selectedDates", dateStrings.toTypedArray())
                         putString("selectedTime", timeString)
@@ -241,6 +257,21 @@ class SelectTimeFragment : Fragment() {
                         putString("babyServiceName", babyServiceName)
                         putString("adultServiceName", adultServiceName)
                         putString("elderlyServiceName", elderlyServiceName)
+
+                        // Truyền location đã chọn cho job này (SỬ DỤNG BIẾN INSTANCE, KHÔNG ĐỌC LẠI TỪ ARGUMENTS!)
+                        // Debug logging
+                        Log.d("SelectTimeFragment", "==================== LOCATION DEBUG ====================")
+                        Log.d("SelectTimeFragment", "Using job location from instance variable: $jobLocationAddress")
+                        Log.d("SelectTimeFragment", "Using coordinates from instance: Lat=$jobLocationLatitude, Lng=$jobLocationLongitude")
+                        Log.d("SelectTimeFragment", "Passing to ConfirmAndCheckoutFragment...")
+                        Log.d("SelectTimeFragment", "=======================================================")
+                        
+                        putString("jobLocationAddress", jobLocationAddress)
+                        putDouble("jobLocationLatitude", jobLocationLatitude)
+                        putDouble("jobLocationLongitude", jobLocationLongitude)
+                        
+                        Log.d("SelectTimeFragment", "✅ Location data ADDED to bundle successfully!")
+                        Log.d("SelectTimeFragment", "✅ jobLocationAddress in bundle: $jobLocationAddress")
 
                         // Truyền dữ liệu maintenance services nếu có
                         if (serviceType == "maintenance") {

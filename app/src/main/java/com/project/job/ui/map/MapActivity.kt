@@ -288,7 +288,7 @@ class MapActivity : ComponentActivity(), LocationListener {
     // Chuyển sang SelectServiceActivity với thông tin vị trí (cleaning service)
     private fun proceedToCleaningService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceActivity with: $addressInfo")
-        preferencesManager.saveAddress(addressInfo)
+        // KHÔNG save vào user profile - chỉ truyền location cho job này
 
         val intent = Intent(this, SelectServiceActivity::class.java).apply {
             // Truyền tọa độ
@@ -320,7 +320,7 @@ class MapActivity : ComponentActivity(), LocationListener {
     // Chuyển sang SelectServiceHealthCareActivity với thông tin vị trí (healthcare service)
     private fun proceedToHealthcareService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceHealthCareActivity with: $addressInfo")
-        preferencesManager.saveAddress(addressInfo)
+        // KHÔNG save vào user profile - chỉ truyền location cho job này
 
         val intent = Intent(this, SelectServiceHealthCareActivity::class.java).apply {
             // Truyền tọa độ
@@ -351,8 +351,8 @@ class MapActivity : ComponentActivity(), LocationListener {
 
     // Chuyển sang SelectServiceMaintenanceActivity với thông tin vị trí (maintenance service)
     private fun proceedToMaintenanceService(location: Point, addressInfo: String) {
-        Log.d(TAG, "Proceeding to SelectServiceHealthCareActivity with: $addressInfo")
-        preferencesManager.saveAddress(addressInfo)
+        Log.d(TAG, "Proceeding to SelectServiceMaintenanceActivity with: $addressInfo")
+        // KHÔNG save vào user profile - chỉ truyền location cho job này
 
         val intent = Intent(this, SelectServiceMaintenanceActivity::class.java).apply {
             // Truyền tọa độ

@@ -41,6 +41,11 @@ class SelectServiceActivity : AppCompatActivity() {
     private var totalHours = 0
     private var totalFee = 0
 
+    // Location tạm cho job hiện tại (không update user profile)
+    private var jobLocationAddress: String? = null
+    private var jobLocationLatitude: Double = 0.0
+    private var jobLocationLongitude: Double = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -54,6 +59,9 @@ class SelectServiceActivity : AppCompatActivity() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
         preferencesManager = PreferencesManager(this)
+
+        // Handle location data from MapActivity
+        handleLocationFromMap()
 
         viewModel = ViewModelProvider(this).get(CleaningServiceViewModel::class.java)
         viewModel.getServiceCleaning()
@@ -160,6 +168,14 @@ class SelectServiceActivity : AppCompatActivity() {
                     putString("durationId", selectedDuration?.uid ?: "")
                     putStringArrayList("extraServices", ArrayList(extraServices))
                     putString("serviceType", "cleaning")
+                    
+                    // Truyền location đã chọn cho job này
+                    val locationForJob = jobLocationAddress 
+                        ?: preferencesManager.getUserData()["user_location"] 
+                        ?: ""
+                    putString("jobLocationAddress", locationForJob)
+                    putDouble("jobLocationLatitude", jobLocationLatitude)
+                    putDouble("jobLocationLongitude", jobLocationLongitude)
                 }
             }
             
@@ -171,6 +187,37 @@ class SelectServiceActivity : AppCompatActivity() {
 
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleLocationFromMap()
+    }
+
+    private fun handleLocationFromMap() {
+        val selectedAddress = intent.getStringExtra("selected_address")
+        val locationSource = intent.getStringExtra("location_source")
+
+        if (!selectedAddress.isNullOrEmpty() && locationSource == "map_selection") {
+            Log.d("SelectServiceActivity", "Received location from map: $selectedAddress")
+
+            // Lưu location tạm cho job này (KHÔNG update user profile)
+            jobLocationAddress = selectedAddress
+            
+            // Lưu coordinates tạm
+            val latitude = intent.getDoubleExtra("selected_latitude", 0.0)
+            val longitude = intent.getDoubleExtra("selected_longitude", 0.0)
+            if (latitude != 0.0 && longitude != 0.0) {
+                jobLocationLatitude = latitude
+                jobLocationLongitude = longitude
+                Log.d("SelectServiceActivity", "Saved job location: Lat=$latitude, Lng=$longitude")
+            }
+
+            // Update UI với location cho job này
+            binding.tvLocation.text = selectedAddress
+            
+            Log.d("SelectServiceActivity", "Job location updated (user profile NOT changed): $selectedAddress")
+        }
+    }
 
     private fun observeViewModel() {
         lifecycleScope.launch {

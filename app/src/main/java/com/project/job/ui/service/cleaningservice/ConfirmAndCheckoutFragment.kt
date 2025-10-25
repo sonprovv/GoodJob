@@ -115,6 +115,24 @@ class ConfirmAndCheckoutFragment : Fragment() {
         val adultServiceName = arguments?.getString("adultServiceName") ?: ""
         val elderlyServiceName = arguments?.getString("elderlyServiceName") ?: ""
 
+        // Get job location from arguments (location đã chọn cho job này)
+        val jobLocationAddress = arguments?.getString("jobLocationAddress")
+        val jobLocationLatitude = arguments?.getDouble("jobLocationLatitude", 0.0) ?: 0.0
+        val jobLocationLongitude = arguments?.getDouble("jobLocationLongitude", 0.0) ?: 0.0
+        
+        // Debug logging để kiểm tra location
+        Log.d("ConfirmCheckout", "==================== LOCATION DEBUG ====================")
+        Log.d("ConfirmCheckout", "Job location from arguments: $jobLocationAddress")
+        Log.d("ConfirmCheckout", "Job coordinates: Lat=$jobLocationLatitude, Lng=$jobLocationLongitude")
+        Log.d("ConfirmCheckout", "User profile location: ${preferencesManager.getUserData()["user_location"]}")
+        if (jobLocationAddress.isNullOrEmpty()) {
+            Log.w("ConfirmCheckout", "⚠️ WARNING: No job location selected! Using user profile location as fallback")
+            Log.w("ConfirmCheckout", "⚠️ User needs to select location from MapActivity for this job")
+        } else {
+            Log.i("ConfirmCheckout", "✅ Using job-specific location: $jobLocationAddress")
+        }
+        Log.d("ConfirmCheckout", "=======================================================")
+
         // Get selected services from SelectedServiceManager
 //        selectedServices = SelectedRoomManager.getSelectedRooms()
 
@@ -322,7 +340,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     duration = duration,
                     isCooking = isCooking,
                     isIroning = isIroning,
-                    location = preferencesManager.getUserData()["user_location"] ?: ""
+                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: ""
 //                services = serviceSelect
                 )
             } else if (serviceType == "healthcare") {
@@ -399,7 +417,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     shift = shift,
                     services = services,
                     workerQuantity = numberOfWorker,
-                    location = preferencesManager.getUserData()["user_location"] ?: ""
+                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: ""
                 )
             } else if (serviceType == "maintenance") {
                 Log.d("ConfirmCheckout", "Maintenance service type detected")
@@ -475,7 +493,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
                     startTime = selectedTime,
                     price = totalFee,
                     listDays = selectedDates,
-                    location = preferencesManager.getUserData()["user_location"] ?: "",
+                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: "",
                     services = services
                 )
             }
@@ -653,7 +671,11 @@ class ConfirmAndCheckoutFragment : Fragment() {
 
     private fun loadUserData() {
         val userData = preferencesManager.getUserData()
-        val location = userData["user_location"] ?: ""
+        
+        // Ưu tiên sử dụng job location, fallback về user profile location
+        val jobLocationFromArgs = arguments?.getString("jobLocationAddress")
+        val location = jobLocationFromArgs ?: userData["user_location"] ?: ""
+        
         val displayLocation = when {
             location.isEmpty() -> ""
             // Kiểm tra nếu chỉ có tọa độ không có địa chỉ
@@ -685,6 +707,9 @@ class ConfirmAndCheckoutFragment : Fragment() {
         binding.tvLocation.text = displayLocation
         binding.tvFullName.text = fullName
         binding.tvPhone.text = phone
+        
+        // Log để debug
+        Log.d("ConfirmCheckout", "Location display - Job location: $jobLocationFromArgs, Display: $displayLocation")
     }
 
     private fun updateUserInfoDisplay() {
