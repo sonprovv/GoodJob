@@ -30,9 +30,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import com.project.job.base.BaseActivity
 
 @Suppress("DEPRECATION")
-class SelectServiceHealthCareActivity : AppCompatActivity() {
+class SelectServiceHealthCareActivity : BaseActivity() {
     private val TAG = "SelectServiceHealthCare"
     private lateinit var binding: ActivitySelectServiceHealthCareBinding
     private lateinit var viewModel: HealthCareViewModel
@@ -127,6 +128,8 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
         binding.ivInfo.addFadeClickEffect {
             val intent = Intent(this, CleaningIntroActivity::class.java)
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         // Handle location header click
@@ -139,10 +142,25 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                 "Navigating to MapActivity with source: healthcare_service"
             )
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         // Add text change listeners for number inputs
         setupNumberInputListeners()
+
+        // THÊM: Back stack listener để quản lý UI state
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                // Delay để chờ fragment animation hoàn thành (400ms)
+                binding.root.postDelayed({
+                    // Ẩn fragment container với INVISIBLE để giữ layout
+                    findViewById<View>(R.id.fragment_container)?.visibility = View.INVISIBLE
+                    // Hiện lại Activity content ngay lập tức (không fade để mượt hơn)
+                    findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
+                }, 400) // Match với animation duration
+            }
+        }
 
         binding.cardViewButtonNext.setOnClickListener {
             // Validate input before proceeding
@@ -193,10 +211,8 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
                 }
             }
 
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.main, fragment)
-                .addToBackStack(null)
-                .commit()
+            // Sử dụng phương thức navigateToFragment từ BaseActivity nếu đã có, hoặc tự định nghĩa
+            navigateToFragment(fragment, R.id.fragment_container, "SelectTimeFragment")
         }
 
         // Then observe ViewModel
@@ -415,5 +431,18 @@ class SelectServiceHealthCareActivity : AppCompatActivity() {
             binding.cardViewButtonNext.alpha = 0.5f
             binding.tvErrorMessage.visibility = View.VISIBLE
         }
+    }
+
+
+    // Override phương thức hideActivityContent nếu cần custom
+    override fun hideActivityContent() {
+        // Ẩn toàn bộ activity_content (bao gồm header, content và button)
+        findViewById<View>(R.id.activity_content)?.visibility = View.GONE
+    }
+
+    // Override phương thức showActivityContent nếu cần custom
+    override fun showActivityContent() {
+        // Hiện lại toàn bộ activity_content
+        findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
     }
 }

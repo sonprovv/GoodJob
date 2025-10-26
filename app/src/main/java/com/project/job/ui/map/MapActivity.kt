@@ -134,6 +134,8 @@ class MapActivity : ComponentActivity(), LocationListener {
         // Nút back
         binding?.ivBack?.addFadeClickEffect {
             finish()
+            // Thêm hiệu ứng chuyển màn khi back
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
         // Setup RecyclerView cho kết quả tìm kiếm
@@ -283,6 +285,8 @@ class MapActivity : ComponentActivity(), LocationListener {
         
         setResult(RESULT_OK, resultIntent)
         finish()
+        // Thêm hiệu ứng chuyển màn khi back
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     // Chuyển sang SelectServiceActivity với thông tin vị trí (cleaning service)
@@ -315,6 +319,8 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         startActivity(intent)
         finish() // Đóng MapActivity
+        // Thêm hiệu ứng chuyển màn khi back
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     // Chuyển sang SelectServiceHealthCareActivity với thông tin vị trí (healthcare service)
@@ -347,6 +353,8 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         startActivity(intent)
         finish() // Đóng MapActivity
+        // Thêm hiệu ứng chuyển màn khi back
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     // Chuyển sang SelectServiceMaintenanceActivity với thông tin vị trí (maintenance service)
@@ -379,6 +387,8 @@ class MapActivity : ComponentActivity(), LocationListener {
 
         startActivity(intent)
         finish() // Đóng MapActivity
+        // Thêm hiệu ứng chuyển màn khi back
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     // Hiển thị nút confirm

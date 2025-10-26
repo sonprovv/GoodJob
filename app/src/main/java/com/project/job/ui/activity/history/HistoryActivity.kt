@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityHistoryBinding
 import com.project.job.ui.activity.history.adapter.HistoryPaymentAdapter
@@ -19,7 +20,7 @@ import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.launch
 
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : BaseActivity() {
     private lateinit var binding: ActivityHistoryBinding
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var historyPaymentAdapter: HistoryPaymentAdapter

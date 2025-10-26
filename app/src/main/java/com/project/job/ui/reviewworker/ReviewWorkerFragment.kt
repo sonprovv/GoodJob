@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.project.job.R
+import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.ExtendedReview
 import com.project.job.databinding.FragmentReviewWorkerBinding
@@ -19,7 +20,7 @@ import com.project.job.ui.notification.NotificationActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ReviewWorkerFragment : Fragment() {
+class ReviewWorkerFragment : BaseFragment() {
     private val TAG = "ReviewWorkerFragment"
     private var _binding: FragmentReviewWorkerBinding? = null
     private val binding get() = _binding!!

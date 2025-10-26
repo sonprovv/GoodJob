@@ -8,14 +8,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager2.widget.ViewPager2
-import com.airbnb.lottie.utils.Utils
 import com.project.job.R
+import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentHomeBinding
 import com.project.job.ui.home.adapter.BannerAdapter
@@ -28,7 +27,7 @@ import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActiv
 import com.project.job.ui.service.maintenanceservice.SelectServiceMaintenanceActivity
 import com.project.job.utils.UserDataBroadcastManager
 
-class HomeFragment : Fragment(), LoginResultListener {
+class HomeFragment : BaseFragment(), LoginResultListener {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var preferencesManager: PreferencesManager
@@ -77,19 +76,19 @@ class HomeFragment : Fragment(), LoginResultListener {
 
         binding.ivNotification.setOnClickListener {
             val intent = Intent(requireContext(), NotificationActivity::class.java)
-            startActivity(intent)
+            startActivityWithAnimation(intent)
         }
 
         // Register broadcast receiver
         registerUserDataReceiver()
-        
+
         // Handle login button click
         binding.cardViewButtonLogin.setOnClickListener {
             val loginFragment = LoginFragment()
             loginFragment.setLoginResultListener(this)
             loginFragment.show(parentFragmentManager, "LoginFragment")
         }
-        
+
         // Check login status
         checkLoginStatus()
 
@@ -102,12 +101,12 @@ class HomeFragment : Fragment(), LoginResultListener {
                 val intent = Intent(requireContext(), MapActivity::class.java).apply {
                     putExtra("source", "cleaning_service")
                 }
-                startActivity(intent)
+                startActivityWithAnimation(intent)
                 return@setOnClickListener
             }
             else {
                 val intent = Intent(requireContext(), SelectServiceActivity::class.java)
-                startActivity(intent)
+                startActivityWithAnimation(intent)
             }
         }
 
@@ -118,12 +117,12 @@ class HomeFragment : Fragment(), LoginResultListener {
                 val intent = Intent(requireContext(), MapActivity::class.java).apply {
                     putExtra("source", "healthcare_service")
                 }
-                startActivity(intent)
+                startActivityWithAnimation(intent)
                 return@setOnClickListener
             }
             else {
                 val intent = Intent(requireContext(), SelectServiceHealthCareActivity::class.java)
-                startActivity(intent)
+                startActivityWithAnimation(intent)
             }
         }
         binding.llItemService3.setOnClickListener {
@@ -132,12 +131,12 @@ class HomeFragment : Fragment(), LoginResultListener {
                 val intent = Intent(requireContext(), MapActivity::class.java).apply {
                     putExtra("source", "maintenance_service")
                 }
-                startActivity(intent)
+                startActivityWithAnimation(intent)
                 return@setOnClickListener
             }
             else {
                 val intent = Intent(requireContext(), SelectServiceMaintenanceActivity::class.java)
-                startActivity(intent)
+                startActivityWithAnimation(intent)
             }
         }
         checkLoginStatus()
@@ -220,14 +219,14 @@ class HomeFragment : Fragment(), LoginResultListener {
                 super.onPageSelected(position)
                 handler.removeCallbacks(runnable)
                 if (photoList.isNotEmpty()) {
-                    handler.postDelayed(runnable, 3000)
+                    handler.postDelayed(runnable, 6000)
                 }
             }
         })
 
         // Bắt đầu tự động chuyển slide
         if (photoList.isNotEmpty()) {
-            handler.postDelayed(runnable, 3000)
+            handler.postDelayed(runnable, 6000)
 
 
             // Xu ly click gg map
@@ -242,7 +241,7 @@ class HomeFragment : Fragment(), LoginResultListener {
     }
     private fun checkLoginStatus() {
         val isLoggedIn = preferencesManager.getAuthToken() != null
-        
+
         // Update UI based on login status
         if (isLoggedIn) {
             binding.tvHeaderText.text = "Xin chào \n" + preferencesManager.getUserData()["user_name"] ?: "Người dùng"
@@ -255,7 +254,7 @@ class HomeFragment : Fragment(), LoginResultListener {
             binding.tvContentHeader.setTextColor(resources.getColor(R.color.black))
         }
     }
-    
+
     override fun onLoginSuccess() {
         // Update UI after successful login
         // Cập nhật UI khi đăng nhập thành công
@@ -282,7 +281,7 @@ class HomeFragment : Fragment(), LoginResultListener {
     override fun onResume() {
         super.onResume()
         if (photoList.isNotEmpty()) {
-            handler.postDelayed(runnable, 3000)
+            handler.postDelayed(runnable, 6000)
         }
     }
 
@@ -290,7 +289,7 @@ class HomeFragment : Fragment(), LoginResultListener {
         val filter = IntentFilter(UserDataBroadcastManager.ACTION_USER_DATA_UPDATED)
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(userDataUpdateReceiver, filter)
     }
-    
+
     private fun updateUserDataInUI(name: String, phone: String) {
         // Update the header text with new user name (giữ định dạng xuống dòng như checkLoginStatus)
         binding.tvHeaderText.text = "Xin chào \n$name"
@@ -305,14 +304,14 @@ class HomeFragment : Fragment(), LoginResultListener {
     override fun onDestroyView() {
         super.onDestroyView()
         handler.removeCallbacks(runnable)
-        
+
         // Unregister broadcast receiver
         try {
             LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(userDataUpdateReceiver)
         } catch (e: Exception) {
             Log.e("HomeFragment", "Error unregistering receiver", e)
         }
-        
+
         _binding = null
     }
 }

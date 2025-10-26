@@ -17,6 +17,7 @@ import com.project.job.data.source.local.PreferencesManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.project.job.MainActivity
+import com.project.job.base.BaseFragment
 import com.project.job.data.repository.TokenRepository
 import com.project.job.databinding.FragmentProfileBinding
 import com.project.job.ui.chatbot.ChatBotActivity
@@ -26,11 +27,12 @@ import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.ui.payment.PaymentQrFragment
+import com.project.job.ui.policy.PolicyActivity
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ProfileFragment : Fragment(), LoginResultListener {
+class ProfileFragment : BaseFragment(), LoginResultListener {
     private lateinit var loadingDialog: LoadingDialog
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
@@ -115,23 +117,25 @@ class ProfileFragment : Fragment(), LoginResultListener {
         // Update UI based on login state
         updateUI()
 
-        binding.llHelp.setOnClickListener {
+        binding.llHelp.addFadeClickEffect {
             val intent = Intent(requireContext(), ChatBotActivity::class.java)
-            startActivity(intent)
+            startActivityWithAnimation(intent)
         }
 
-        binding.llPolicy.setOnClickListener {
+        binding.llPolicy.addFadeClickEffect {
             // Open PaymentQrFragment
+            val intent = Intent(requireContext(), PolicyActivity::class.java)
+            startActivityWithAnimation(intent)
         }
 
-        binding.cardViewButtonLogin.setOnClickListener {
+        binding.cardViewButtonLogin.addFadeClickEffect {
             // Open LoginFragment
             val loginFragment = LoginFragment.newInstance()
             loginFragment.setLoginResultListener(this)
             loginFragment.show(parentFragmentManager, "LoginFragment")
         }
 
-        binding.llLogout.setOnClickListener {
+        binding.llLogout.addFadeClickEffect {
             val fcmToken = preferencesManager.getFCMToken() ?: ""
             // Sign out from Google
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -148,14 +152,24 @@ class ProfileFragment : Fragment(), LoginResultListener {
             viewModel.putFCMToken(fcmToken)
         }
 
-        binding.llChangePass.setOnClickListener{
+        binding.llChangePass.addFadeClickEffect{
             val intent = Intent(requireContext(), ChangPasswordActivity::class.java)
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            requireActivity().overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            )
         }
 
         binding.tvViewProfile.addFadeClickEffect {
             val intent = Intent(requireContext(), UpdateProfileActivity::class.java)
             updateProfileLauncher.launch(intent)
+            // Thêm hiệu ứng chuyển màn
+            requireActivity().overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            )
         }
         observeViewModel()
     }

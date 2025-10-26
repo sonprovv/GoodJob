@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
@@ -69,7 +70,7 @@ class PowerAdapter(
             itemView.findViewById(R.id.ll_quantity_child_section)
 
         @SuppressLint("UseSwitchCompatOrMaterialCode")
-        private val switchPower: Switch = itemView.findViewById(R.id.switch_power)
+        private val switchPower: SwitchCompat = itemView.findViewById(R.id.switch_power)
 
         @SuppressLint("SetTextI18n")
         fun bind(item: PowerItem, position: Int) {

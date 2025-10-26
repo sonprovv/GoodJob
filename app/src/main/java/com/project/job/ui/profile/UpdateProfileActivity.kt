@@ -24,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.User
@@ -39,7 +40,7 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
-class UpdateProfileActivity : AppCompatActivity() {
+class UpdateProfileActivity : BaseActivity() {
     private lateinit var binding: ActivityUpdateProfileBinding
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: UpdateProfileViewModel
@@ -346,6 +347,8 @@ class UpdateProfileActivity : AppCompatActivity() {
             intent.putExtra("source", "update_profile")
             intent.putExtra("current_location", user.location)
             locationPickerLauncher.launch(intent)
+            // Thêm hiệu ứng chuyển màn
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         // Convert date from ISO format to display format

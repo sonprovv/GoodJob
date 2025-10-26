@@ -142,11 +142,13 @@
                 android:textStyle="normal"
                 tools:text="BƠM GA" />
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switch_power"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:ignore="UseSwitchCompatOrMaterialXml" />
+                app:trackTint="@color/switch_track_selector"
+                app:thumbTint="@color/switch_thumb_selector"
+                />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/ll_child_section"

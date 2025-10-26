@@ -20,11 +20,12 @@ import com.project.job.data.model.DayItem
 import android.text.Editable
 import android.text.TextWatcher
 import com.google.android.material.textfield.TextInputLayout
+import com.project.job.base.BaseFragment
 import com.project.job.utils.SelectedRoomManager
 import java.text.SimpleDateFormat
 import java.util.*
 
-class SelectTimeFragment : Fragment() {
+class SelectTimeFragment : BaseFragment() {
     private var _binding: FragmentSelectTimeBinding? = null
     private val binding get() = _binding!!
     private var selectedHour = 0
@@ -195,7 +196,8 @@ class SelectTimeFragment : Fragment() {
     private fun setupToolbar() {
         binding.ivBack.setOnClickListener {
             // Use activity's onBackPressed instead of Navigation Component
-            activity?.onBackPressed()
+//            activity?.onBackPressed()
+            navigateBackToActivity()
         }
     }
 
@@ -296,11 +298,20 @@ class SelectTimeFragment : Fragment() {
                         }
                     }
                 }
-                
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.main, fragment)
-                    .addToBackStack(null)
-                    .commit()
+
+                // Post để đảm bảo animation hoạt động mượt khi back
+                view?.post {
+                    parentFragmentManager.beginTransaction()
+                        .setCustomAnimations(
+                            R.anim.fragment_slide_in_right,
+                            R.anim.fragment_slide_out_left,
+                            R.anim.fragment_slide_in_left,
+                            R.anim.fragment_slide_out_right
+                        )
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit()
+                }
 
             } else {
                 Toast.makeText(requireContext(), "Vui lòng chọn thời gian", Toast.LENGTH_SHORT)
@@ -368,6 +379,13 @@ class SelectTimeFragment : Fragment() {
                 adapter = dayAdapter
             }
             dayAdapter?.setDays(days)
+        }
+    }
+    private fun navigateBackToActivity() {
+        if (parentFragmentManager.backStackEntryCount > 0) {
+            parentFragmentManager.popBackStack()
+        } else {
+            requireActivity().onBackPressed()
         }
     }
 

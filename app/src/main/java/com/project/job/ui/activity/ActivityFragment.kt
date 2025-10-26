@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.MaintenanceData
@@ -28,7 +29,7 @@ import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
 import com.project.job.utils.addFadeClickEffect
 
-class ActivityFragment : Fragment(), LoginResultListener {
+class ActivityFragment : BaseFragment(), LoginResultListener {
     private lateinit var loadingDialog: LoadingDialog
     private var _binding: FragmentActivityBinding? = null
     private val binding get() = _binding!!
@@ -112,7 +113,7 @@ class ActivityFragment : Fragment(), LoginResultListener {
 
         binding.tvHistory.addFadeClickEffect {
             val intent = Intent(requireContext(), HistoryActivity::class.java)
-            startActivity(intent)
+            startActivityWithAnimation(intent)
         }
 
         // Test button để trigger session expired dialog (ẩn trong production)

@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityChangPasswordBinding
 import com.project.job.ui.loading.LoadingDialog
@@ -23,7 +24,7 @@ import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ChangPasswordActivity : AppCompatActivity() {
+class ChangPasswordActivity : BaseActivity() {
     private lateinit var binding: ActivityChangPasswordBinding
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: ChangePasswordViewModel

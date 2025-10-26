@@ -17,6 +17,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivitySelectServiceMaintenanceBinding
 import com.project.job.ui.loading.LoadingDialog
@@ -39,7 +40,7 @@ interface OnPriceChangedListener {
     )
 }
 
-class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedListener {
+class SelectServiceMaintenanceActivity : BaseActivity(), OnPriceChangedListener {
     private val TAG = "SelectServiceMaintenance"
     private lateinit var binding: ActivitySelectServiceMaintenanceBinding
     private lateinit var adapter: TabLayoutMaintenanceAdapter
@@ -121,6 +122,8 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
             }
             Log.d(TAG, "Navigating to MapActivity with source: maintenance_service")
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         observeViewModel()
@@ -131,6 +134,19 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
         // Thêm click listener cho bottom sheet detail
         binding.llBottomSheetDetail.addFadeClickEffect {
             showSelectedItemsBottomSheet()
+        }
+
+        // THÊM: Back stack listener để quản lý UI state
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                // Delay để chờ fragment animation hoàn thành (400ms)
+                binding.root.postDelayed({
+                    // Ẩn fragment container với INVISIBLE để giữ layout
+                    findViewById<View>(R.id.fragment_container)?.visibility = View.INVISIBLE
+                    // Hiện lại Activity content ngay lập tức (không fade để mượt hơn)
+                    findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
+                }, 400) // Match với animation duration
+            }
         }
 
         // Thêm click listener cho nút "Tiếp theo"
@@ -558,17 +574,26 @@ class SelectServiceMaintenanceActivity : AppCompatActivity(), OnPriceChangedList
                     }
                 }
 
-            // Điều hướng sang SelectTimeFragment
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.main, selectTimeFragment)
-                .addToBackStack("SelectTimeFragment")
-                .commit()
+            // Điều hướng sang SelectTimeFragment sử dụng BaseActivity method
+            navigateToFragment(selectTimeFragment, R.id.fragment_container, "SelectTimeFragment")
 
-            Log.d(TAG, "Fragment transaction committed")
+            Log.d(TAG, "Fragment navigation executed via BaseActivity")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error navigating to SelectTimeFragment", e)
             Toast.makeText(this, "Có lỗi xảy ra khi chuyển trang", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Override phương thức hideActivityContent nếu cần custom
+    override fun hideActivityContent() {
+        // Ẩn toàn bộ activity_content (bao gồm header, content và button)
+        findViewById<View>(R.id.activity_content)?.visibility = View.GONE
+    }
+
+    // Override phương thức showActivityContent nếu cần custom
+    override fun showActivityContent() {
+        // Hiện lại toàn bộ activity_content
+        findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
     }
 }

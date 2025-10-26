@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.HealthcareService
@@ -20,7 +21,7 @@ import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewMode
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class NotificationActivity : AppCompatActivity() {
+class NotificationActivity : BaseActivity() {
     private val TAG = "NotificationActivity"
     private lateinit var binding: ActivityNotificationBinding
     private lateinit var viewModel: NotificationViewModel

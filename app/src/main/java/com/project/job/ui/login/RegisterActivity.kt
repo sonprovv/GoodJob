@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.project.job.MainActivity
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityRegisterBinding
@@ -28,7 +29,7 @@ import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class RegisterActivity : AppCompatActivity() {
+class RegisterActivity : BaseActivity() {
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var viewModel: RegisterViewModel
     private lateinit var viewModelLogin : LoginViewModel
@@ -40,7 +41,7 @@ class RegisterActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        preferencesManager = PreferencesManager(this)
         loadingDialog = LoadingDialog(this)
 
         // Thiết lập màu sắc cho status bar
@@ -60,7 +61,7 @@ class RegisterActivity : AppCompatActivity() {
 
         viewModel = RegisterViewModel(tokenRepository = TokenRepository(preferencesManager))
         viewModelLogin = LoginViewModel(tokenRepository = TokenRepository(preferencesManager))
-        preferencesManager = PreferencesManager(this)
+
 
         setupPasswordToggle(binding.edtPassword)
 

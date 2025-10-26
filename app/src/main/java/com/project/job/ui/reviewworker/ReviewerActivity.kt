@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityReviewerBinding
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
@@ -15,7 +16,7 @@ import com.project.job.ui.reviewworker.adapter.CommentAdapter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ReviewerActivity : AppCompatActivity() {
+class ReviewerActivity : BaseActivity() {
     private lateinit var binding: ActivityReviewerBinding
     private lateinit var commentAdapter: CommentAdapter
     private lateinit var viewModel: JobDetailViewModel

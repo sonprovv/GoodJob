@@ -126,6 +126,11 @@ class LoginFragment : BottomSheetDialogFragment() {
         binding.btnLogin.setOnClickListener {
             val intent = Intent(requireContext(), LoginActivity::class.java)
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            requireActivity().overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            )
             dismiss()
         }
 
@@ -133,6 +138,11 @@ class LoginFragment : BottomSheetDialogFragment() {
         binding.btnRegister.setOnClickListener {
             val intent = Intent(requireContext(), RegisterActivity::class.java)
             startActivity(intent)
+            // Thêm hiệu ứng chuyển màn
+            requireActivity().overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            )
             dismiss()
         }
 

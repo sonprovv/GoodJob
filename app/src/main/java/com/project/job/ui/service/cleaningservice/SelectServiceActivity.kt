@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
@@ -27,7 +28,7 @@ import com.project.job.utils.SelectedRoomManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class SelectServiceActivity : AppCompatActivity() {
+class SelectServiceActivity : BaseActivity() {
     private lateinit var binding: ActivitySelectServiceBinding
     private lateinit var loadingDialog: LoadingDialog
     private val selectedExtraServices = mutableSetOf<Int>()
@@ -137,6 +138,20 @@ class SelectServiceActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+
+        // THÊM: Back stack listener để quản lý UI state
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                // Delay để chờ fragment animation hoàn thành (400ms)
+                binding.root.postDelayed({
+                    // Ẩn fragment container với INVISIBLE để giữ layout
+                    findViewById<View>(R.id.fragment_container)?.visibility = View.INVISIBLE
+                    // Hiện lại Activity content ngay lập tức (không fade để mượt hơn)
+                    findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
+                }, 400) // Match với animation duration
+            }
+        }
+
         binding.cardViewButtonNext.setOnClickListener {
             // Get selected extra services
             val extraServices = mutableListOf<String>()
@@ -178,11 +193,9 @@ class SelectServiceActivity : AppCompatActivity() {
                     putDouble("jobLocationLongitude", jobLocationLongitude)
                 }
             }
-            
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.main, fragment)
-                .addToBackStack(null)
-                .commit()
+
+            // Sử dụng phương thức navigateToFragment từ BaseActivity nếu đã có, hoặc tự định nghĩa
+            navigateToFragment(fragment, R.id.fragment_container, "SelectTimeFragment")
         }
 
     }
@@ -318,6 +331,18 @@ class SelectServiceActivity : AppCompatActivity() {
                 binding.tvIron.setTextColor(ContextCompat.getColor(this, textColorRes))
             }
         }
+    }
+
+    // Override phương thức hideActivityContent nếu cần custom
+    override fun hideActivityContent() {
+        // Ẩn toàn bộ activity_content (bao gồm header, content và button)
+        findViewById<View>(R.id.activity_content)?.visibility = View.GONE
+    }
+
+    // Override phương thức showActivityContent nếu cần custom
+    override fun showActivityContent() {
+        // Hiện lại toàn bộ activity_content
+        findViewById<View>(R.id.activity_content)?.visibility = View.VISIBLE
     }
     
     override fun onBackPressed() {

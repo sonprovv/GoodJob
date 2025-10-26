@@ -1,6 +1,7 @@
 package com.project.job.base
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,84 +16,79 @@ import com.project.job.OnMainCallBack
 import com.project.job.OnMainCallBack2
 import java.lang.reflect.Constructor
 import java.util.Objects
+import androidx.navigation.fragment.findNavController
+import com.project.job.R
 
-abstract class BaseFragment<B : ViewBinding,M: ViewModel>:
-    Fragment(), View.OnClickListener, OnMainCallBack2 {
-    private lateinit var mContext: Context
-    lateinit var viewmodel: M
-    protected lateinit var mbinding: B
-    private var mCallBack: OnMainCallBack? = null
-    private var mCallBack2: OnMainCallBack2? = null
-    var mData: Objects? = null
+open class BaseFragment : Fragment() {
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        mContext = context
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        mbinding = initViewBinding(inflater, container)
-        viewmodel = ViewModelProvider(this)[getClassVM()]
-        return mbinding.root
-    }
-
-    override fun onViewCreated
-                (view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initView()
     }
 
-    override fun onClick(v: View) {
-        v.startAnimation(
-            AnimationUtils.loadAnimation(
-                context,
-                androidx.appcompat.R.anim.abc_fade_in
-            )
-        )
-        clickView(v)
+    // Activity navigation methods
+    protected fun startActivityWithAnimation(intent: Intent) {
+        startActivity(intent)
+        requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
-    protected abstract fun getClassVM(): Class<M>
-
-    protected open fun clickView(v: View) {
-    }
-
-    protected abstract fun initView()
-
-    protected abstract fun initViewBinding(inflater: LayoutInflater, container: ViewGroup?): B
-
-    fun setmData(Data: Objects) {
-        mData = Data
-    }
-
-    fun setCallBack(callBack: OnMainCallBack) {
-        mCallBack = callBack
-    }
-    fun setCallBack2(callBack: OnMainCallBack2) {
-        mCallBack2 = callBack
-    }
-
-    override fun showFragment
-                (tag: String, data: Objects?, isBack: Boolean,viewID:Int) {
-        try {
-            val clazz: Class<*> = Class.forName(tag)
-            val constructor: Constructor<*> = clazz.getConstructor()
-            val fragment = constructor.newInstance() as BaseFragment<*, *>
-            fragment.mData = data
-            fragment.setCallBack2(this)
-            val trans: FragmentTransaction = childFragmentManager.beginTransaction()
-            if (isBack) {
-                trans.addToBackStack(null)
+    // Fragment navigation methods với animation
+    protected fun replaceFragmentWithAnimation(
+        fragment: Fragment,
+        tag: String,
+        containerId: Int = R.id.fragment_container // Thay bằng id container của bạn
+    ) {
+        // Get container view
+        val container = requireActivity().findViewById<View>(containerId)
+        
+        // Post để đảm bảo container đã layout xong trước khi animation
+        container?.post {
+            parentFragmentManager.beginTransaction().apply {
+                setCustomAnimations(
+                    R.anim.fragment_slide_in_right,
+                    R.anim.fragment_slide_out_left,
+                    R.anim.fragment_slide_in_left,
+                    R.anim.fragment_slide_out_right
+                )
+                replace(containerId, fragment, tag)
+                addToBackStack(tag)
+                commit()
             }
-            trans.replace(viewID, fragment, tag).commit()
-
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } ?: run {
+            // Fallback nếu không tìm thấy container
+            parentFragmentManager.beginTransaction().apply {
+                setCustomAnimations(
+                    R.anim.fragment_slide_in_right,
+                    R.anim.fragment_slide_out_left,
+                    R.anim.fragment_slide_in_left,
+                    R.anim.fragment_slide_out_right
+                )
+                replace(containerId, fragment, tag)
+                addToBackStack(tag)
+                commit()
+            }
         }
     }
 
+    // Navigation component methods
+    protected fun navigateTo(destinationId: Int, args: Bundle? = null) {
+        findNavController().navigate(destinationId, args)
+    }
+
+    protected fun navigateBack() {
+        if (!findNavController().popBackStack()) {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    protected fun showLoading() {
+        // Common loading implementation
+    }
+
+    protected fun hideLoading() {
+        // Common loading hide implementation
+    }
+
+    protected fun showError(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
+    }
 }

@@ -16,6 +16,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.databinding.ActivityForgotPasswordBinding
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.ForgotPasswordViewModel
@@ -23,7 +24,7 @@ import com.project.job.utils.hideKeyboard
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ForgotPasswordActivity : AppCompatActivity() {
+class ForgotPasswordActivity : BaseActivity() {
 
     private lateinit var binding: ActivityForgotPasswordBinding
     private lateinit var viewModel: ForgotPasswordViewModel

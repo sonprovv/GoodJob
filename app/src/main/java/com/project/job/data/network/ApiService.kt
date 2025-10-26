@@ -29,6 +29,7 @@ import com.project.job.data.source.remote.api.response.FCMTokenResponse
 import com.project.job.data.source.remote.api.response.ForgotPasswordResponse
 import com.project.job.data.source.remote.api.response.GetNotificationResponse
 import com.project.job.data.source.remote.api.response.GetNotificationsResponse
+import com.project.job.data.source.remote.api.response.GetPoliciesResponse
 import com.project.job.data.source.remote.api.response.GetReviewWorkerResponse
 import com.project.job.data.source.remote.api.response.PaymentResponse
 import com.project.job.data.source.remote.api.response.RefreshTokenResponse
@@ -213,11 +214,15 @@ interface ApiService {
     // ----------- end review worker --------------------------------------
     // ----------- AI chat bot --------------------------------------
     @AuthRequired
-    @POST("api/chatbox")
+    @POST("api/chatbot")
     suspend fun chatBot(
         @Body request : ChatBotRequest
     ) : Response<ChatBotResponse>
     // ----------- end AI chat bot --------------------------------------
+    // --------------------- start policy ----------------------
+    @GET("api/policies")
+    suspend fun getPolicies(): Response<GetPoliciesResponse>
+    // --------------------- end policy ----------------------
     // ---------------- Chat ----------------
     @AuthRequired
     @POST("api/chat/send")

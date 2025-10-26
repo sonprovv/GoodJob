@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
+import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.databinding.FragmentWorkerOrderBinding
@@ -17,7 +18,7 @@ import com.project.job.ui.reviewworker.ReviewWorkerFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class WorkerOrderFragment : Fragment() {
+class WorkerOrderFragment : BaseFragment() {
     private var _binding: FragmentWorkerOrderBinding? = null
     private val binding get() = _binding!!
     private lateinit var workerAdapter: WorkerAdapter

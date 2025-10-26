@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.MainActivity
 import com.project.job.R
+import com.project.job.base.BaseActivity
 import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.ui.loading.LoadingDialog
@@ -24,7 +25,7 @@ import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: LoginViewModel
     private lateinit var preferencesManager: PreferencesManager

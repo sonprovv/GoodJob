@@ -284,6 +284,13 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                         }
                         intent.putExtra("job", currentJob)
                         holder.itemView.context.startActivity(intent)
+                        // Thêm hiệu ứng chuyển màn
+                        if (holder.itemView.context is android.app.Activity) {
+                            (holder.itemView.context as android.app.Activity).overridePendingTransition(
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left
+                            )
+                        }
                     }
                     else -> {
                         // Các status khác → navigate to JobDetailActivity
@@ -298,6 +305,13 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                         }
                         intent.putExtra("job", currentJob)
                         holder.itemView.context.startActivity(intent)
+                        // Thêm hiệu ứng chuyển màn
+                        if (holder.itemView.context is android.app.Activity) {
+                            (holder.itemView.context as android.app.Activity).overridePendingTransition(
+                                R.anim.slide_in_right,
+                                R.anim.slide_out_left
+                            )
+                        }
                     }
                 }
             }

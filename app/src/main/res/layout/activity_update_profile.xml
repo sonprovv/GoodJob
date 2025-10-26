@@ -161,6 +161,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:layout_weight="1"
+                        android:buttonTint="@color/radio_button_selector"
                         android:text="Nam"
                         android:textColor="@color/black"
                         android:textSize="16sp"
@@ -172,6 +173,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:layout_weight="1"
+                        android:buttonTint="@color/radio_button_selector"
                         android:text="Nữ"
                         android:textColor="@color/black"
                         android:textSize="16sp"
@@ -196,14 +198,14 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        android:gravity="center_vertical"
                         android:id="@+id/tv_dob"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
-                        android:text="01/01/1990"
+                        android:gravity="center_vertical"
                         android:paddingHorizontal="12dp"
+                        android:text="01/01/1990"
                         android:textColor="@color/black"
                         android:textColorHint="#AAAAAA" />
 
@@ -258,12 +260,12 @@
                         android:id="@+id/tv_location"
                         android:layout_width="0dp"
                         android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
                         android:layout_weight="1"
+                        android:ellipsize="end"
                         android:gravity="center_vertical"
                         android:paddingHorizontal="12dp"
                         android:singleLine="true"
-                        android:layout_marginEnd="8dp"
-                        android:ellipsize="end"
                         android:textColor="@color/black"
                         android:textColorHint="#AAAAAA"
                         android:textSize="16sp"

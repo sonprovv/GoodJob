@@ -11,12 +11,13 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.project.job.base.BaseActivity
 import com.project.job.data.model.ChatMessage
 import com.project.job.data.model.ChatMessageType
 import com.project.job.databinding.ActivityChatBotBinding
 import kotlinx.coroutines.launch
 
-class ChatBotActivity : AppCompatActivity() {
+class ChatBotActivity : BaseActivity() {
     private lateinit var binding: ActivityChatBotBinding
     private lateinit var chatBotAdapter: ChatBotAdapter
     private val chatMessages = mutableListOf<ChatMessage>()

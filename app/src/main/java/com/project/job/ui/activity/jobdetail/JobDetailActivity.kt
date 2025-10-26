@@ -5,13 +5,14 @@ import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayoutMediator
+import com.project.job.base.BaseActivity
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.MaintenanceData
 import com.project.job.databinding.ActivityJobDetailBinding
 import com.project.job.ui.activity.jobdetail.adapter.TabLayoutAdapter
 
-class JobDetailActivity : AppCompatActivity() {
+class JobDetailActivity : BaseActivity() {
     lateinit var binding: ActivityJobDetailBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

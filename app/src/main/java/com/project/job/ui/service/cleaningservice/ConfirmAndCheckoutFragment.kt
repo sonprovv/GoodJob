@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.collectLatest
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.request.ServicePowerInfo
 import com.project.job.data.source.remote.api.request.PowersInfoQuantity
@@ -36,7 +37,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class ConfirmAndCheckoutFragment : Fragment() {
+class ConfirmAndCheckoutFragment : BaseFragment() {
     private var _binding: FragmentConfirmAndCheckoutBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModelCleaning: CleaningServiceViewModel
@@ -274,7 +275,7 @@ class ConfirmAndCheckoutFragment : Fragment() {
 
 
         binding.ivBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            navigateBackToActivity()
         }
 
         binding.cardViewChangrInfo.setOnClickListener {
@@ -501,6 +502,14 @@ class ConfirmAndCheckoutFragment : Fragment() {
 
         observeViewModel()
 
+    }
+
+    private fun navigateBackToActivity() {
+        if (parentFragmentManager.backStackEntryCount > 0) {
+            parentFragmentManager.popBackStack()
+        } else {
+            requireActivity().onBackPressed()
+        }
     }
 
     private fun observeViewModel() {
