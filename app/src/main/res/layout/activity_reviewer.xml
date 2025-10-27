@@ -55,6 +55,7 @@
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
         <TextView
+            android:textColor="@color/black"
             android:id="@+id/tv_no_reviews"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
