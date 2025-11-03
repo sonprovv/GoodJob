@@ -1,6 +1,7 @@
 package com.project.job.data.source.remote
 
 import com.project.job.data.network.ApiService
+import com.project.job.data.network.ChatApiService
 import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.ChatDataSource
 import com.project.job.data.source.remote.api.request.chat.SendMessageRequest
@@ -9,18 +10,19 @@ import com.project.job.data.source.remote.api.response.chat.ConversationResponse
 import com.project.job.data.source.remote.api.response.chat.MessageResponse
 import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
+import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
 
-class ChatRemote(private val api: ApiService) : ChatDataSource {
+class ChatRemote(private val api: ChatApiService) : ChatDataSource {
 
-    override suspend fun sendMessage(request: SendMessageRequest): NetworkResult<BaseResponse<MessageResponse>> {
+    override suspend fun sendMessage(request: SendMessageRequest): NetworkResult<MessageResponse> {
         return safeApiCall { api.chatSendMessage(request) }
     }
 
-    override suspend fun getMessages(userId: String, limit: Int): NetworkResult<BaseResponse<List<MessageResponse>>> {
-        return safeApiCall { api.chatGetMessages(userId, limit) }
+    override suspend fun getMessages(userId: String): NetworkResult<GetMessagesResponse> {
+        return safeApiCall { api.chatGetMessages(userId) }
     }
 
-    override suspend fun getConversations(): NetworkResult<BaseResponse<List<ConversationResponse>>> {
+    override suspend fun getConversations(): NetworkResult<ConversationResponse> {
         return safeApiCall { api.chatGetConversations() }
     }
 
@@ -51,7 +53,7 @@ class ChatRemote(private val api: ApiService) : ChatDataSource {
     companion object {
         private var instance: ChatRemote? = null
         fun getInstance(): ChatRemote {
-            if (instance == null) instance = ChatRemote(RetrofitClient.apiService)
+            if (instance == null) instance = ChatRemote(RetrofitClient.chatApiService)
             return instance!!
         }
     }

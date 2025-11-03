@@ -12,7 +12,8 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <com.google.android.material.textview.MaterialTextView
+        <TextView
+            android:layout_gravity="end"
             android:id="@+id/text_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -21,12 +22,13 @@
             android:textColor="@android:color/white"
             android:textSize="14sp" />
 
-        <com.google.android.material.textview.MaterialTextView
+        <TextView
+            android:layout_gravity="end"
             android:id="@+id/text_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/white"
             android:textSize="12sp" />
 
     </LinearLayout>

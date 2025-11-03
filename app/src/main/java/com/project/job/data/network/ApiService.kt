@@ -45,6 +45,7 @@ import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
 import com.project.job.data.source.remote.api.response.chat.ConversationResponse
+import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
 import com.project.job.data.source.remote.api.response.chat.MessageResponse
 import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 import com.project.job.utils.AuthRequired
@@ -57,7 +58,6 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
-import retrofit2.http.Query
 import retrofit2.http.DELETE
 
 interface ApiService {
@@ -228,18 +228,17 @@ interface ApiService {
     @POST("api/chat/send")
     suspend fun chatSendMessage(
         @Body request: SendMessageRequest
-    ): Response<BaseResponse<MessageResponse>>
+    ): Response<MessageResponse>
 
     @AuthRequired
     @GET("api/chat/messages/{userId}")
     suspend fun chatGetMessages(
-        @Path("userId") userId: String,
-        @Query("limit") limit: Int = 50
-    ): Response<BaseResponse<List<MessageResponse>>>
+        @Path("userId") userId: String
+    ): Response<GetMessagesResponse>
 
     @AuthRequired
     @GET("api/chat/conversations")
-    suspend fun chatGetConversations(): Response<BaseResponse<List<ConversationResponse>>>
+    suspend fun chatGetConversations(): Response<ConversationResponse>
 
     @AuthRequired
     @GET("api/chat/available-users")

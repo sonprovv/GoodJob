@@ -8,6 +8,7 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import com.project.job.data.source.remote.ChatBotRemote
 import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.api.request.ReferenceData
 import com.project.job.data.source.remote.api.response.QueryJobs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,7 @@ class ChatBotViewModel : ViewModel() {
     private val _response_type = MutableStateFlow<String?>(null)
     val response_type: StateFlow<String?> = _response_type
 
-    fun chatBot(request: String) {
+    fun chatBot(request: String, location : String) {
         viewModelScope.launch {
             _success.value = false
             _loading.value = true
@@ -46,7 +47,9 @@ class ChatBotViewModel : ViewModel() {
             _response_type.value = null
             
             try {
-                val response = chatBotRepository.chatBot(request = request)
+                val preferenceData = ReferenceData(location = location)
+
+                val response = chatBotRepository.chatBot(request = request, refrence = preferenceData)
                 Log.d("ChatBotViewModel", "ChatBot response: $response")
                 
                 when(response) {

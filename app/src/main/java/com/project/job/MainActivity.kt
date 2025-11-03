@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.bottomnavigation.BottomNavigationMenuView
 import com.google.android.material.bottomnavigation.BottomNavigationItemView
+import com.project.job.base.BaseActivity
 import com.project.job.databinding.ActivityMainBinding
 import com.project.job.ui.activity.ActivityFragment
 import com.project.job.ui.chat.ChatFragment
@@ -24,7 +25,7 @@ import com.project.job.ui.dialog.SessionExpiredBottomSheet
 import com.project.job.ui.home.HomeFragment
 import com.project.job.ui.profile.ProfileFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var sessionExpiredReceiver: BroadcastReceiver
 

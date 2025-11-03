@@ -12,7 +12,7 @@ import java.io.File
 
 interface UserRepositoryImpl {
     suspend fun login(email: String, password: String): Result<UserResponse>
-    suspend fun register(email: String, password: String, username: String, avatar: String? = null): Result<UserResponse>
+    suspend fun register(email: String, password: String, confirmPassword: String): Result<UserResponse>
     suspend fun loginWithGoogle(firebaseIdToken: String, role: String): Result<UserResponse>
     suspend fun postFcmToken(fcmToken: String): Result<FCMTokenResponse>
     suspend fun deleteFcmToken(fcmToken: String): Result<FCMTokenResponse>

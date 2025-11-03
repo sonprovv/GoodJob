@@ -12,8 +12,6 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
-import com.project.job.OnMainCallBack
-import com.project.job.OnMainCallBack2
 import java.lang.reflect.Constructor
 import java.util.Objects
 import androidx.navigation.fragment.findNavController
@@ -88,7 +86,7 @@ open class BaseFragment : Fragment() {
         // Common loading hide implementation
     }
 
-    protected fun showError(message: String) {
+    protected open fun showError(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 }

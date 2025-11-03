@@ -53,16 +53,14 @@ class UserRepository() : UserRepositoryImpl {
     override suspend fun register(
         email: String,
         password: String,
-        username: String,
-        avatar: String?
+        confirmPassword : String
     ): Result<UserResponse> {
         return try {
             val response = apiService.register(
                 RegisterRequest(
                     email = email,
                     password = password,
-                    username = username,
-                    avatar = avatar,
+                    confirmPassword = confirmPassword,
                     role = "user"
                 )
             )

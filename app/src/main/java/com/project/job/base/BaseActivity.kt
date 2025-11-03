@@ -9,7 +9,6 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
-import com.project.job.OnMainCallBack
 import com.project.job.R
 import java.lang.reflect.Constructor
 import java.util.Objects

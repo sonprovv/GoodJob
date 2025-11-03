@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = Constant.BASE_URL
+    private const val CHAT_API = "https://doantotnghiep-vert.vercel.app/"
     private const val TAG = "RetrofitClient"
     
     private var isInitialized = false
@@ -27,6 +28,7 @@ object RetrofitClient {
     private lateinit var tokenManagerIntegration: TokenManagerIntegration
     private lateinit var httpClient: OkHttpClient
     private lateinit var _apiService: ApiService
+    private lateinit var _chatApiService: ChatApiService
 
     private val loggingInterceptor = HttpLoggingInterceptor { message ->
         Log.d(TAG, message)
@@ -59,6 +61,13 @@ object RetrofitClient {
                 .build()
                 .create(ApiService::class.java)
 
+            _chatApiService = Retrofit.Builder()
+                .baseUrl(CHAT_API)
+                .client(basicClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ChatApiService::class.java)
+
             // Now create the full client with TokenAuthenticator
             httpClient = OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
@@ -68,6 +77,7 @@ object RetrofitClient {
                 ))
                 .authenticator(TokenAuthenticator(
                     apiService = _apiService,
+                    chatApiService = _chatApiService,
                     preferencesManager = preferencesManager,
                     context = context
                 ))
@@ -83,6 +93,13 @@ object RetrofitClient {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(ApiService::class.java)
+
+            _chatApiService = Retrofit.Builder()
+                .baseUrl(CHAT_API)
+                .client(httpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(ChatApiService::class.java)
                 
             isInitialized = true
             Log.d(TAG, "RetrofitClient initialized successfully")
@@ -95,6 +112,14 @@ object RetrofitClient {
                 throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
             }
             return _apiService
+        }
+
+    val chatApiService: ChatApiService
+        get() {
+            if (!isInitialized) {
+                throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
+            }
+            return _chatApiService
         }
     
     val authManager: AuthenticationManager

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.base.BaseActivity
 import com.project.job.data.model.ChatMessage
 import com.project.job.data.model.ChatMessageType
+import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityChatBotBinding
 import kotlinx.coroutines.launch
 
@@ -22,13 +23,14 @@ class ChatBotActivity : BaseActivity() {
     private lateinit var chatBotAdapter: ChatBotAdapter
     private val chatMessages = mutableListOf<ChatMessage>()
     private val viewModel: ChatBotViewModel by viewModels()
+    private lateinit var preferencesManager: PreferencesManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityChatBotBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        preferencesManager = PreferencesManager(this)
         setupWindowInsets()
         setupRecyclerView()
         setupClickListeners()
@@ -123,9 +125,9 @@ class ChatBotActivity : BaseActivity() {
 
             // Show typing indicator
             showTypingIndicator()
-
+            val location = preferencesManager.getUserData()["user_location"] ?: ""
             // Call actual API through ViewModel
-            viewModel.chatBot(messageText)
+            viewModel.chatBot(messageText, location)
         }
     }
 

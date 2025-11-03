@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.project.job.MainActivity
 import com.project.job.data.network.ApiService
+import com.project.job.data.network.ChatApiService
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.request.RefreshTokenRequest
 import com.project.job.ui.dialog.SessionExpiredBottomSheet
@@ -17,6 +18,7 @@ import okhttp3.Route
 
 class TokenAuthenticator(
     private val apiService: ApiService,
+    private val chatApiService: ChatApiService,
     private val preferencesManager: PreferencesManager,
     private val context: Context
 ) : Authenticator {

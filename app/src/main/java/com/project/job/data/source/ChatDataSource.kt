@@ -8,11 +8,12 @@ import com.project.job.data.source.remote.api.response.chat.ConversationResponse
 import com.project.job.data.source.remote.api.response.chat.MessageResponse
 import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
+import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
 
 interface ChatDataSource {
-    suspend fun sendMessage(request: SendMessageRequest): NetworkResult<BaseResponse<MessageResponse>>
-    suspend fun getMessages(userId: String, limit: Int = 50): NetworkResult<BaseResponse<List<MessageResponse>>>
-    suspend fun getConversations(): NetworkResult<BaseResponse<List<ConversationResponse>>>
+    suspend fun sendMessage(request: SendMessageRequest): NetworkResult<MessageResponse>
+    suspend fun getMessages(userId: String): NetworkResult<GetMessagesResponse>
+    suspend fun getConversations(): NetworkResult<ConversationResponse>
     suspend fun getAvailableUsers(): NetworkResult<BaseResponse<List<ChatUserResponse>>>
     suspend fun markAsRead(userId: String): NetworkResult<BaseResponse<Unit>>
     suspend fun deleteMessage(conversationId: String, messageId: String): NetworkResult<BaseResponse<Unit>>

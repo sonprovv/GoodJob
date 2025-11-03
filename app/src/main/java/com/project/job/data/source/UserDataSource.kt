@@ -14,7 +14,7 @@ import java.io.File
 
 interface UserDataSource {
     suspend fun login(email: String, password: String): NetworkResult<UserResponse?>
-    suspend fun register(email: String, password: String, username: String, avatar: String? = null): NetworkResult<UserResponse?>
+    suspend fun register(email: String, password: String, confirmPassword: String): NetworkResult<UserResponse?>
     suspend fun loginWithGoogle(firebaseIdToken: String): NetworkResult<UserResponse?>
     suspend fun postFcmToken(fcmToken: String): NetworkResult<FCMTokenResponse?>
     suspend fun deleteFcmToken(fcmToken: String): NetworkResult<FCMTokenResponse?>

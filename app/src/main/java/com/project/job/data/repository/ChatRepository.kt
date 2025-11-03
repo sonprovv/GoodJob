@@ -7,6 +7,7 @@ import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.api.request.chat.SendMessageRequest
 import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
 import com.project.job.data.source.remote.api.response.chat.ConversationResponse
+import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
 import com.project.job.data.source.remote.api.response.chat.MessageResponse
 import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 
@@ -19,13 +20,13 @@ class ChatRepository(
         is NetworkResult.Error -> Result.failure(Exception(result.message))
     }
 
-    override suspend fun sendMessage(request: SendMessageRequest): Result<BaseResponse<MessageResponse>> =
+    override suspend fun sendMessage(request: SendMessageRequest): Result<MessageResponse> =
         mapResult(remote.sendMessage(request))
 
-    override suspend fun getMessages(userId: String, limit: Int): Result<BaseResponse<List<MessageResponse>>> =
-        mapResult(remote.getMessages(userId, limit))
+    override suspend fun getMessages(userId: String): Result<GetMessagesResponse> =
+        mapResult(remote.getMessages(userId))
 
-    override suspend fun getConversations(): Result<BaseResponse<List<ConversationResponse>>> =
+    override suspend fun getConversations(): Result<ConversationResponse> =
         mapResult(remote.getConversations())
 
     override suspend fun getAvailableUsers(): Result<BaseResponse<List<ChatUserResponse>>> =

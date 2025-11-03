@@ -3,25 +3,62 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="@drawable/img_headerimage"
     android:layout_height="match_parent"
     tools:context=".ui.chat.detail.ChatDetailActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <androidx.cardview.widget.CardView
+        android:id="@+id/ll_header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:layout_height="?actionBarSize"
+        app:cardBackgroundColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <LinearLayout
+            android:layout_gravity="center_vertical"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#000000"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:titleTextColor="#FFFFFF"
-            app:navigationIconTint="#FFFFFF" />
+            android:gravity="center_vertical"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            >
 
-    </com.google.android.material.appbar.AppBarLayout>
+            <ImageView
+                android:id="@+id/iv_back"
+                android:layout_width="40dp"
+                android:layout_height="32dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="4dp"
+                android:src="@drawable/ic_back" />
+
+            <androidx.cardview.widget.CardView
+                app:cardCornerRadius="26dp"
+                app:cardElevation="0dp"
+                android:layout_width="48dp"
+                android:layout_marginHorizontal="8dp"
+                android:layout_height="48dp">
+                <ImageView
+                    android:id="@+id/iv_avatar"
+                    android:scaleType="fitXY"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/img_profile_picture_defaul" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                tools:text="Đăng Pham"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -52,14 +89,14 @@
             android:id="@+id/input_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
+            android:background="@drawable/bg_edt_orange"
             android:orientation="horizontal"
             android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <com.google.android.material.textfield.TextInputEditText
+            <EditText
                 android:id="@+id/input_message"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -67,7 +104,10 @@
                 android:hint="Nhập tin nhắn..."
                 android:imeOptions="actionSend"
                 android:inputType="textMultiLine"
-                android:maxLines="3" />
+                android:maxLines="3"
+                android:background="@android:color/transparent"
+                android:padding="12dp"
+                android:textSize="16sp" />
 
             <ImageView
                 android:id="@+id/button_send"
