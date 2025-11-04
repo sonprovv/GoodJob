@@ -1,23 +1,28 @@
 package com.project.job.ui.chat
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.reflect.TypeToken
-import com.project.job.data.source.remote.ChatRemote
+import com.project.job.data.mapper.ChatMapper
+import com.project.job.data.repository.ConversationRepository
+import com.project.job.data.repository.implement.ConversationRepositoryImpl
+import com.project.job.data.source.local.room.entity.ChatEntity
 import com.project.job.data.source.remote.NetworkResult
-import com.project.job.data.source.remote.api.request.ReferenceData
-import com.project.job.data.source.remote.api.response.QueryJobs
 import com.project.job.data.source.remote.api.response.chat.ConversationData
 import com.project.job.data.source.remote.api.response.chat.SenderData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ChatViewModel : ViewModel() {
-    private val chatRepository : ChatRemote = ChatRemote.getInstance()
+class ChatViewModel(application: Application) : AndroidViewModel(application) {
+    private val conversationRepository: ConversationRepository = ConversationRepositoryImpl.getInstance(application)
 
     private val gson = Gson()
 
@@ -36,41 +41,207 @@ class ChatViewModel : ViewModel() {
     private val _user_info = MutableStateFlow<SenderData?>(null)
     val user_info: StateFlow<SenderData?> = _user_info
 
+    // Local conversations from Room database - auto-update UI when data changes
+    private val _localConversations = MutableStateFlow<List<ChatEntity>>(emptyList())
+    val localConversations: StateFlow<List<ChatEntity>> = _localConversations
+
+    // For backward compatibility with UI using ConversationData
     private val _conversations = MutableStateFlow<List<ConversationData>?>(emptyList())
     val conversations: StateFlow<List<ConversationData>?> = _conversations
 
-    fun getConversations() {
+    /**
+     * Start observing local conversations from Room database
+     * This will automatically update UI when data changes
+     */
+    fun observeLocalConversations() {
+        viewModelScope.launch {
+            try {
+                Log.d("ChatViewModel", "Starting to observe local conversations")
+                conversationRepository.getAllConversationsLocal().collect { conversations ->
+                    Log.d("ChatViewModel", "Local conversations updated: ${conversations.size} conversations")
+                    _localConversations.value = conversations
+                    
+                    // Also update ConversationData flow for backward compatibility
+                    _conversations.value = ChatMapper.toConversationDataList(conversations)
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error observing local conversations: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Fetch conversations from API and save to Room database
+     * This will trigger UI update automatically via Flow
+     */
+    fun refreshConversations() {
         viewModelScope.launch {
             _success.value = false
             _loading.value = true
             _error.value = null
 
             try {
-                val response = chatRepository.getConversations()
-                Log.d("ChatViewModel", "Chat response: $response")
+                Log.d("ChatViewModel", "Fetching conversations from API")
+                val result = conversationRepository.fetchAndSaveConversations()
 
-                when(response) {
+                when(result) {
                     is NetworkResult.Success -> {
-                        Log.d("ChatViewModel", "Success! Conversations count: ${response.data.conversations.size}")
-                        Log.d("ChatViewModel", "Conversations data: ${response.data.conversations}")
-                        _conversations.value = response.data.conversations
+                        Log.d("ChatViewModel", "Conversations refreshed successfully")
                         _success.value = true
-                        Log.d("ChatViewModel", "StateFlow updated with ${_conversations.value?.size} items")
                     }
                     is NetworkResult.Error -> {
-                        Log.e("ChatViewModel", "Error: ${response.message}")
-                        _error.value = response.message
+                        Log.e("ChatViewModel", "Error refreshing conversations: ${result.message}")
+                        _error.value = result.message
                         _success.value = false
                     }
                 }
 
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Chat error: ${e.message}")
+                Log.e("ChatViewModel", "Exception refreshing conversations: ${e.message}")
                 _error.value = e.message
             } finally {
-                Log.d("ChatViewModel", "Chat finally")
+                Log.d("ChatViewModel", "Refresh conversations finally")
                 _loading.value = false
             }
         }
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     * Internally calls observeLocalConversations() and refreshConversations()
+     */
+    fun getConversations() {
+        // Switched to Firebase Realtime Database for conversations
+        observeRealtimeConversations()
+    }
+
+    /**
+     * Mark conversation as read
+     */
+    fun markConversationAsRead(conversationId: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("ChatViewModel", "Marking conversation as read: $conversationId")
+                conversationRepository.markConversationAsRead(conversationId)
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error marking conversation as read: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Clear all local conversations (useful for logout)
+     */
+    fun clearLocalConversations() {
+        viewModelScope.launch {
+            try {
+                Log.d("ChatViewModel", "Clearing local conversations")
+                conversationRepository.clearLocalConversations()
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error clearing local conversations: ${e.message}")
+            }
+        }
+    }
+
+    // ===================== Firebase Realtime Database (new) =====================
+    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+    private val firebaseDb: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
+
+    fun observeRealtimeConversations() {
+        val currentUid = firebaseAuth.currentUser?.uid
+        if (currentUid.isNullOrEmpty()) {
+            _error.value = "Bạn chưa đăng nhập"
+            return
+        }
+
+        _loading.value = true
+
+        // Load users map first for username/avatar resolution
+        val usersRef = firebaseDb.getReference("users")
+        val conversationsRef = firebaseDb.getReference("conversations")
+
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(usersSnap: DataSnapshot) {
+                // After we have users, attach a listener to conversations for realtime updates
+                conversationsRef.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        try {
+                            val list = mutableListOf<ConversationData>()
+                            for (convSnap in snapshot.children) {
+                                val conversationId = convSnap.key ?: continue
+                                // conversationId is formatted as uidA_uidB
+                                val ids = conversationId.split("_")
+                                if (ids.size != 2) continue
+                                if (!ids.contains(currentUid)) continue
+
+                                val partnerId = if (ids[0] == currentUid) ids[1] else ids[0]
+
+                                // Iterate messages to find last message and timestamp
+                                var lastMessageText: String? = null
+                                var lastTimestamp: Long = 0L
+                                for (msgSnap in convSnap.children) {
+                                    val messageText = msgSnap.child("message").getValue(String::class.java)
+                                    val timestampVal = msgSnap.child("timestamp").getValue(Long::class.java) ?: 0L
+                                    if (timestampVal >= lastTimestamp) {
+                                        lastTimestamp = timestampVal
+                                        lastMessageText = messageText
+                                    }
+                                }
+
+                                // Resolve partner user info from users map
+                                val userNode = usersSnap.child(partnerId)
+                                val username = userNode.child("username").getValue(String::class.java) ?: "User"
+                                // Optional fields not present in your schema
+                                val avatar = ""
+
+                                val senderData = SenderData(
+                                    id = partnerId,
+                                    username = username,
+                                    name = username,
+                                    avatar = avatar,
+                                    dob = "",
+                                    tel = "",
+                                    email = "",
+                                    location = "",
+                                    gender = "",
+                                    userType = ""
+                                )
+
+                                val conversationData = ConversationData(
+                                    id = conversationId,
+                                    lastMessageTime = lastTimestamp,
+                                    lastMessage = lastMessageText,
+                                    unreadCount = 0,
+                                    updatedAt = lastTimestamp.toString(),
+                                    senderId = partnerId,
+                                    sender = senderData
+                                )
+
+                                list.add(conversationData)
+                            }
+
+                            // Sort by last message time desc
+                            val sorted = list.sortedByDescending { it.lastMessageTime }
+                            _conversations.value = sorted
+                            _loading.value = false
+                        } catch (e: Exception) {
+                            Log.e("ChatViewModel", "Error parsing conversations: ${e.message}")
+                            _error.value = e.message
+                            _loading.value = false
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        _error.value = error.message
+                        _loading.value = false
+                    }
+                })
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                _error.value = error.message
+                _loading.value = false
+            }
+        })
     }
 }

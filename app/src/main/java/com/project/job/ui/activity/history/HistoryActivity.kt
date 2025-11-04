@@ -1,5 +1,6 @@
 package com.project.job.ui.activity.history
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,10 +11,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.base.BaseActivity
+import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.ServiceRemote
+import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityHistoryBinding
 import com.project.job.ui.activity.history.adapter.HistoryPaymentAdapter
 import com.project.job.ui.activity.history.viewmodel.HistoryPaymentViewModel
+import com.project.job.ui.activity.jobdetail.JobDetailActivity
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.LoginFragment
 import com.project.job.utils.addFadeClickEffect
@@ -62,7 +67,35 @@ class HistoryActivity : BaseActivity() {
         // Set item click listener
         historyPaymentAdapter.setOnItemClickListener { payment ->
             Log.d("HistoryActivity", "Payment clicked: ${payment.jobID}")
-            Toast.makeText(this, "Payment ID: ${payment.jobID}", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                try {
+                    loadingDialog.show()
+                    val serviceRemote = ServiceRemote.getInstance()
+                    val jobsResponse = serviceRemote.getUserPostJobs(payment.userID)
+                    when (jobsResponse) {
+                        is NetworkResult.Success -> {
+                            val jobs = jobsResponse.data.jobs
+                            val job: DataJobs? = jobs.firstOrNull { it.uid == payment.jobID }
+                            if (job != null) {
+                                val intent = Intent(this@HistoryActivity, JobDetailActivity::class.java).apply {
+                                    putExtra("job", job)
+                                }
+                                startActivity(intent)
+                            } else {
+                                Toast.makeText(this@HistoryActivity, "Không tìm thấy công việc", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                        is NetworkResult.Error -> {
+                            Toast.makeText(this@HistoryActivity, "Lỗi tải công việc: ${jobsResponse.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("HistoryActivity", "Error navigating to JobDetail: ${e.message}")
+                    Toast.makeText(this@HistoryActivity, "Có lỗi xảy ra", Toast.LENGTH_LONG).show()
+                } finally {
+                    loadingDialog.hide()
+                }
+            }
         }
     }
     

@@ -100,6 +100,15 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         val profileImageUrl = data["profileImageUrl"] ?: ""
         val notificationType = data["notificationType"] ?: ""
 
+        // Debug logging để check data payload
+        Log.d(TAG, "Data payload received:")
+        Log.d(TAG, "  - title: $title")
+        Log.d(TAG, "  - message: $messageText")
+        Log.d(TAG, "  - senderId: '$senderId'")
+        Log.d(TAG, "  - senderName: $senderName")
+        Log.d(TAG, "  - conversationId: $conversationId")
+        Log.d(TAG, "  - notificationType: $notificationType")
+
         // Check if this is a chat notification
         if (notificationType == "Chat") {
             handleChatNotification(title, messageText, senderId, senderName, conversationId, data)
@@ -131,6 +140,9 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         conversationId: String,
         data: Map<String, String>
     ) {
+        // Extract avatar from data payload
+        val senderAvatar = data["senderAvatar"] ?: data["avatar"] ?: ""
+        
         // Check if app is in foreground
         if (isAppInForeground()) {
             // App is in foreground, show in-app notification
@@ -142,11 +154,12 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             intent.putExtra(KEY_SENDER_ID, senderId)
             intent.putExtra(KEY_SENDER_NAME, senderName)
             intent.putExtra(KEY_CONVERSATION_ID, conversationId)
+            intent.putExtra("senderAvatar", senderAvatar)
             intent.putExtra("notificationType", "Chat")
             sendBroadcast(intent)
         } else {
             Log.d(TAG, "App is in background, showing chat system notification")
-            showChatNotification(title, message, senderId, senderName, conversationId)
+            showChatNotification(title, message, senderId, senderName, conversationId, senderAvatar)
         }
     }
 
@@ -203,20 +216,40 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         message: String,
         senderId: String,
         senderName: String,
-        conversationId: String
+        conversationId: String,
+        senderAvatar: String = ""
     ) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        Log.d(TAG, "====== Creating Chat Notification ======")
+        Log.d(TAG, "SenderId: '$senderId' (isEmpty: ${senderId.isEmpty()})")
+        Log.d(TAG, "SenderName: '$senderName'")
+        Log.d(TAG, "Avatar: '$senderAvatar'")
+        Log.d(TAG, "Title: '$title'")
+        Log.d(TAG, "Message: '$message'")
+
+        // Validate senderId before creating notification
+        if (senderId.isEmpty()) {
+            Log.e(TAG, "⚠️ SenderId is EMPTY! Cannot create notification properly")
+            Log.e(TAG, "⚠️ Check backend payload - 'sender_id' field may be missing")
+        }
 
         // Create intent to open ChatDetailActivity
         val intent = Intent(this, com.project.job.ui.chat.detail.ChatDetailActivity::class.java).apply {
             putExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_RECEIVER_ID, senderId)
             putExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_PARTNER_NAME, senderName)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            putExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_PARTNER_AVATAR, senderAvatar)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
+        
+        Log.d(TAG, "Intent created with extras:")
+        Log.d(TAG, "  - EXTRA_RECEIVER_ID: '${intent.getStringExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_RECEIVER_ID)}'")
+        Log.d(TAG, "  - EXTRA_PARTNER_NAME: '${intent.getStringExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_PARTNER_NAME)}'")
+        Log.d(TAG, "  - EXTRA_PARTNER_AVATAR: '${intent.getStringExtra(com.project.job.ui.chat.detail.ChatDetailActivity.EXTRA_PARTNER_AVATAR)}'")
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            notificationId,
+            System.currentTimeMillis().toInt(), // Unique request code
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -231,7 +264,11 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setVibrate(longArrayOf(0, 250, 250, 250))
             .setLights(0xff2196F3.toInt(), 300, 1000) // Blue color for chat notifications
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setCategory(androidx.core.app.NotificationCompat.CATEGORY_MESSAGE)
 
+        Log.d(TAG, "Showing chat notification with ID: $notificationId")
+        
         // Show notification
         notificationManager.notify(notificationId++, builder.build())
     }

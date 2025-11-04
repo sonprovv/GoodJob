@@ -16,6 +16,7 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.ExtendedReview
 import com.project.job.databinding.FragmentReviewWorkerBinding
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
+import com.project.job.ui.chat.detail.ChatDetailActivity
 import com.project.job.ui.notification.NotificationActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -74,6 +75,18 @@ class ReviewWorkerFragment : BaseFragment() {
 
             requireActivity().supportFragmentManager.popBackStack()
         }
+
+        binding.tvChat.setOnClickListener{
+            // Navigate to NotificationActivity (Chat)
+            val intent = ChatDetailActivity.newIntent(
+                context = requireContext(),
+                receiverId = workerId,
+                receiverName = workerName ?: "",
+                receiverAvatar = workerAvatar
+            )
+            startActivityWithAnimation(intent)
+        }
+
         binding.tvViewReview.setOnClickListener{
             // Navigate to ReviewerActivity with all necessary data
             val intent = ReviewerActivity.newIntent(
@@ -89,7 +102,7 @@ class ReviewWorkerFragment : BaseFragment() {
                 workerBirthdate = workerBirthdate,
                 workerEmail = workerEmail
             )
-            startActivity(intent)
+            startActivityWithAnimation(intent)
         }
 
         Glide.with(requireContext())

@@ -68,6 +68,7 @@
             android:paddingHorizontal="16dp">
 
             <WebView
+                android:scrollbars="none"
                 android:visibility="gone"
                 android:id="@+id/wv_content"
                 android:layout_width="match_parent"

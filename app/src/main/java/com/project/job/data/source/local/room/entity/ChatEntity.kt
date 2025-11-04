@@ -8,10 +8,11 @@ data class ChatEntity(
     @PrimaryKey
     val id: String,
     val senderId: String,
-    val receiverId: String,
-    val message: String,
-    val timestamp: Long,
-    val avatar: String,
-    val name: String,
-    val status: String
+    val senderUsername: String,
+    val senderName: String,
+    val senderAvatar: String,
+    val lastMessage: String?,
+    val lastMessageTime: Long,
+    val unreadCount: Int = 0,
+    val updatedAt: String
 )

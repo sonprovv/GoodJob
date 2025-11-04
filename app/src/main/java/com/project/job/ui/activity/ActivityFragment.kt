@@ -134,7 +134,7 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             // Collect loading
             launch {
                 viewModel.loading.collectLatest { isLoading ->

@@ -9,7 +9,7 @@ import com.project.job.data.source.local.room.converter.ListStringConverter
 import com.project.job.data.source.local.room.entity.ChatEntity
 import com.project.job.data.source.local.room.entity.JobEntity
 
-@Database(entities = [JobEntity::class, ChatEntity::class], version = 2, exportSchema = false)
+@Database(entities = [JobEntity::class, ChatEntity::class], version = 3, exportSchema = false)
 @TypeConverters(ListStringConverter::class)
 abstract class AppDatabase: RoomDatabase() {
     abstract fun getJobDAO(): JobDAO

@@ -67,12 +67,12 @@ class WorkerAdapter (
                 // Nếu đã đánh giá, ẩn phần đánh giá
                 itemView.findViewById<View>(R.id.ll_review).visibility = View.VISIBLE
                 itemView.findViewById<View>(R.id.ll_comment).visibility = View.GONE
-                itemView.findViewById<View>(R.id.ll_action).visibility = View.GONE
+                itemView.findViewById<CardView>(R.id.card_view_accept).visibility = View.GONE
             } else {
                 // Nếu chưa đánh giá, hiển thị phần đánh giá
                 itemView.findViewById<View>(R.id.ll_review).visibility = View.VISIBLE
                 itemView.findViewById<View>(R.id.ll_comment).visibility = View.VISIBLE
-                itemView.findViewById<View>(R.id.ll_action).visibility = View.VISIBLE
+                itemView.findViewById<CardView>(R.id.card_view_accept).visibility = View.VISIBLE
                 itemView.findViewById<TextView>(R.id.tv_review_comment).visibility = View.GONE
                 
                 // Reset stars to clickable state
@@ -124,11 +124,9 @@ class WorkerAdapter (
                 }
                 if(status == "Hoàn thành") {
                     llReview.visibility = View.VISIBLE
-                    llAction.visibility = View.GONE
                     setupStarRating()
                 } else {
                     llReview.visibility = View.GONE
-                    llAction.visibility = View.VISIBLE
                 }
             }
             // Xử lý sự kiện click cho card_view_detail_worker

@@ -55,7 +55,7 @@
                 android:gravity="center_vertical"
                 tools:text="Đăng Pham"
                 android:textColor="@color/black"
-                android:textSize="26sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -86,9 +86,11 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
+            android:layout_marginHorizontal="8dp"
             android:id="@+id/input_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/bg_edt_orange"
             android:orientation="horizontal"
             android:padding="8dp"
@@ -105,6 +107,8 @@
                 android:imeOptions="actionSend"
                 android:inputType="textMultiLine"
                 android:maxLines="3"
+                android:textColor="@color/black"
+                android:textColorHint="@color/black"
                 android:background="@android:color/transparent"
                 android:padding="12dp"
                 android:textSize="16sp" />

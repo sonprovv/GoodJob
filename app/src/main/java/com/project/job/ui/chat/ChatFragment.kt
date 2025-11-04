@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +26,8 @@ class ChatFragment : BaseFragment() {
     private var _binding: FragmentChatBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: ChatViewModel
+    // Use viewModels delegate for AndroidViewModel
+    private val viewModel: ChatViewModel by viewModels()
     private lateinit var adapter: ChatAdapter
     private lateinit var loadingDialog: LoadingDialog
 
@@ -42,11 +44,11 @@ class ChatFragment : BaseFragment() {
 
         // Initialize components
         loadingDialog = LoadingDialog(requireActivity())
-        viewModel = ChatViewModel()
+        // viewModel is already initialized by viewModels delegate
         
         // Setup adapter with click listener
         adapter = ChatAdapter { conversation ->
-            navigateToChatDetail(conversation.sender.id, conversation.sender.name, conversation.sender.avatar)
+            navigateToChatDetail(conversation.sender.id, conversation.sender.username, conversation.sender.avatar)
         }
         
         // Setup RecyclerView
@@ -95,7 +97,7 @@ class ChatFragment : BaseFragment() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             launch {
                 // Collect loading state
                 viewModel.loading.collectLatest { isLoading ->

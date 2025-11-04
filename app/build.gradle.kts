@@ -126,5 +126,7 @@ dependencies {
     // json
     implementation("org.json:json:20230227")
 
+    implementation ("io.socket:socket.io-client:2.1.0")
+
 
 }

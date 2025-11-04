@@ -10,6 +10,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.project.job.R
 import com.project.job.data.source.remote.api.response.chat.ConversationData
 import java.text.SimpleDateFormat
@@ -18,7 +22,7 @@ import java.util.concurrent.TimeUnit
 
 class ChatAdapter(
     private val onConversationClick: (ConversationData) -> Unit
-) : ListAdapter<ConversationData, ChatAdapter.ConversationViewHolder>(ConversationDiffCallback()) {
+) : ListAdapter<ConversationData, ChatAdapter.ConversationViewHolder>(ConversationViewHolder.ConversationDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConversationViewHolder {
         Log.d("ChatAdapter", "onCreateViewHolder called")
@@ -29,10 +33,10 @@ class ChatAdapter(
 
     override fun onBindViewHolder(holder: ConversationViewHolder, position: Int) {
         val item = getItem(position)
-        Log.d("ChatAdapter", "onBindViewHolder at position $position: ${item.sender.name}")
+        Log.d("ChatAdapter", "onBindViewHolder at position $position: ${item.sender.username}")
         holder.bind(item)
     }
-    
+
     override fun submitList(list: List<ConversationData>?) {
         Log.d("ChatAdapter", "submitList called with ${list?.size} items")
         super.submitList(list)
@@ -50,7 +54,7 @@ class ChatAdapter(
 
         fun bind(conversation: ConversationData) {
             // Set name
-            tvName.text = conversation.sender.name
+            tvName.text = conversation.sender.username
 
             // Set last message (now it's a String, not an Object)
             val lastMessageText = conversation.lastMessage ?: "Chưa có tin nhắn"
@@ -68,6 +72,17 @@ class ChatAdapter(
                     .into(imgAvatar)
             } else {
                 imgAvatar.setImageResource(R.drawable.img_profile_picture_defaul)
+                // Try to fetch from Realtime DB if missing
+                fetchUserIfNeeded(conversation.sender.id) { name, avatar ->
+                    if (name.isNotEmpty()) tvName.text = name
+                    if (avatar.isNotEmpty()) {
+                        Glide.with(itemView.context)
+                            .load(avatar)
+                            .placeholder(R.drawable.img_profile_picture_defaul)
+                            .error(R.drawable.img_profile_picture_defaul)
+                            .into(imgAvatar)
+                    }
+                }
             }
 
             // Set click listener
@@ -87,21 +102,24 @@ class ChatAdapter(
                 // timestamp is already in milliseconds
                 val now = System.currentTimeMillis()
                 val diff = now - timestamp
-                
+
                 when {
                     diff < TimeUnit.MINUTES.toMillis(1) -> "now"
                     diff < TimeUnit.HOURS.toMillis(1) -> {
                         val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
                         " · ${minutes}m"
                     }
+
                     diff < TimeUnit.DAYS.toMillis(1) -> {
                         val hours = TimeUnit.MILLISECONDS.toHours(diff)
                         " · ${hours}h"
                     }
+
                     diff < TimeUnit.DAYS.toMillis(7) -> {
                         val days = TimeUnit.MILLISECONDS.toDays(diff)
                         " · ${days}d"
                     }
+
                     else -> {
                         // Show date format: dd/MM
                         val dateFormat = SimpleDateFormat("dd/MM", Locale.getDefault())
@@ -112,15 +130,53 @@ class ChatAdapter(
                 ""
             }
         }
-    }
 
-    class ConversationDiffCallback : DiffUtil.ItemCallback<ConversationData>() {
-        override fun areItemsTheSame(oldItem: ConversationData, newItem: ConversationData): Boolean {
-            return oldItem.id == newItem.id
+        private fun fetchUserIfNeeded(
+            userId: String,
+            onLoaded: (name: String, avatar: String) -> Unit
+        ) {
+            if (userId.isEmpty()) return
+            // Check cache first
+            val cached = userCache[userId]
+            if (cached != null) {
+                onLoaded(cached.first, cached.second)
+                return
+            }
+            val usersRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+            usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val name = snapshot.child("username").getValue(String::class.java) ?: ""
+                    val avatar = snapshot.child("avatar").getValue(String::class.java) ?: ""
+                    if (name.isNotEmpty() || avatar.isNotEmpty()) {
+                        userCache[userId] = name to avatar
+                        onLoaded(name, avatar)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ChatAdapter", "fetchUserIfNeeded cancelled: ${error.message}")
+                }
+            })
         }
 
-        override fun areContentsTheSame(oldItem: ConversationData, newItem: ConversationData): Boolean {
-            return oldItem == newItem
+
+        class ConversationDiffCallback : DiffUtil.ItemCallback<ConversationData>() {
+            override fun areItemsTheSame(
+                oldItem: ConversationData,
+                newItem: ConversationData
+            ): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(
+                oldItem: ConversationData,
+                newItem: ConversationData
+            ): Boolean {
+                return oldItem == newItem
+            }
+        }
+        companion object {
+            private val userCache: MutableMap<String, Pair<String, String>> = mutableMapOf()
         }
     }
 }

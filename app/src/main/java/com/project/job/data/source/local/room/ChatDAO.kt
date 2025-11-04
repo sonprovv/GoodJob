@@ -6,60 +6,55 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChatDAO {
-    // Insert a new message
+    // Insert a conversation
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessage(message: ChatEntity): Long
+    suspend fun insertConversation(conversation: ChatEntity): Long
 
-    // Insert multiple messages
+    // Insert multiple conversations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessages(messages: List<ChatEntity>)
+    suspend fun insertConversations(conversations: List<ChatEntity>)
 
-    // Update a message
+    // Update a conversation
     @Update
-    suspend fun updateMessage(message: ChatEntity)
+    suspend fun updateConversation(conversation: ChatEntity)
 
-    // Delete a message
+    // Delete a conversation
     @Delete
-    suspend fun deleteMessage(message: ChatEntity)
+    suspend fun deleteConversation(conversation: ChatEntity)
 
-    // Get all messages for a conversation
-    @Query("SELECT * FROM conversations WHERE (senderId = :userId1 AND receiverId = :userId2) OR (senderId = :userId2 AND receiverId = :userId1) ORDER BY timestamp ASC")
-    fun getConversation(userId1: String, userId2: String): Flow<List<ChatEntity>>
+    // Get all conversations ordered by last message time
+    @Query("SELECT * FROM conversations ORDER BY lastMessageTime DESC")
+    fun getAllConversations(): Flow<List<ChatEntity>>
 
-    // Get the last message for each conversation
-    @Query("""
-        SELECT * FROM conversations 
-        WHERE id IN (
-            SELECT MAX(id) 
-            FROM conversations 
-            WHERE senderId = :userId OR receiverId = :userId 
-            GROUP BY 
-                CASE 
-                    WHEN senderId = :userId THEN receiverId 
-                    ELSE senderId 
-                END
-        )
-        ORDER BY timestamp DESC
-    """)
-    fun getAllConversations(userId: String): Flow<List<ChatEntity>>
+    // Get conversation by ID
+    @Query("SELECT * FROM conversations WHERE id = :conversationId LIMIT 1")
+    suspend fun getConversationById(conversationId: String): ChatEntity?
 
-    // Get unread message count for a conversation
-    @Query("SELECT COUNT(*) FROM conversations WHERE receiverId = :userId AND status = 'sent'")
-    fun getUnreadMessageCount(userId: String): Flow<Int>
+    // Get conversations by sender ID
+    @Query("SELECT * FROM conversations WHERE senderId = :senderId ORDER BY lastMessageTime DESC")
+    fun getConversationsBySender(senderId: String): Flow<List<ChatEntity>>
 
-    // Mark messages as read
-    @Query("UPDATE conversations SET status = 'read' WHERE senderId = :otherUserId AND receiverId = :userId AND status = 'sent'")
-    suspend fun markMessagesAsRead(userId: String, otherUserId: String)
+    // Update unread count
+    @Query("UPDATE conversations SET unreadCount = :count WHERE id = :conversationId")
+    suspend fun updateUnreadCount(conversationId: String, count: Int)
 
-    // Get last message in a conversation
-    @Query("SELECT * FROM conversations WHERE (senderId = :userId1 AND receiverId = :userId2) OR (senderId = :userId2 AND receiverId = :userId1) ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLastMessage(userId1: String, userId2: String): ChatEntity?
+    // Mark conversation as read (reset unread count)
+    @Query("UPDATE conversations SET unreadCount = 0 WHERE id = :conversationId")
+    suspend fun markAsRead(conversationId: String)
 
-    // Delete all messages in a conversation
-    @Query("DELETE FROM conversations WHERE (senderId = :userId1 AND receiverId = :userId2) OR (senderId = :userId2 AND receiverId = :userId1)")
-    suspend fun deleteConversation(userId1: String, userId2: String)
+    // Get total unread message count
+    @Query("SELECT SUM(unreadCount) FROM conversations")
+    fun getTotalUnreadCount(): Flow<Int?>
 
-    // Clear all messages
+    // Delete conversation by ID
+    @Query("DELETE FROM conversations WHERE id = :conversationId")
+    suspend fun deleteConversationById(conversationId: String)
+
+    // Clear all conversations
     @Query("DELETE FROM conversations")
-    suspend fun clearAllMessages()
+    suspend fun clearAllConversations()
+
+    // Search conversations by name
+    @Query("SELECT * FROM conversations WHERE senderName LIKE '%' || :query || '%' OR senderUsername LIKE '%' || :query || '%' ORDER BY lastMessageTime DESC")
+    fun searchConversations(query: String): Flow<List<ChatEntity>>
 }

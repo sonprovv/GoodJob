@@ -2,6 +2,15 @@ package com.project.job.data.model
 
 import com.project.job.data.source.remote.api.response.QueryJobs
 
+data class ChatConversation(
+    val id: String,
+    val senderId: String,
+    val receiverId: String,
+    val message: String,
+    val timestamp: Long,
+    val isRead: Boolean
+)
+
 data class ChatMessage(
     val text: String,
     val isUser: Boolean,
