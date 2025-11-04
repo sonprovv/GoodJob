@@ -25,16 +25,7 @@ import com.project.job.data.source.remote.api.response.ServiceMaintenanceRespons
 import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 
-class ServiceRemote(private val apiService: ApiService) : ServiceDataSource {
-//    override suspend fun getServiceCleaning(): NetworkResult<CleaningData?> {
-//        try{
-//            api.getcleaning()
-//            return NetworkResult.Success
-//        }catch (e:Exception){
-//            return NetworkResult.Error(e.message ?: "Something went wrong")
-//        }
-//
-//    }
+class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remote {
 
     override suspend fun getServiceCleaning(): NetworkResult<ServiceCleaningResponse> {
         return safeApiCall {

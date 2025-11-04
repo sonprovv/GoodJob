@@ -1,61 +1,87 @@
 package com.project.job.ui.activity.viewmodel
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.job.data.repository.JobRepository
+import com.project.job.data.repository.implement.JobRepositoryImpl
+import com.project.job.data.source.local.room.entity.JobEntity
 import com.project.job.data.source.remote.NetworkResult
-import com.project.job.data.source.remote.ServiceRemote
-import com.project.job.data.source.remote.api.response.DataJobs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ActivityViewModel : ViewModel() {
-    private val serviceRepository = ServiceRemote.getInstance()
+class ActivityViewModel(application: Application) : AndroidViewModel(application) {
+    private val jobRepository: JobRepository = JobRepositoryImpl.getInstance(application)
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _jobs = MutableStateFlow<List<DataJobs>?>(null)
-    val jobs: StateFlow<List<DataJobs>?> = _jobs
+    // Local jobs from Room database - auto-update UI when data changes
+    private val _localJobs = MutableStateFlow<List<JobEntity>>(emptyList())
+    val localJobs: StateFlow<List<JobEntity>> = _localJobs
 
     private val _success = MutableStateFlow<Boolean?>(null)
     val success_change: StateFlow<Boolean?> = _success
 
-    fun getListJob(uid: String) {
+    /**
+     * Start observing local jobs from Room database
+     * This will automatically update UI when data changes
+     */
+    fun observeLocalJobs(userId: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("ActivityViewModel", "Starting to observe local jobs for user: $userId")
+                jobRepository.getJobsByUserLocal(userId).collect { jobs ->
+                    Log.d("ActivityViewModel", "Local jobs updated: ${jobs.size} jobs")
+                    _localJobs.value = jobs
+                }
+            } catch (e: Exception) {
+                Log.e("ActivityViewModel", "Error observing local jobs: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Fetch jobs from API and save to Room database
+     * This will trigger UI update automatically via Flow
+     */
+    fun refreshJobs(uid: String) {
         viewModelScope.launch {
             _success.value = false
             _loading.value = true
             _error.value = null
             try {
-                val response = serviceRepository.getUserPostJobs(uid = uid)
-                Log.d("ActivityViewModel", "Activity response: $response")
-                Log.d("ActivityViewModel", "Activity response: $uid")
-                when (response) {
+                Log.d("ActivityViewModel", "Fetching jobs from API for user: $uid")
+                val result = jobRepository.fetchAndSaveJobs(uid)
+                
+                when (result) {
                     is NetworkResult.Success -> {
-                        _jobs.value = response.data.jobs
+                        Log.d("ActivityViewModel", "Jobs refreshed successfully")
                         _success.value = true
                     }
-
                     is NetworkResult.Error -> {
-                        _error.value = response.message
+                        Log.e("ActivityViewModel", "Error refreshing jobs: ${result.message}")
+                        _error.value = result.message
                         _success.value = false
                     }
-
                 }
-
             } catch (e: Exception) {
-                Log.e("ActivityViewModel", "Activity error: ${e.message}")
+                Log.e("ActivityViewModel", "Exception refreshing jobs: ${e.message}")
                 _error.value = e.message
             } finally {
-                Log.e("ActivityViewModel", "Activity finally")
                 _loading.value = false
             }
         }
     }
 
+    /**
+     * Cancel a job (both API and local database)
+     * Local database will auto-update via Flow
+     */
     fun cancelJob(serviceType: String, jobID: String) {
         viewModelScope.launch {
             _success.value = false
@@ -73,13 +99,13 @@ class ActivityViewModel : ViewModel() {
                         "Cancel job attempt ${retryCount + 1}/$maxRetries for job $jobID"
                     )
 
-                    val response =
-                        serviceRepository.cancelJob(serviceType = serviceType, jobID = jobID)
+                    // Cancel job via repository (handles both remote and local)
+                    val response = jobRepository.cancelJob(serviceType = serviceType, jobId = jobID)
                     Log.d("ActivityViewModel", "Cancel job response: $response")
-                    Log.d("ActivityViewModel", "Cancel job response: $jobID")
 
                     when (response) {
                         is NetworkResult.Success -> {
+                            Log.d("ActivityViewModel", "Job cancelled successfully: $jobID")
                             _success.value = true
                             _loading.value = false
                             return@launch // Success, exit retry loop
@@ -126,4 +152,20 @@ class ActivityViewModel : ViewModel() {
             }
         }
     }
+
+    /**
+     * Clear all local jobs (useful for logout)
+     */
+    fun clearLocalJobs() {
+        viewModelScope.launch {
+            try {
+                Log.d("ActivityViewModel", "Clearing local jobs")
+                jobRepository.clearLocalJobs()
+            } catch (e: Exception) {
+                Log.e("ActivityViewModel", "Error clearing local jobs: ${e.message}")
+            }
+        }
+    }
+
+
 }

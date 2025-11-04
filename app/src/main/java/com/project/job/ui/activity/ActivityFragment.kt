@@ -8,10 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.base.BaseFragment
+import com.project.job.data.mapper.JobEntityToDataJobsMapper
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.MaintenanceData
@@ -33,7 +35,8 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
     private lateinit var loadingDialog: LoadingDialog
     private var _binding: FragmentActivityBinding? = null
     private val binding get() = _binding!!
-    private lateinit var viewModel : ActivityViewModel
+    // Use viewModels delegate for AndroidViewModel
+    private val viewModel: ActivityViewModel by viewModels()
     private lateinit var viewModelHealthcare : HealthCareViewModel
     private lateinit var viewModelMaintenance : MaintenanceViewModel
     private lateinit var preferencesManager: PreferencesManager
@@ -54,7 +57,7 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         loadingDialog = LoadingDialog(requireActivity())
-        viewModel = ActivityViewModel()
+        // viewModel is already initialized by viewModels delegate
         viewModelHealthcare = HealthCareViewModel()
         viewModelMaintenance = MaintenanceViewModel()
         preferencesManager = PreferencesManager(requireContext())
@@ -101,7 +104,10 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
 
         // Kiểm tra xem token có tồn tại hay không
         if (token != "") {
-            viewModel.getListJob(uid = uid)
+            // Start observing local jobs (auto-update when data changes)
+            viewModel.observeLocalJobs(uid)
+            // Refresh jobs from API (will update local database and trigger UI update)
+            viewModel.refreshJobs(uid)
             viewModelHealthcare.getServiceHealthcare()
             viewModelMaintenance.getMaintenanceService()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE
@@ -152,17 +158,22 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
                 }
             }
 
-            // Collect jobs and update adapter
+            // Collect local jobs from Room database (auto-update when data changes)
             launch {
-                viewModel.jobs.collectLatest { listJob ->
-                    if (listJob == null || listJob.isEmpty()) {
+                viewModel.localJobs.collectLatest { jobEntities ->
+                    Log.d("ActivityFragment", "Local jobs updated: ${jobEntities.size} jobs")
+                    
+                    if (jobEntities.isEmpty()) {
                         binding.llLoginSuccessNoData.visibility = View.VISIBLE
                         binding.llListJob.visibility = View.GONE
                     } else {
                         binding.llLoginSuccessNoData.visibility = View.GONE
                         binding.llListJob.visibility = View.VISIBLE
+                        
+                        // Convert JobEntity to DataJobs for adapter
+                        val dataJobsList = JobEntityToDataJobsMapper.toDataJobsList(jobEntities)
                         jobAdapter.updateList(
-                            listJob,
+                            dataJobsList,
                             healthcareServiceList,
                             maintenanceServiceList
                         )
@@ -170,19 +181,19 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
                 }
             }
 
-            // Observe success state for cancel job (chỉ hiển thị khi thực sự cancel job thành công)
+            // Observe success state for cancel job
             launch {
                 viewModel.success_change.collectLatest { isSuccess ->
                     if (isSuccess == true && isCancellingJob && cancellingJobId != null) {
-                        // Chỉ hiển thị Toast khi thực sự cancel job thành công
+                        // Hiển thị Toast khi cancel job thành công
                         Toast.makeText(
                             requireContext(),
                             "Huỷ bài đăng thành công!",
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        // Cập nhật status của job đó thành "Cancel" thay vì reload toàn bộ list
-                        jobAdapter.updateJobStatus(cancellingJobId!!, "Cancel")
+                        // Local database sẽ tự động update qua Flow
+                        // Không cần gọi updateJobStatus nữa
 
                         // Reset flags sau khi cập nhật
                         isCancellingJob = false
@@ -250,7 +261,10 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             // ⚠️ QUAN TRỌNG: Attach ItemTouchHelper khi đăng nhập thành công
             jobAdapter.getItemTouchHelper().attachToRecyclerView(binding.rcvListJob)
 
-            viewModel.getListJob(uid = uid)
+            // Start observing local jobs
+            viewModel.observeLocalJobs(uid)
+            // Refresh jobs from API
+            viewModel.refreshJobs(uid)
             viewModelHealthcare.getServiceHealthcare()
             viewModelMaintenance.getMaintenanceService()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE

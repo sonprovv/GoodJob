@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.job.data.repository.ServiceRepository
+import com.project.job.data.source.remote.NetworkResult
+import com.project.job.data.source.remote.ServiceRemote
 import com.project.job.data.source.remote.api.response.ExtendedReview
 import com.project.job.data.source.remote.api.response.WorkerOrder
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class JobDetailViewModel: ViewModel() {
-    private val serviceRepository = ServiceRepository()
+    private val serviceRepository = ServiceRemote.getInstance()
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
@@ -40,13 +42,13 @@ class JobDetailViewModel: ViewModel() {
                 Log.d("JobDetailViewModel", "JobDetail response: $response")
                 Log.d("JobDetailViewModel", "JobDetail response: $jobID")
 
-                when (response.isSuccess) {
-                    true -> {
-                        _workers.value = response.getOrNull()?.orders
+                when (response) {
+                    is NetworkResult.Success -> {
+                        _workers.value = response.data.orders
                         _success.value = true
                     }
-                    false -> {
-                        _error.value = response.exceptionOrNull()?.message
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "JobDetail failed"
                         _success.value = false
                     }
                 }
@@ -68,50 +70,59 @@ class JobDetailViewModel: ViewModel() {
             try {
                 val response = serviceRepository.getWorkerReviews(workerID = workerID)
                 Log.d("JobDetailViewModel", "getReviewWorker response: $response")
-                if (response.isSuccess) {
-                    val userResponse = response.getOrNull()
-                    if (userResponse != null && userResponse.success) {
-                        val allReviews = mutableListOf<ExtendedReview>()
-                        val ratingsMap = mutableMapOf<String, Double>()
+                
+                when (response) {
+                    is NetworkResult.Success -> {
+                        val userResponse = response.data
+                        Log.d("JobDetailViewModel", "getReviewWorker raw data: $userResponse")
                         
-                        // Xử lý dữ liệu đánh giá theo cấu trúc mới
-                        userResponse.experiences.forEach { (serviceTypeName, serviceExperience) ->
-                            // Lưu rating từ ServiceExperience
-                            ratingsMap[serviceTypeName] = serviceExperience.rating
-                            
-                            // Xử lý danh sách đánh giá
-                            serviceExperience.reviews.forEach { review ->
-                                allReviews.add(review.withServiceType(serviceTypeName))
+                        if (userResponse.success) {
+                            val allReviews = mutableListOf<ExtendedReview>()
+                            val ratingsMap = mutableMapOf<String, Double>()
+
+                            // Xử lý dữ liệu đánh giá theo cấu trúc mới
+                            userResponse.experiences.forEach { (serviceTypeName, serviceExperience) ->
+                                // Lưu rating từ ServiceExperience
+                                ratingsMap[serviceTypeName] = serviceExperience.rating
+
+                                // Xử lý danh sách đánh giá
+                                serviceExperience.reviews.forEach { review ->
+                                    allReviews.add(review.withServiceType(serviceTypeName))
+                                }
                             }
-                        }
-                        
-                        // Cập nhật ratings
-                        _serviceRatings.value = ratingsMap
-                        
-                        // Lọc theo loại dịch vụ nếu cần
-                        val filteredReviews = if (serviceType.uppercase() != "ALL") {
-                            allReviews.filter { it.serviceType == serviceType.uppercase() }
+
+                            // Cập nhật ratings
+                            _serviceRatings.value = ratingsMap
+
+                            // Lọc theo loại dịch vụ nếu cần
+                            val filteredReviews = if (serviceType.uppercase() != "ALL") {
+                                allReviews.filter { it.serviceType == serviceType.uppercase() }
+                            } else {
+                                allReviews
+                            }
+
+                            // Log số lượng đánh giá sau khi lọc
+                            Log.d("JobDetailViewModel", "Filtered reviews count: ${filteredReviews.size} for service type: $serviceType")
+
+                            // Nếu không có đánh giá cho loại dịch vụ được chọn, hiển thị tất cả đánh giá
+                            _userReview.value = if (filteredReviews.isEmpty() && serviceType.uppercase() != "ALL") {
+                                Log.d("JobDetailViewModel", "No reviews for $serviceType, showing all reviews")
+                                allReviews
+                            } else {
+                                filteredReviews
+                            }
+                            _error.value = null
+                            Log.d("JobDetailViewModel", "getReviewWorker successful for $serviceType")
                         } else {
-                            allReviews
+                            _error.value = userResponse.message ?: "getReviewWorker failed"
+                            Log.e("JobDetailViewModel", "getReviewWorker failed: ${userResponse.message}")
                         }
-                        
-                        // Log số lượng đánh giá sau khi lọc
-                        Log.d("JobDetailViewModel", "Filtered reviews count: ${filteredReviews.size} for service type: $serviceType")
-                        
-                        // Nếu không có đánh giá cho loại dịch vụ được chọn, hiển thị tất cả đánh giá
-                        _userReview.value = if (filteredReviews.isEmpty() && serviceType.uppercase() != "ALL") {
-                            Log.d("JobDetailViewModel", "No reviews for $serviceType, showing all reviews")
-                            allReviews
-                        } else {
-                            filteredReviews
-                        }
-                        _error.value = null
-                        Log.d("JobDetailViewModel", "getReviewWorker successful for $serviceType: $userResponse")
-                    } else {
-                        _error.value = userResponse?.message ?: "getReviewWorker failed"
                     }
-                } else {
-                    _error.value = response.exceptionOrNull()?.message ?: "getReviewWorker failed"
+                    
+                    is NetworkResult.Error -> {
+                        _error.value = response.message ?: "getReviewWorker failed"
+                        Log.e("JobDetailViewModel", "getReviewWorker error: ${response.message}")
+                    }
                 }
 
             } catch (e: Exception) {

@@ -1,18 +1,20 @@
 package com.project.job.data.repository
 
 import com.project.job.data.repository.implement.ChatRepositoryImpl
+import com.project.job.data.source.ChatDataSource
 import com.project.job.data.source.remote.BaseResponse
-import com.project.job.data.source.remote.ChatRemote
 import com.project.job.data.source.remote.NetworkResult
-import com.project.job.data.source.remote.api.request.chat.SendMessageRequest
-import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
-import com.project.job.data.source.remote.api.response.chat.ConversationResponse
-import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
-import com.project.job.data.source.remote.api.response.chat.MessageResponse
-import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
+import com.project.job.data.source.remote.api.request.chat.*
+import com.project.job.data.source.remote.api.response.chat.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ChatRepository(
-    private val remote: ChatRemote = ChatRemote.getInstance()
+@Singleton
+class ChatRepository @Inject constructor(
+    private val remote: ChatDataSource.Remote,
+    private val local: ChatDataSource.Local
 ) : ChatRepositoryImpl {
 
     private fun <T> mapResult(result: NetworkResult<T>): Result<T> = when (result) {
@@ -20,30 +22,61 @@ class ChatRepository(
         is NetworkResult.Error -> Result.failure(Exception(result.message))
     }
 
-    override suspend fun sendMessage(request: SendMessageRequest): Result<MessageResponse> =
-        mapResult(remote.sendMessage(request))
+    //region Message Operations
+    override suspend fun sendMessage(request: SendMessageRequest): Result<MessageResponse> {
+        return try {
+            val result = remote.sendMessage(request)
+            if (result is NetworkResult.Success) {
+                local.saveMessage(result.data)
+            }
+            mapResult(result)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-    override suspend fun getMessages(userId: String): Result<GetMessagesResponse> =
-        mapResult(remote.getMessages(userId))
+    override fun getMessages(conversationId: String): Flow<List<MessageResponse>> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun getConversations(): Result<ConversationResponse> =
-        mapResult(remote.getConversations())
+    override suspend fun refreshMessages(conversationId: String): Result<Unit> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun getAvailableUsers(): Result<BaseResponse<List<ChatUserResponse>>> =
-        mapResult(remote.getAvailableUsers())
+    override suspend fun editMessage(messageId: String, content: String): Result<MessageResponse> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun markAsRead(userId: String): Result<BaseResponse<Unit>> =
-        mapResult(remote.markAsRead(userId))
+    override suspend fun deleteMessage(
+        conversationId: String,
+        messageId: String
+    ): Result<BaseResponse<Unit>> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun deleteMessage(conversationId: String, messageId: String): Result<BaseResponse<Unit>> =
-        mapResult(remote.deleteMessage(conversationId, messageId))
+    override fun getConversations(): Flow<List<ConversationResponse>> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun deleteConversation(userId: String): Result<BaseResponse<Unit>> =
-        mapResult(remote.deleteConversation(userId))
+    override suspend fun refreshConversations(): Result<Unit> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun getUserStatus(userId: String): Result<BaseResponse<UserStatusResponse>> =
-        mapResult(remote.getUserStatus(userId))
+    override suspend fun getConversation(conversationId: String): Result<ConversationResponse> {
+        TODO("Not yet implemented")
+    }
 
-    override suspend fun updateStatus(state: String): Result<BaseResponse<UserStatusResponse>> =
-        mapResult(remote.updateStatus(com.project.job.data.source.remote.api.request.chat.UpdateStatusRequest(state)))
+
+    override suspend fun deleteConversation(conversationId: String): Result<BaseResponse<Unit>> {
+        return try {
+            val result = remote.deleteConversation(conversationId)
+            if (result is NetworkResult.Success) {
+                local.deleteConversation(conversationId)
+            }
+            mapResult(result)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

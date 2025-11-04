@@ -4,11 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
 import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.mapper.JobEntityToDataJobsMapper
 import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.NotificationInfo
@@ -25,7 +28,7 @@ class NotificationActivity : BaseActivity() {
     private val TAG = "NotificationActivity"
     private lateinit var binding: ActivityNotificationBinding
     private lateinit var viewModel: NotificationViewModel
-    private lateinit var activityViewModel: ActivityViewModel
+    private val activityViewModel: ActivityViewModel by viewModels()
     private lateinit var healthcareViewModel: HealthCareViewModel
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var adapter: NotificationAdapter
@@ -39,7 +42,6 @@ class NotificationActivity : BaseActivity() {
         setContentView(binding.root)
 
         viewModel = NotificationViewModel()
-        activityViewModel = ActivityViewModel()
         healthcareViewModel = HealthCareViewModel()
         preferencesManager = PreferencesManager(this)
         
@@ -74,8 +76,9 @@ class NotificationActivity : BaseActivity() {
         // Load notifications
         viewModel.getNotifications()
         
-        // Load job list and healthcare services for navigation
-        activityViewModel.getListJob(uid)
+        // Load job list from Room database and refresh from API
+        activityViewModel.observeLocalJobs(uid)
+        activityViewModel.refreshJobs(uid)
         healthcareViewModel.getServiceHealthcare()
     }
 
@@ -154,8 +157,9 @@ class NotificationActivity : BaseActivity() {
                 }
             }
             launch {
-                activityViewModel.jobs.collectLatest { jobs ->
-                    jobList = jobs ?: emptyList()
+                activityViewModel.localJobs.collectLatest { jobEntities ->
+                    // Convert JobEntity to DataJobs for navigation
+                    jobList = JobEntityToDataJobsMapper.toDataJobsList(jobEntities)
                 }
             }
             launch {

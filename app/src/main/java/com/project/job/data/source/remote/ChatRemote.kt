@@ -12,7 +12,7 @@ import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
 import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
 import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
 
-class ChatRemote(private val api: ChatApiService) : ChatDataSource {
+class ChatRemote(private val api: ChatApiService) : ChatDataSource.Remote {
 
     override suspend fun sendMessage(request: SendMessageRequest): NetworkResult<MessageResponse> {
         return safeApiCall { api.chatSendMessage(request) }
