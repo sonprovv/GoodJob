@@ -53,6 +53,7 @@ class ChatMessagesAdapter(
     class SentMessageViewHolder(private val binding: ItemMessageSentBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: MessageData) {
             binding.textMessage.text = message.message
+            binding.textMessage.maxWidth = (binding.root.resources.displayMetrics.widthPixels * 0.7).toInt()
             binding.textTime.text = formatTimestamp(message.createdAt)
         }
         
@@ -93,6 +94,7 @@ class ChatMessagesAdapter(
     class ReceivedMessageViewHolder(private val binding: ItemMessageBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: MessageData) {
             binding.textMessage.text = message.message
+            binding.textMessage.maxWidth = (binding.root.resources.displayMetrics.widthPixels * 0.7).toInt()
             binding.textTime.text = formatTimestamp(message.createdAt)
         }
         

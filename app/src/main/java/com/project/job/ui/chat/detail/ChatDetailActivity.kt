@@ -5,14 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
@@ -21,17 +17,11 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.gson.Gson
 import com.project.job.base.BaseActivity
-import com.project.job.data.model.ChatMessage
 import com.project.job.data.source.remote.api.response.chat.MessageData
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivityChatDetailBinding
 import com.project.job.utils.Constant
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.util.Timer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -45,10 +35,27 @@ class ChatDetailActivity : BaseActivity() {
     private lateinit var preferencesManager: PreferencesManager
     private var currentUserId: String = ""
 
-    private val receiverId: String by lazy { intent.getStringExtra(EXTRA_RECEIVER_ID) ?: "" }
-    private val partnerName: String? by lazy { intent.getStringExtra(EXTRA_PARTNER_NAME) }
-    private val partnerAvatar: String? by lazy { intent.getStringExtra(EXTRA_PARTNER_AVATAR) }
+    private val receiverId: String by lazy {
+        intent.getStringExtra(EXTRA_RECEIVER_ID)
+            ?: intent.getStringExtra("senderId")  // ✅ Fallback từ notification
+            ?: ""
+    }
 
+    private val partnerName: String? by lazy {
+        intent.getStringExtra(EXTRA_PARTNER_NAME)
+            ?: intent.getStringExtra("senderName")  // ✅ Fallback từ notification
+    }
+
+    private val partnerAvatar: String? by lazy {
+        intent.getStringExtra(EXTRA_PARTNER_AVATAR)
+            ?: intent.getStringExtra("senderAvatar")  // ✅ Fallback từ notification
+    }
+
+    private val roomId: String? by lazy {
+        intent.getStringExtra(EXTRA_ROOM_ID)
+            ?: intent.getStringExtra("chat_room_id")  // ✅ Fallback từ notification
+            ?: intent.getStringExtra("roomId")  // ✅ Fallback từ notification
+    }
     // Firebase Realtime Database
     private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val firebaseDb: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
@@ -57,6 +64,7 @@ class ChatDetailActivity : BaseActivity() {
     private var partnerUserListener: ValueEventListener? = null
 
     // Update message receiver to handle Socket.IO events
+    private var isReceiverRegistered = false
     private val messageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Constant.ACTION_NEW_MESSAGE) {
@@ -82,7 +90,7 @@ class ChatDetailActivity : BaseActivity() {
 
 
         // Log all intent extras for debugging
-        Log.d("ChatDetailActivity", "====== Activity Started ======")
+        Log.d("ChatDetailActivity", "====== Activity Started onCreate ======")
         Log.d("ChatDetailActivity", "Intent action: ${intent.action}")
         Log.d("ChatDetailActivity", "Intent flags: ${intent.flags}")
         Log.d("ChatDetailActivity", "All intent extras:")
@@ -126,10 +134,8 @@ class ChatDetailActivity : BaseActivity() {
         } else {
             "${receiverId}_${currentUserId}"
         }
-        // Ensure user profiles (me and partner) exist in Realtime DB
-        syncUserProfilesToRealtime()
-        // Fetch partner profile (name/avatar) from Realtime to ensure latest
-        attachPartnerProfileListener()
+        // Initialize room structure in Realtime DB
+        initRoomIfNeeded()
         attachRealtimeMessagesListener()
     }
 
@@ -213,34 +219,47 @@ class ChatDetailActivity : BaseActivity() {
         }
     }
 
+//    private fun setupViewModel() {
+//        // Use roomId if available, otherwise use receiverId
+//        if (!roomId.isNullOrEmpty()) {
+//            viewModel.setRoomId(roomId!!)
+//        } else {
+//            viewModel.setReceiverId(receiverId)
+//        }
+//    }
 
-    private fun attachPartnerProfileListener() {
+    private fun initRoomIfNeeded() {
         try {
-            if (receiverId.isEmpty()) return
-            val userRef = firebaseDb.getReference("users").child(receiverId)
-            // remove old
-            partnerUserListener?.let { userRef.removeEventListener(it) }
-            partnerUserListener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val name = snapshot.child("username").getValue(String::class.java) ?: ""
-                    val avatar = snapshot.child("avatar").getValue(String::class.java) ?: ""
-                    if (name.isNotEmpty()) {
-                        binding.tvName.text = name
-                    }
-                    if (avatar.isNotEmpty()) {
-                        Glide.with(this@ChatDetailActivity)
-                            .load(avatar)
-                            .circleCrop()
-                            .into(binding.ivAvatar)
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("ChatDetailActivity", "attachPartnerProfileListener cancelled: ${error.message}")
-                }
-            }
-            userRef.addValueEventListener(partnerUserListener as ValueEventListener)
+            if (conversationId.isEmpty()) return
+            val roomsRef = firebaseDb.getReference("rooms").child(conversationId)
+
+            val usersMap = hashMapOf<String, Any>()
+
+            // Current user profile from Preferences
+            val myData = preferencesManager.getUserData()
+            val myName = myData["user_name"] ?: ""
+            val myAvatar = myData["user_avatar"] ?: ""
+            val me = hashMapOf<String, Any>()
+            if (myName.isNotEmpty()) me["username"] = myName
+            if (myAvatar.isNotEmpty()) me["avatar"] = myAvatar
+
+            // Partner profile from intent extras
+            val partner = hashMapOf<String, Any>()
+            (partnerName ?: "").takeIf { it.isNotEmpty() }?.let { partner["username"] = it }
+            (partnerAvatar ?: "").takeIf { it.isNotEmpty() }?.let { partner["avatar"] = it }
+
+            if (me.isNotEmpty()) usersMap[currentUserId] = me
+            if (partner.isNotEmpty()) usersMap[receiverId] = partner
+
+            val roomData = hashMapOf<String, Any>()
+            // Don't overwrite existing lastMessage/lastTimestamp if they exist; just ensure fields present on first create
+            roomData["lastMessage"] = ""
+            roomData["lastTimestamp"] = 0L
+            if (usersMap.isNotEmpty()) roomData["users"] = usersMap
+
+            roomsRef.updateChildren(roomData)
         } catch (e: Exception) {
-            Log.e("ChatDetailActivity", "attachPartnerProfileListener error: ${e.message}")
+            Log.e("ChatDetailActivity", "initRoomIfNeeded error: ${e.message}")
         }
     }
 
@@ -251,6 +270,7 @@ class ChatDetailActivity : BaseActivity() {
         val timestamp = System.currentTimeMillis()
         val msgId = "msg_${timestamp}"
         val convRef = firebaseDb.getReference("conversations").child(conversationId)
+        val roomsRef = firebaseDb.getReference("rooms").child(conversationId)
 
         val data = hashMapOf(
             "senderId" to currentUserId,
@@ -264,6 +284,36 @@ class ChatDetailActivity : BaseActivity() {
             .addOnSuccessListener {
                 binding.inputMessage.text?.clear()
                 _setLoading(false)
+
+                // Update rooms/{conversationId}
+                try {
+                    val usersMap = hashMapOf<String, Any>()
+
+                    // Current user profile
+                    val myName = preferencesManager.getUserData()["user_name"] ?: ""
+                    val myAvatar = preferencesManager.getUserData()["user_avatar"] ?: ""
+                    val me = hashMapOf<String, Any>()
+                    if (myName.isNotEmpty()) me["username"] = myName
+                    if (myAvatar.isNotEmpty()) me["avatar"] = myAvatar
+
+                    // Partner profile from extras and realtime cache
+                    val partner = hashMapOf<String, Any>()
+                    (partnerName ?: "").takeIf { it.isNotEmpty() }?.let { partner["username"] = it }
+                    (partnerAvatar ?: "").takeIf { it.isNotEmpty() }?.let { partner["avatar"] = it }
+
+                    if (me.isNotEmpty()) usersMap[currentUserId] = me
+                    if (partner.isNotEmpty()) usersMap[receiverId] = partner
+
+                    val roomData = hashMapOf<String, Any>(
+                        "lastMessage" to text,
+                        "lastTimestamp" to timestamp
+                    )
+                    if (usersMap.isNotEmpty()) roomData["users"] = usersMap
+
+                    roomsRef.updateChildren(roomData)
+                } catch (e: Exception) {
+                    Log.e("ChatDetailActivity", "Update room failed: ${e.message}")
+                }
             }
             .addOnFailureListener { e ->
                 _setLoading(false)
@@ -286,35 +336,7 @@ class ChatDetailActivity : BaseActivity() {
         }
     }
 
-    private fun syncUserProfilesToRealtime() {
-        try {
-            val usersRef = firebaseDb.getReference("users")
-
-            // Current user info from Preferences
-            val userData = preferencesManager.getUserData()
-            val myName = userData["user_name"] ?: ""
-            val myAvatar = userData["user_avatar"] ?: ""
-            val myFcm = preferencesManager.getFCMToken() ?: ""
-
-            if (currentUserId.isNotEmpty()) {
-                val meMap = hashMapOf<String, Any>()
-                if (myName.isNotEmpty()) meMap["username"] = myName
-                if (myAvatar.isNotEmpty()) meMap["avatar"] = myAvatar
-                if (myFcm.isNotEmpty()) meMap["fcmToken"] = myFcm
-                if (meMap.isNotEmpty()) usersRef.child(currentUserId).updateChildren(meMap)
-            }
-
-            // Partner info from intent extras
-            val partnerMap = hashMapOf<String, Any>()
-            (partnerName ?: "").takeIf { it.isNotEmpty() }?.let { partnerMap["username"] = it }
-            (partnerAvatar ?: "").takeIf { it.isNotEmpty() }?.let { partnerMap["avatar"] = it }
-            if (receiverId.isNotEmpty() && partnerMap.isNotEmpty()) {
-                usersRef.child(receiverId).updateChildren(partnerMap)
-            }
-        } catch (e: Exception) {
-            Log.e("ChatDetailActivity", "syncUserProfilesToRealtime error: ${e.message}")
-        }
-    }
+    // Removed syncing to top-level users node per new requirement
 
     private fun setLoading(loading: Boolean) {
         Log.d("ChatDetailActivity", "setLoading: $loading")
@@ -333,25 +355,92 @@ class ChatDetailActivity : BaseActivity() {
             .show()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (!isReceiverRegistered) {
+            try {
+                val filter = IntentFilter(Constant.ACTION_NEW_MESSAGE)
+                registerReceiver(messageReceiver, filter)
+                isReceiverRegistered = true
+                Log.d("ChatDetailActivity", "Registered message receiver")
+            } catch (e: Exception) {
+                Log.e("ChatDetailActivity", "Error registering receiver", e)
+            }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (isReceiverRegistered) {
+            try {
+                unregisterReceiver(messageReceiver)
+                isReceiverRegistered = false
+                Log.d("ChatDetailActivity", "Unregistered message receiver in onPause")
+            } catch (e: IllegalArgumentException) {
+                Log.e("ChatDetailActivity", "Receiver not registered in onPause", e)
+            }
+        }
+    }
+
     override fun onDestroy() {
-        super.onDestroy()
-        // Clean up listeners
+        // Clean up Firebase listeners
         try {
             if (conversationId.isNotEmpty()) {
                 val convRef = firebaseDb.getReference("conversations").child(conversationId)
                 messagesListener?.let { convRef.removeEventListener(it) }
             }
-            if (receiverId.isNotEmpty()) {
-                val userRef = firebaseDb.getReference("users").child(receiverId)
-                partnerUserListener?.let { userRef.removeEventListener(it) }
-            }
         } catch (e: Exception) {
-            Log.e("ChatDetailActivity", "Error removing firebase listener", e)
+            Log.e("ChatDetailActivity", "Error removing Firebase listener", e)
         }
-        try {
-            unregisterReceiver(messageReceiver)
-        } catch (e: Exception) {
-            Log.e("ChatDetailActivity", "Error unregistering receiver", e)
+        
+        // Safely unregister receiver
+        if (isReceiverRegistered) {
+            try {
+                unregisterReceiver(messageReceiver)
+                isReceiverRegistered = false
+                Log.d("ChatDetailActivity", "Unregistered message receiver in onDestroy")
+            } catch (e: IllegalArgumentException) {
+                Log.e("ChatDetailActivity", "Error unregistering receiver in onDestroy", e)
+            }
+        }
+        
+        super.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent) // ✅ QUAN TRỌNG: Update intent hiện tại
+        Log.d("ChatDetailActivity", "onNewIntent called")
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent) {
+        Log.d("ChatDetailActivity", "=== handleNotificationIntent ===")
+        Log.d("ChatDetailActivity", "Intent action: ${intent.action}")
+        Log.d("ChatDetailActivity", "Intent extras:")
+        intent.extras?.keySet()?.forEach { key ->
+            Log.d("ChatDetailActivity", "  - $key: ${intent.extras?.get(key)}")
+        }
+
+        // Nếu đến từ notification, có thể có data trong intent extras
+        val notifRoomId = intent.getStringExtra("roomId")
+            ?: intent.getStringExtra("chat_room_id")
+        val notifSenderId = intent.getStringExtra("senderId")
+        val notifSenderName = intent.getStringExtra("senderName")
+        val notifSenderAvatar = intent.getStringExtra("senderAvatar")
+
+        if (!notifRoomId.isNullOrEmpty() && !notifSenderId.isNullOrEmpty()) {
+            Log.d("ChatDetailActivity", "📱 Opened from notification!")
+            Log.d("ChatDetailActivity", "  RoomId: $notifRoomId")
+            Log.d("ChatDetailActivity", "  SenderId: $notifSenderId")
+
+            // Nếu activity đã được khởi tạo và đang hiển thị conversation khác
+            // thì refresh lại với conversation mới
+            if (this::adapter.isInitialized && conversationId.isNotEmpty() && conversationId != notifRoomId) {
+                // Update conversation và refresh
+                conversationId = notifRoomId
+                attachRealtimeMessagesListener()
+            }
         }
     }
 
@@ -359,17 +448,26 @@ class ChatDetailActivity : BaseActivity() {
         const val EXTRA_RECEIVER_ID = "receiverId"
         const val EXTRA_PARTNER_NAME = "partnerName"
         const val EXTRA_PARTNER_AVATAR = "partnerAvatar"
+        const val EXTRA_ROOM_ID = "roomId"
+
+        // ✅ THÊM các key từ notification
+        const val NOTIF_ROOM_ID = "chat_room_id"
+        const val NOTIF_SENDER_ID = "senderId"
+        const val NOTIF_SENDER_NAME = "senderName"
+        const val NOTIF_SENDER_AVATAR = "senderAvatar"
 
         fun newIntent(
             context: Context,
             receiverId: String,
-            receiverName: String,
-            receiverAvatar: String?
+            partnerName: String? = null,
+            partnerAvatar: String? = null,
+            roomId: String? = null
         ): Intent {
             return Intent(context, ChatDetailActivity::class.java).apply {
                 putExtra(EXTRA_RECEIVER_ID, receiverId)
-                putExtra(EXTRA_PARTNER_NAME, receiverName)
-                putExtra(EXTRA_PARTNER_AVATAR, receiverAvatar)
+                putExtra(EXTRA_PARTNER_NAME, partnerName)
+                putExtra(EXTRA_PARTNER_AVATAR, partnerAvatar)
+                putExtra(EXTRA_ROOM_ID, roomId)
             }
         }
     }

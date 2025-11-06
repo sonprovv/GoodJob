@@ -72,8 +72,8 @@ class ChatAdapter(
                     .into(imgAvatar)
             } else {
                 imgAvatar.setImageResource(R.drawable.img_profile_picture_defaul)
-                // Try to fetch from Realtime DB if missing
-                fetchUserIfNeeded(conversation.sender.id) { name, avatar ->
+                // Try to fetch from Realtime DB rooms/{conversationId}/users/{userId} if missing
+                fetchUserIfNeeded(conversation.id, conversation.sender.id) { name, avatar ->
                     if (name.isNotEmpty()) tvName.text = name
                     if (avatar.isNotEmpty()) {
                         Glide.with(itemView.context)
@@ -132,18 +132,23 @@ class ChatAdapter(
         }
 
         private fun fetchUserIfNeeded(
+            conversationId: String,
             userId: String,
             onLoaded: (name: String, avatar: String) -> Unit
         ) {
-            if (userId.isEmpty()) return
+            if (conversationId.isEmpty() || userId.isEmpty()) return
             // Check cache first
             val cached = userCache[userId]
             if (cached != null) {
                 onLoaded(cached.first, cached.second)
                 return
             }
-            val usersRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
-            usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            val userInRoomRef = FirebaseDatabase.getInstance()
+                .getReference("rooms")
+                .child(conversationId)
+                .child("users")
+                .child(userId)
+            userInRoomRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val name = snapshot.child("username").getValue(String::class.java) ?: ""
                     val avatar = snapshot.child("avatar").getValue(String::class.java) ?: ""

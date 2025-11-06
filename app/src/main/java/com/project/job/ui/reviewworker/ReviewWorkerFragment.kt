@@ -81,8 +81,8 @@ class ReviewWorkerFragment : BaseFragment() {
             val intent = ChatDetailActivity.newIntent(
                 context = requireContext(),
                 receiverId = workerId,
-                receiverName = workerName ?: "",
-                receiverAvatar = workerAvatar
+                partnerName = workerName ?: "",
+                partnerAvatar = workerAvatar
             )
             startActivityWithAnimation(intent)
         }

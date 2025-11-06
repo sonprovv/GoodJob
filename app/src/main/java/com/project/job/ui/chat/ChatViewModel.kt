@@ -153,89 +153,62 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             _error.value = "Bạn chưa đăng nhập"
             return
         }
-
         _loading.value = true
+        // Observe rooms/{uidA_uidB} as source of conversations
+        val roomsRef = firebaseDb.getReference("rooms")
+        roomsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    val list = mutableListOf<ConversationData>()
+                    for (roomSnap in snapshot.children) {
+                        val roomId = roomSnap.key ?: continue
+                        val ids = roomId.split("_")
+                        if (ids.size != 2) continue
+                        if (!ids.contains(currentUid)) continue
 
-        // Load users map first for username/avatar resolution
-        val usersRef = firebaseDb.getReference("users")
-        val conversationsRef = firebaseDb.getReference("conversations")
+                        val partnerId = if (ids[0] == currentUid) ids[1] else ids[0]
 
-        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(usersSnap: DataSnapshot) {
-                // After we have users, attach a listener to conversations for realtime updates
-                conversationsRef.addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        try {
-                            val list = mutableListOf<ConversationData>()
-                            for (convSnap in snapshot.children) {
-                                val conversationId = convSnap.key ?: continue
-                                // conversationId is formatted as uidA_uidB
-                                val ids = conversationId.split("_")
-                                if (ids.size != 2) continue
-                                if (!ids.contains(currentUid)) continue
+                        val lastMessageText = roomSnap.child("lastMessage").getValue(String::class.java)
+                        val lastTimestamp = roomSnap.child("lastTimestamp").getValue(Long::class.java) ?: 0L
 
-                                val partnerId = if (ids[0] == currentUid) ids[1] else ids[0]
+                        // users/{uid}
+                        val usersNode = roomSnap.child("users")
+                        val partnerNode = usersNode.child(partnerId)
+                        val username = partnerNode.child("username").getValue(String::class.java) ?: "User"
+                        val avatar = partnerNode.child("avatar").getValue(String::class.java) ?: ""
 
-                                // Iterate messages to find last message and timestamp
-                                var lastMessageText: String? = null
-                                var lastTimestamp: Long = 0L
-                                for (msgSnap in convSnap.children) {
-                                    val messageText = msgSnap.child("message").getValue(String::class.java)
-                                    val timestampVal = msgSnap.child("timestamp").getValue(Long::class.java) ?: 0L
-                                    if (timestampVal >= lastTimestamp) {
-                                        lastTimestamp = timestampVal
-                                        lastMessageText = messageText
-                                    }
-                                }
+                        val senderData = SenderData(
+                            id = partnerId,
+                            username = username,
+                            name = username,
+                            avatar = avatar,
+                            dob = "",
+                            tel = "",
+                            email = "",
+                            location = "",
+                            gender = "",
+                            userType = ""
+                        )
 
-                                // Resolve partner user info from users map
-                                val userNode = usersSnap.child(partnerId)
-                                val username = userNode.child("username").getValue(String::class.java) ?: "User"
-                                // Optional fields not present in your schema
-                                val avatar = ""
-
-                                val senderData = SenderData(
-                                    id = partnerId,
-                                    username = username,
-                                    name = username,
-                                    avatar = avatar,
-                                    dob = "",
-                                    tel = "",
-                                    email = "",
-                                    location = "",
-                                    gender = "",
-                                    userType = ""
-                                )
-
-                                val conversationData = ConversationData(
-                                    id = conversationId,
-                                    lastMessageTime = lastTimestamp,
-                                    lastMessage = lastMessageText,
-                                    unreadCount = 0,
-                                    updatedAt = lastTimestamp.toString(),
-                                    senderId = partnerId,
-                                    sender = senderData
-                                )
-
-                                list.add(conversationData)
-                            }
-
-                            // Sort by last message time desc
-                            val sorted = list.sortedByDescending { it.lastMessageTime }
-                            _conversations.value = sorted
-                            _loading.value = false
-                        } catch (e: Exception) {
-                            Log.e("ChatViewModel", "Error parsing conversations: ${e.message}")
-                            _error.value = e.message
-                            _loading.value = false
-                        }
+                        val conversationData = ConversationData(
+                            id = roomId,
+                            lastMessageTime = lastTimestamp,
+                            lastMessage = lastMessageText,
+                            unreadCount = 0,
+                            updatedAt = lastTimestamp.toString(),
+                            senderId = partnerId,
+                            sender = senderData
+                        )
+                        list.add(conversationData)
                     }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        _error.value = error.message
-                        _loading.value = false
-                    }
-                })
+                    val sorted = list.sortedByDescending { it.lastMessageTime }
+                    _conversations.value = sorted
+                    _loading.value = false
+                } catch (e: Exception) {
+                    Log.e("ChatViewModel", "Error parsing rooms: ${e.message}")
+                    _error.value = e.message
+                    _loading.value = false
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {

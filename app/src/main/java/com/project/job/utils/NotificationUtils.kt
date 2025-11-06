@@ -43,7 +43,8 @@ object NotificationUtils {
     fun getNotificationBuilder(
         context: Context,
         title: String,
-        message: String
+        message: String,
+        channelId: String
     ): NotificationCompat.Builder {
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_logo_notification)
