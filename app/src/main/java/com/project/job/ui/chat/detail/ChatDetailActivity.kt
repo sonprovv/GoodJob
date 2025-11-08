@@ -129,11 +129,13 @@ class ChatDetailActivity : BaseActivity() {
 
         setupUI()
         // Build conversation id (sorted order)
-        conversationId = if (currentUserId < receiverId) {
-            "${currentUserId}_${receiverId}"
-        } else {
-            "${receiverId}_${currentUserId}"
-        }
+//        conversationId = if (currentUserId < receiverId) {
+//            "${currentUserId}_${receiverId}"
+//        } else {
+//            "${receiverId}_${currentUserId}"
+//        }
+        conversationId = roomId ?: ""
+        Log.d("ChatDetailActivity", "Using conversationId: '$conversationId'")
         // Initialize room structure in Realtime DB
         initRoomIfNeeded()
         attachRealtimeMessagesListener()
@@ -232,7 +234,10 @@ class ChatDetailActivity : BaseActivity() {
         try {
             if (conversationId.isEmpty()) return
             val roomsRef = firebaseDb.getReference("rooms").child(conversationId)
+            // Nếu có conversationId rồi thì bỏ qua khởi tạo
+            if (roomsRef.key != null) return
 
+            Log.d("ChatDetailActivity", "Initializing room at rooms/$conversationId")
             val usersMap = hashMapOf<String, Any>()
 
             // Current user profile from Preferences
@@ -258,6 +263,7 @@ class ChatDetailActivity : BaseActivity() {
             if (usersMap.isNotEmpty()) roomData["users"] = usersMap
 
             roomsRef.updateChildren(roomData)
+            Log.d("ChatDetailActivity", "Room initialized/updated successfully")
         } catch (e: Exception) {
             Log.e("ChatDetailActivity", "initRoomIfNeeded error: ${e.message}")
         }

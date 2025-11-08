@@ -147,6 +147,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val firebaseDb: FirebaseDatabase by lazy { FirebaseDatabase.getInstance() }
 
+    // Store the last known messages to avoid unnecessary updates
+    private val lastKnownMessages = mutableMapOf<String, Pair<String, Long>>()
+
     fun observeRealtimeConversations() {
         val currentUid = firebaseAuth.currentUser?.uid
         if (currentUid.isNullOrEmpty()) {
@@ -154,12 +157,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         _loading.value = true
-        // Observe rooms/{uidA_uidB} as source of conversations
+        
         val roomsRef = firebaseDb.getReference("rooms")
         roomsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 try {
                     val list = mutableListOf<ConversationData>()
+                    val currentTime = System.currentTimeMillis()
+                    
                     for (roomSnap in snapshot.children) {
                         val roomId = roomSnap.key ?: continue
                         val ids = roomId.split("_")
@@ -167,9 +172,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         if (!ids.contains(currentUid)) continue
 
                         val partnerId = if (ids[0] == currentUid) ids[1] else ids[0]
-
-                        val lastMessageText = roomSnap.child("lastMessage").getValue(String::class.java)
-                        val lastTimestamp = roomSnap.child("lastTimestamp").getValue(Long::class.java) ?: 0L
+                        val lastMessageText = roomSnap.child("lastMessage").getValue(String::class.java) ?: continue
+                        val lastTimestamp = roomSnap.child("lastTimestamp").getValue(Long::class.java) ?: currentTime
+                        
+                        // Check if this is a new message or an update
+                        val lastKnown = lastKnownMessages[roomId]
+                        if (lastKnown != null && 
+                            lastKnown.first == lastMessageText && 
+                            lastKnown.second == lastTimestamp) {
+                            // Skip update if message and timestamp are the same
+                            continue
+                        }
+                        
+                        // Update last known message
+                        lastKnownMessages[roomId] = Pair(lastMessageText, lastTimestamp)
 
                         // users/{uid}
                         val usersNode = roomSnap.child("users")

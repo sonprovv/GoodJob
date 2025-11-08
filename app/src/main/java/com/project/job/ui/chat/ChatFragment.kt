@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.project.job.base.BaseFragment
+import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentChatBinding
 import com.project.job.ui.chat.detail.ChatDetailActivity
 import com.project.job.ui.chat.taskerfavorite.TaskerFavoriteActivity
@@ -28,6 +29,7 @@ class ChatFragment : BaseFragment() {
 
     // Use viewModels delegate for AndroidViewModel
     private val viewModel: ChatViewModel by viewModels()
+    private lateinit var preferencesManager: PreferencesManager
     private lateinit var adapter: ChatAdapter
     private lateinit var loadingDialog: LoadingDialog
 
@@ -42,6 +44,7 @@ class ChatFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        preferencesManager = PreferencesManager(requireContext())
         // Initialize components
         loadingDialog = LoadingDialog(requireActivity())
         // viewModel is already initialized by viewModels delegate
@@ -88,10 +91,13 @@ class ChatFragment : BaseFragment() {
     }
     
     private fun navigateToChatDetail(receiverId: String, partnerName: String, partnerAvatar: String) {
+        val userId = preferencesManager.getUserData()["user_id"] ?: ""
+        val roomId = userId + "_" + receiverId
         val intent = Intent(requireContext(), ChatDetailActivity::class.java).apply {
             putExtra(ChatDetailActivity.EXTRA_RECEIVER_ID, receiverId)
             putExtra(ChatDetailActivity.EXTRA_PARTNER_NAME, partnerName)
             putExtra(ChatDetailActivity.EXTRA_PARTNER_AVATAR, partnerAvatar)
+            putExtra(ChatDetailActivity.EXTRA_ROOM_ID, roomId) // Empty room ID
         }
         startActivityWithAnimation(intent)
     }

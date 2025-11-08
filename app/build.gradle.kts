@@ -23,11 +23,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -37,10 +41,24 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    androidResources {
+        generateLocaleConfig = false
+    }
 
     buildFeatures {
         viewBinding = true
     }
+
+    // ✅ Tạo APK riêng theo CPU architecture để giảm kích thước
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a") // chỉ giữ kiến trúc phổ biến
+            isUniversalApk = false               // không build universal APK
+        }
+    }
+
 }
 
 dependencies {
@@ -82,6 +100,9 @@ dependencies {
 
 // CircleIndicator
     implementation("me.relex:circleindicator:2.1.6")
+    
+    // Circle ImageView
+    implementation("de.hdodenhof:circleimageview:3.1.0")
 
     // Room
     implementation("androidx.room:room-ktx:2.7.1")
@@ -129,8 +150,6 @@ dependencies {
 
     // json
     implementation("org.json:json:20230227")
-
-    implementation ("io.socket:socket.io-client:2.1.0")
 
 
 }

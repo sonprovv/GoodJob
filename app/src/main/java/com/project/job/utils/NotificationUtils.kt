@@ -1,5 +1,6 @@
 package com.project.job.utils
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -26,7 +27,11 @@ object NotificationUtils {
             ).apply {
                 description = CHANNEL_DESCRIPTION
                 enableVibration(true)
+                enableLights(true)
+                lightColor = 0xFF0084FF.toInt() // Facebook blue
+                vibrationPattern = longArrayOf(0, 250, 250, 250)
                 setShowBadge(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
             // Register the channel with the system

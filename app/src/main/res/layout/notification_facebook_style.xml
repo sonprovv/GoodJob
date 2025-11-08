@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical">
+
+    <!-- Circular Avatar -->
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/notification_avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/img_profile_picture_defaul"
+        android:contentDescription="@string/sender_avatar"
+        android:layout_marginEnd="12dp"
+        android:scaleType="centerCrop" />
+
+    <!-- Message Content -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- First Line: Name and Time -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Sender Name -->
+            <TextView
+                android:id="@+id/notification_sender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#050505"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:maxWidth="200dp"/>
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/notification_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#65676B"
+                android:layout_marginStart="8dp"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- Message Preview -->
+        <TextView
+            android:id="@+id/notification_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#65676B"
+            android:textSize="14sp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingTop="2dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
