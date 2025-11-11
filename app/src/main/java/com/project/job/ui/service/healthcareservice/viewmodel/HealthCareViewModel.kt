@@ -77,7 +77,9 @@ class HealthCareViewModel: ViewModel() {
         listDays: List<String>,
         location: String,
         shift: ShiftInfo,
-        services: List<ServiceInfoHealthcare>
+        services: List<ServiceInfoHealthcare>,
+        lat: Double,
+        lon: Double
     ) {
         viewModelScope.launch {
             _loading.value = true
@@ -94,7 +96,9 @@ class HealthCareViewModel: ViewModel() {
                     listDays = listDays,
                     location = location,
                     shift = shift,
-                    services = services
+                    services = services,
+                    lat = lat,
+                    lon = lon
                 )
                 Log.d("HealthCareViewModel", "Raw response: $response")
 

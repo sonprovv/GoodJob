@@ -1,4 +1,4 @@
-package com.project.job.ui.service.cleaningservice
+package com.project.job.ui.service
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,11 +26,9 @@ import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.payment.PaymentQrFragment
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
 import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
-import com.project.job.ui.service.maintenanceservice.SelectServiceMaintenanceActivity
 import com.project.job.ui.service.maintenanceservice.viewmodel.MaintenanceViewModel
 import com.project.job.utils.SelectedRoomManager
 import com.project.job.utils.UserDataBroadcastManager
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -285,7 +282,9 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
         }
         binding.cardViewButtonPostJob.setOnClickListener {
             val uid = preferencesManager.getUserData()["user_id"] ?: ""
-
+            val lat = preferencesManager.getLocationCoordinatesJob()?.first ?: 0.0
+            val lon = preferencesManager.getLocationCoordinatesJob()?.second ?: 0.0
+            Log.d("ConfirmCheckout", "Posting job with location coordinates: Lat=$lat, Lng=$lon")
             if (uid == "") {
                 // Hiển thị thông báo yêu cầu đăng nhập trước khi hiển thị LoginFragment
                 android.widget.Toast.makeText(
@@ -341,7 +340,9 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                     duration = duration,
                     isCooking = isCooking,
                     isIroning = isIroning,
-                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: ""
+                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: "",
+                    lat = lat,
+                    lon = lon
 //                services = serviceSelect
                 )
             } else if (serviceType == "healthcare") {
@@ -418,7 +419,9 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                     shift = shift,
                     services = services,
                     workerQuantity = numberOfWorker,
-                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: ""
+                    location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: "",
+                    lat = lat,
+                    lon = lon
                 )
             } else if (serviceType == "maintenance") {
                 Log.d("ConfirmCheckout", "Maintenance service type detected")
@@ -495,7 +498,9 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                     price = totalFee,
                     listDays = selectedDates,
                     location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: "",
-                    services = services
+                    services = services,
+                    lat = lat,
+                    lon = lon
                 )
             }
         }

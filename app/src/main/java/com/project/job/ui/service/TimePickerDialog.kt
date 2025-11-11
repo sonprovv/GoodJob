@@ -1,4 +1,4 @@
-package com.project.job.ui.service.cleaningservice
+package com.project.job.ui.service
 
 import android.app.Dialog
 import android.os.Bundle

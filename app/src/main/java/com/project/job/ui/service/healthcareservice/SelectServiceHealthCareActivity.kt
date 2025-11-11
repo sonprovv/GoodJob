@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
@@ -22,7 +21,7 @@ import com.project.job.databinding.ActivitySelectServiceHealthCareBinding
 import com.project.job.ui.intro.CleaningIntroActivity
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
-import com.project.job.ui.service.cleaningservice.SelectTimeFragment
+import com.project.job.ui.service.SelectTimeFragment
 import com.project.job.ui.service.healthcareservice.adapter.ShiftAdapter
 import com.project.job.ui.service.healthcareservice.viewmodel.HealthCareViewModel
 import com.project.job.utils.addFadeClickEffect

@@ -8,7 +8,9 @@ data class CreateJobMaintenanceRequest(
     val price: Int,
     val listDays: List<String>,
     val location: String,
-    val services: List<ServicePowerInfo>
+    val services: List<ServicePowerInfo>,
+    val lat : Double,
+    val lon : Double
 )
 
 data class ServicePowerInfo (

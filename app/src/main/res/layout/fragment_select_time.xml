@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context=".ui.service.cleaningservice.SelectTimeFragment">
+    tools:context=".ui.service.SelectTimeFragment">
 
     <LinearLayout
         android:id="@+id/ll_header"

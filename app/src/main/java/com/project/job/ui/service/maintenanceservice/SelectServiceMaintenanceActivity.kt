@@ -9,7 +9,6 @@ import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +21,7 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.ActivitySelectServiceMaintenanceBinding
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
+import com.project.job.ui.service.SelectTimeFragment
 import com.project.job.ui.service.maintenanceservice.adapter.PowerItem
 import com.project.job.ui.service.maintenanceservice.adapter.ServicePowerItem
 import com.project.job.ui.service.maintenanceservice.adapter.TabLayoutMaintenanceAdapter
@@ -512,7 +512,7 @@ class SelectServiceMaintenanceActivity : BaseActivity(), OnPriceChangedListener 
 
             // Tạo fragment mới
             val selectTimeFragment =
-                com.project.job.ui.service.cleaningservice.SelectTimeFragment().apply {
+                SelectTimeFragment().apply {
                     arguments = Bundle().apply {
                         // Thông tin cơ bản về service
                         putString("serviceType", "maintenance")

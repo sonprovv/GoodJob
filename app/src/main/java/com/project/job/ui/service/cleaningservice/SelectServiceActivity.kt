@@ -7,11 +7,9 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
 import com.project.job.R
 import com.project.job.base.BaseActivity
 import com.project.job.data.source.local.PreferencesManager
@@ -21,6 +19,7 @@ import com.project.job.databinding.ActivitySelectServiceBinding
 import com.project.job.ui.intro.CleaningIntroActivity
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
+import com.project.job.ui.service.SelectTimeFragment
 import com.project.job.ui.service.cleaningservice.adapter.DurationAdapter
 import com.project.job.ui.service.cleaningservice.viewmodel.CleaningServiceViewModel
 import com.project.job.utils.addFadeClickEffect

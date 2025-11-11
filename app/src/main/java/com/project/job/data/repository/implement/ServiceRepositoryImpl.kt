@@ -30,7 +30,9 @@ interface ServiceRepositoryImpl {
         duration: CleaningDuration,
         isCooking: Boolean,
         isIroning: Boolean,
-        location: String
+        location: String,
+        lat: Double,
+        lon: Double
     ): Result<CreateJobResponse>
 
     suspend fun postJobHealthcare(
@@ -42,7 +44,9 @@ interface ServiceRepositoryImpl {
         listDays: List<String>,
         location: String,
         shift: ShiftInfo,
-        services: List<ServiceInfoHealthcare>
+        services: List<ServiceInfoHealthcare>,
+        lat: Double,
+        lon: Double
     ): Result<CreateJobHealthcareResponse>
 
     suspend fun cancelJob( serviceType : String, jobID : String) : Result<CancelJobResponse>

@@ -10,6 +10,8 @@ data class CreateJobHealthcareRequest(
     val shift: ShiftInfo,
     val location: String,
     val services: List<ServiceInfoHealthcare>,
+    val lat : Double,
+    val lon : Double
 )
 
 data class ShiftInfo(

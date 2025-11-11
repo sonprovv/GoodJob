@@ -14,6 +14,8 @@ data class CreateJobRequest(
     val duration : CleaningDuration,
     val isCooking: Boolean,
     val isIroning: Boolean,
-    val location: String
+    val location: String,
+    val lat : Double,
+    val lon : Double
 //    val services : List<CleaningService>
 )

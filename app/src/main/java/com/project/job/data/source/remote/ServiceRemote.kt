@@ -54,7 +54,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
         duration: CleaningDuration,
         isCooking: Boolean,
         isIroning: Boolean,
-        location: String
+        location: String,
+        lat: Double,
+        lon: Double
     ): NetworkResult<CreateJobResponse?> {
         return safeApiCall {
             apiService.postJobCleaning(
@@ -67,7 +69,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
                     duration = duration,
                     isCooking = isCooking,
                     isIroning = isIroning,
-                    location = location
+                    location = location,
+                    lat = lat,
+                    lon = lon
                 )
             )
         }
@@ -82,7 +86,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
         listDays: List<String>,
         location: String,
         shift: ShiftInfo,
-        services: List<ServiceInfoHealthcare>
+        services: List<ServiceInfoHealthcare>,
+        lat: Double,
+        lon: Double
     ): NetworkResult<CreateJobHealthcareResponse> {
         return safeApiCall {
             apiService.postJobHealthcare(
@@ -95,7 +101,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
                     listDays = listDays,
                     location = location,
                     shift = shift,
-                    services = services
+                    services = services,
+                    lat = lat,
+                    lon = lon
                 )
             )
         }
@@ -109,7 +117,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
         price: Int,
         listDays: List<String>,
         services: List<ServicePowerInfo>,
-        location: String
+        location: String,
+        lat: Double,
+        lon: Double
     ): NetworkResult<CreateJobMaintenanceResponse> {
         return safeApiCall {
             apiService.postJobMaintenance(
@@ -120,7 +130,9 @@ class ServiceRemote(private val apiService: ApiService) : ServiceDataSource.Remo
                     price = price,
                     listDays = listDays,
                     services = services,
-                    location = location
+                    location = location,
+                    lat = lat,
+                    lon = lon
                 )
             )
         }

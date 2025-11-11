@@ -78,7 +78,9 @@ class CleaningServiceViewModel : ViewModel() {
         duration: CleaningDuration,
         isCooking: Boolean,
         isIroning: Boolean,
-        location: String
+        location: String,
+        lat : Double,
+        lon : Double
     ) {
         viewModelScope.launch {
             _loading.value = true
@@ -96,7 +98,9 @@ class CleaningServiceViewModel : ViewModel() {
                     duration = duration,
                     isCooking = isCooking,
                     isIroning = isIroning,
-                    location = location
+                    location = location,
+                    lat = lat,
+                    lon = lon
 //                    services = services
                 )
                 Log.d("CleaningServiceViewModel", "Raw response: $response")

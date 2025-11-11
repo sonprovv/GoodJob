@@ -63,9 +63,6 @@ android {
 
 dependencies {
 
-    // OkHttp Logging Interceptor
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -113,26 +110,18 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
 
-// Flexbox
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
-
-    // Firebase
+// Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-analytics-ktx:22.5.0")
     implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
     implementation("com.google.firebase:firebase-database-ktx:21.0.0")
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
-    implementation("com.google.firebase:firebase-storage-ktx:21.0.2")
     implementation("com.google.firebase:firebase-messaging-ktx")
 
-    // Lottie Animation
+// Lottie Animation
     implementation("com.airbnb.android:lottie:6.4.0")
 
-    // Google Sign In
+// Google Sign In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-
-    // For Java 8+ APIs
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
 // Credentials
     implementation("androidx.credentials:credentials:1.5.0")

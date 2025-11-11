@@ -73,7 +73,9 @@ class MaintenanceViewModel : ViewModel() {
         price: Int,
         listDays: List<String>,
         location: String,
-        services: List<ServicePowerInfo>
+        services: List<ServicePowerInfo>,
+        lat : Double,
+        lon : Double
     ) {
         viewModelScope.launch {
             _loading.value = true
@@ -88,7 +90,9 @@ class MaintenanceViewModel : ViewModel() {
                     price = price,
                     listDays = listDays,
                     location = location,
-                    services = services
+                    services = services,
+                    lat = lat,
+                    lon = lon
                 )
                 Log.d("MaintenanceViewModel", "Raw response: $response")
 

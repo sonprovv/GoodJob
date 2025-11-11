@@ -62,7 +62,9 @@ interface ServiceDataSource {
             duration: CleaningDuration,
             isCooking: Boolean,
             isIroning: Boolean,
-            location: String
+            location: String,
+            lat : Double,
+            lon : Double
         ): NetworkResult<CreateJobResponse?>
 
         suspend fun postJobHealthcare(
@@ -74,7 +76,9 @@ interface ServiceDataSource {
             listDays: List<String>,
             location: String,
             shift: ShiftInfo,
-            services: List<ServiceInfoHealthcare>
+            services: List<ServiceInfoHealthcare>,
+            lat : Double,
+            lon : Double
         ): NetworkResult<CreateJobHealthcareResponse?>
 
         suspend fun postJobMaintenance(
@@ -84,7 +88,9 @@ interface ServiceDataSource {
             price: Int,
             listDays: List<String>,
             services: List<ServicePowerInfo>,
-            location: String
+            location: String,
+            lat : Double,
+            lon : Double
         ): NetworkResult<CreateJobMaintenanceResponse>
 
         suspend fun cancelJob(serviceType: String, jobID: String): NetworkResult<CancelJobResponse>

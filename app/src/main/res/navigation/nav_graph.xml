@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/selectTimeFragment"
-        android:name="com.project.job.ui.service.cleaningservice.SelectTimeFragment"
+        android:name="com.project.job.ui.service.SelectTimeFragment"
         android:label="SelectTimeFragment"
         tools:layout="@layout/fragment_select_time"
         android:tag="selectTimeFragment">
@@ -23,7 +23,7 @@
 
     <fragment
         android:id="@+id/confirmAndCheckoutFragment"
-        android:name="com.project.job.ui.service.cleaningservice.ConfirmAndCheckoutFragment"
+        android:name="com.project.job.ui.service.ConfirmAndCheckoutFragment"
         android:label="ConfirmAndCheckoutFragment"
         tools:layout="@layout/fragment_confirm_and_checkout"
         android:tag="confirmAndCheckoutFragment" />

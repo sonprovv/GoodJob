@@ -294,6 +294,10 @@ class MapActivity : ComponentActivity(), LocationListener {
         Log.d(TAG, "Proceeding to SelectServiceActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
 
+        val lat = location.latitude()
+        val lng = location.longitude()
+        preferencesManager.saveLocationCoordinatesJob(lat, lng)
+
         val intent = Intent(this, SelectServiceActivity::class.java).apply {
             // Truyền tọa độ
             putExtra("selected_latitude", location.latitude())
@@ -328,6 +332,10 @@ class MapActivity : ComponentActivity(), LocationListener {
         Log.d(TAG, "Proceeding to SelectServiceHealthCareActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
 
+        val lat = location.latitude()
+        val lng = location.longitude()
+        preferencesManager.saveLocationCoordinatesJob(lat, lng)
+
         val intent = Intent(this, SelectServiceHealthCareActivity::class.java).apply {
             // Truyền tọa độ
             putExtra("selected_latitude", location.latitude())
@@ -361,6 +369,10 @@ class MapActivity : ComponentActivity(), LocationListener {
     private fun proceedToMaintenanceService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceMaintenanceActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
+
+        val lat = location.latitude()
+        val lng = location.longitude()
+        preferencesManager.saveLocationCoordinatesJob(lat, lng)
 
         val intent = Intent(this, SelectServiceMaintenanceActivity::class.java).apply {
             // Truyền tọa độ

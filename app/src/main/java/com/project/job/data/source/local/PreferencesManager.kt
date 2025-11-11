@@ -46,6 +46,25 @@ class PreferencesManager(context: Context) {
         }
     }
 
+    // save location coordinates job
+    fun saveLocationCoordinatesJob(latitude: Double, longitude: Double) {
+        sharedPreferences.edit().apply {
+            putFloat(KEY_JOB_LATITUDE, latitude.toFloat())
+            putFloat(KEY_JOB_LONGITUDE, longitude.toFloat())
+            apply()
+        }
+    }
+    fun getLocationCoordinatesJob(): Pair<Double, Double>? {
+        val latitude = sharedPreferences.getFloat(KEY_JOB_LATITUDE, Float.NaN)
+        val longitude = sharedPreferences.getFloat(KEY_JOB_LONGITUDE, Float.NaN)
+
+        return if (!latitude.isNaN() && !longitude.isNaN()) {
+            Pair(latitude.toDouble(), longitude.toDouble())
+        } else {
+            null
+        }
+    }
+
     // Lưu token xác thực
     fun saveAuthToken(token: String?) {
         if (!token.isNullOrEmpty()) {
@@ -192,5 +211,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_USER_PROVIDER = "user_provider"
         private const val KEY_USER_LATITUDE = "user_latitude"
         private const val KEY_USER_LONGITUDE = "user_longitude"
+        private const val KEY_JOB_LATITUDE = "job_latitude"
+        private const val KEY_JOB_LONGITUDE = "job_longitude"
     }
 }

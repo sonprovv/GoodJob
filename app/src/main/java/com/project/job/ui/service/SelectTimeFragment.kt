@@ -1,4 +1,4 @@
-package com.project.job.ui.service.cleaningservice
+package com.project.job.ui.service
 
 import android.graphics.Color
 import android.os.Bundle
@@ -9,19 +9,12 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import com.project.job.R
 import com.project.job.databinding.FragmentSelectTimeBinding
 import com.project.job.ui.service.cleaningservice.adapter.DayAdapter
 import com.project.job.data.model.DayItem
-import android.text.Editable
-import android.text.TextWatcher
-import com.google.android.material.textfield.TextInputLayout
 import com.project.job.base.BaseFragment
-import com.project.job.utils.SelectedRoomManager
 import java.text.SimpleDateFormat
 import java.util.*
 

@@ -120,7 +120,9 @@ class ServiceRepository(
         duration: CleaningDuration,
         isCooking: Boolean,
         isIroning: Boolean,
-        location: String
+        location: String,
+        lat: Double,
+        lon: Double
     ): Result<CreateJobResponse> {
         return try {
             val response = remote.postJobCleaning(
@@ -132,7 +134,9 @@ class ServiceRepository(
                 duration = duration,
                 isCooking = isCooking,
                 isIroning = isIroning,
-                location = location
+                location = location,
+                lat = lat,
+                lon = lon
             )
             when (response) {
                 is NetworkResult.Success -> {
@@ -166,7 +170,9 @@ class ServiceRepository(
         listDays: List<String>,
         location: String,
         shift: ShiftInfo,
-        services: List<ServiceInfoHealthcare>
+        services: List<ServiceInfoHealthcare>,
+        lat: Double,
+        lon: Double
     ): Result<CreateJobHealthcareResponse> {
         return try {
             val response = remote.postJobHealthcare(
@@ -178,7 +184,9 @@ class ServiceRepository(
                 listDays = listDays,
                 location = location,
                 shift = shift,
-                services = services
+                services = services,
+                lat = lat,
+                lon = lon
             )
             when (response) {
                 is NetworkResult.Success -> {

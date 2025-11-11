@@ -8,7 +8,7 @@
     android:elevation="18dp"
     android:layout_gravity="bottom"
     android:layout_height="wrap_content"
-    tools:context=".ui.service.cleaningservice.UpdateNameAndPhoneFragment">
+    tools:context=".ui.service.UpdateNameAndPhoneFragment">
     <LinearLayout
         android:layout_marginTop="16dp"
         android:gravity="center_vertical"

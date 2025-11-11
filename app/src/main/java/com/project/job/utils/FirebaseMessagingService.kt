@@ -299,32 +299,6 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             contentIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-//
-//        // Tạo PendingIntent cho nút "Quan tâm"
-//        val interestedIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-//            action = ACTION_INTERESTED
-//            putExtra(KEY_SENDER_ID, senderId)
-//            putExtra(KEY_CONVERSATION_ID, conversationId)
-//            putExtra("notificationId", notificationId)
-//        }
-//        val interestedPendingIntent = PendingIntent.getBroadcast(
-//            context,
-//            notificationId + 1,
-//            interestedIntent,
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-//        )
-//
-//        // Tạo PendingIntent cho nút "Không quan tâm"
-//        val notInterestedIntent = Intent(context, NotificationActionReceiver::class.java).apply {
-//            action = ACTION_NOT_INTERESTED
-//            putExtra("notificationId", notificationId)
-//        }
-//        val notInterestedPendingIntent = PendingIntent.getBroadcast(
-//            context,
-//            notificationId + 2,
-//            notInterestedIntent,
-//            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-//        )
 
         // Xác định nội dung hiển thị
         val displayMessage = when (messageType.lowercase()) {
@@ -340,12 +314,10 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         // Set dữ liệu cho collapsed view
         collapsedView.setTextViewText(R.id.notification_title, senderName)
         collapsedView.setTextViewText(R.id.notification_message, displayMessage)
-        collapsedView.setTextViewText(R.id.notification_app_name, getString(R.string.app_name))
 
         // Set dữ liệu cho expanded view
         expandedView.setTextViewText(R.id.notification_title, senderName)
         expandedView.setTextViewText(R.id.notification_message, displayMessage)
-        expandedView.setTextViewText(R.id.notification_app_name, getString(R.string.app_name))
 
         // Set click listeners cho các nút
 //        expandedView.setOnClickPendingIntent(R.id.btn_interested, interestedPendingIntent)
