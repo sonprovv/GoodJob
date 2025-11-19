@@ -404,41 +404,7 @@ class UpdateProfileActivity : BaseActivity() {
         }
 
         binding.cardViewButtonSave.setOnClickListener {
-            // Create a copy of the user with all required fields
-            val updatedUser = user.copy(
-                uid = user.uid.ifEmpty { preferencesManager.getUserData()["user_id"] ?: "" },
-                username = binding.edtFullname.text.toString(),
-                gender = if (binding.rbMale.isChecked) "Nam" else "Nữ",
-                dob = convertDateToISOFormat(binding.tvDob.text.toString()),
-                email = user.email.ifEmpty { preferencesManager.getUserData()["user_email"] ?: "" },
-                tel = binding.edtPhone.text.toString(),
-                location = user.location.ifEmpty { "Chưa cập nhật" },
-                role = user.role.ifEmpty { "user" },
-                provider = user.provider.ifEmpty { "normal" },
-                avatar = user.avatar // This will be updated after avatar upload if needed
-            )
-
-            Log.d("UpdateProfile", "Updating user: $updatedUser")
-
-            // Only upload avatar if a new image was selected
-            if (imageUri != null) {
-                // Convert Uri to File first
-                val avatarFile = uriToFile(imageUri!!)
-                if (avatarFile != null) {
-                    // Start the avatar upload, which will also update the profile after success
-                    viewModel.updateAvatar(
-                        avatarFile = avatarFile,
-                        user = updatedUser
-                    )
-                } else {
-                    // If conversion failed, show error and just update profile without avatar
-                    Toast.makeText(this, "Không thể xử lý file ảnh, cập nhật thông tin mà không thay đổi avatar", Toast.LENGTH_LONG).show()
-                    viewModel.updateProfile(updatedUser)
-                }
-            } else {
-                // If no new image, just update the profile
-                viewModel.updateProfile(updatedUser)
-            }
+            showUpdateConfirmationDialog()
         }
         observeViewModel()
     }
@@ -515,9 +481,14 @@ class UpdateProfileActivity : BaseActivity() {
                         // Check if we have updated user data
                         viewModel.userData.value?.let { updatedUser ->
                             // Save the updated user data
-                            preferencesManager.saveUser(
-                                updatedUser
-                            )
+                            preferencesManager.saveUser(updatedUser)
+                            
+                            // Save location coordinates if available
+                            val savedCoordinates = preferencesManager.getLocationCoordinates()
+                            if (savedCoordinates != null) {
+                                Log.d("UpdateProfile", "Location coordinates saved: Lat=${savedCoordinates.first}, Lng=${savedCoordinates.second}")
+                            }
+                            
                             // Update the local user object
                             user = updatedUser
                         }
@@ -555,6 +526,85 @@ class UpdateProfileActivity : BaseActivity() {
         }
     }
 
+    private fun showUpdateConfirmationDialog() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Xác nhận cập nhật")
+            .setMessage("Bạn có chắc chắn muốn cập nhật thông tin cá nhân?")
+            .setPositiveButton("Cập nhật", null)
+            .setNegativeButton("Hủy", null)
+            .create()
+        
+        // Set white background
+        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        
+        dialog.show()
+        
+        // Set button click listeners after show
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.apply {
+            setTextColor(getColor(R.color.xanh))
+            setOnClickListener {
+                performUpdate()
+                dialog.dismiss()
+            }
+        }
+        
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.apply {
+            setTextColor(getColor(R.color.black))
+            setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+        
+        // Customize title and message colors
+        dialog.window?.decorView?.apply {
+            findViewById<android.widget.TextView>(
+                resources.getIdentifier("alertTitle", "id", "android")
+            )?.setTextColor(getColor(R.color.black))
+            
+            findViewById<android.widget.TextView>(android.R.id.message)?.setTextColor(
+                getColor(R.color.black)
+            )
+        }
+    }
+    
+    private fun performUpdate() {
+        // Create a copy of the user with all required fields
+        val updatedUser = user.copy(
+            uid = user.uid.ifEmpty { preferencesManager.getUserData()["user_id"] ?: "" },
+            username = binding.edtFullname.text.toString(),
+            gender = if (binding.rbMale.isChecked) "Nam" else "Nữ",
+            dob = convertDateToISOFormat(binding.tvDob.text.toString()),
+            email = user.email.ifEmpty { preferencesManager.getUserData()["user_email"] ?: "" },
+            tel = binding.edtPhone.text.toString(),
+            location = user.location.ifEmpty { "Chưa cập nhật" },
+            role = user.role.ifEmpty { "user" },
+            provider = user.provider.ifEmpty { "normal" },
+            avatar = user.avatar // This will be updated after avatar upload if needed
+        )
+
+        Log.d("UpdateProfile", "Updating user: $updatedUser")
+
+        // Only upload avatar if a new image was selected
+        if (imageUri != null) {
+            // Convert Uri to File first
+            val avatarFile = uriToFile(imageUri!!)
+            if (avatarFile != null) {
+                // Start the avatar upload, which will also update the profile after success
+                viewModel.updateAvatar(
+                    avatarFile = avatarFile,
+                    user = updatedUser
+                )
+            } else {
+                // If conversion failed, show error and just update profile without avatar
+                Toast.makeText(this, "Không thể xử lý file ảnh, cập nhật thông tin mà không thay đổi avatar", Toast.LENGTH_LONG).show()
+                viewModel.updateProfile(updatedUser)
+            }
+        } else {
+            // If no new image, just update the profile
+            viewModel.updateProfile(updatedUser)
+        }
+    }
+    
     private fun showDatePickerDialog() {
         // Get current date or use a default date
         val calendar = Calendar.getInstance()
@@ -580,9 +630,10 @@ class UpdateProfileActivity : BaseActivity() {
             }
         }
 
-        // Create date picker dialog
+        // Create date picker dialog with custom theme
         val datePickerDialog = android.app.DatePickerDialog(
             this,
+            R.style.CustomDatePickerTheme,
             { _, selectedYear, selectedMonth, selectedDay ->
                 // Format the selected date
                 val formattedDate = String.format(

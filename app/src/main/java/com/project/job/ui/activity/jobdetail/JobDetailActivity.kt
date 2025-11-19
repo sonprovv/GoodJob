@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.project.job.base.BaseActivity
 import com.project.job.data.source.remote.api.response.DataJobs
@@ -47,6 +48,34 @@ class JobDetailActivity : BaseActivity() {
                 else -> "Thông tin công việc"
             }
         }.attach()
+
+        // Thêm listener để refresh khi click vào tab đang active
+        binding.tabLayoutActivity.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                // Khi tab được chọn, kiểm tra nếu là tab WorkerOrderFragment (position 1)
+                if (tab?.position == 1) {
+                    // Lấy fragment hiện tại từ adapter
+                    val fragment = supportFragmentManager.findFragmentByTag("f${tab.position}")
+                    if (fragment is WorkerOrderFragment) {
+                        fragment.refreshData()
+                    }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                // Không cần xử lý
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                // Khi click vào tab đang active, refresh data
+                if (tab?.position == 1) {
+                    val fragment = supportFragmentManager.findFragmentByTag("f${tab.position}")
+                    if (fragment is WorkerOrderFragment) {
+                        fragment.refreshData()
+                    }
+                }
+            }
+        })
 
         binding.ivBack.setOnClickListener {
             finish()

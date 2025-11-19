@@ -15,6 +15,7 @@ import com.project.job.base.BaseActivity
 import com.project.job.data.model.ChatMessage
 import com.project.job.data.model.ChatMessageType
 import com.project.job.data.source.local.PreferencesManager
+import com.project.job.data.source.remote.api.request.LocationData
 import com.project.job.databinding.ActivityChatBotBinding
 import kotlinx.coroutines.launch
 
@@ -126,8 +127,11 @@ class ChatBotActivity : BaseActivity() {
             // Show typing indicator
             showTypingIndicator()
             val location = preferencesManager.getUserData()["user_location"] ?: ""
+            val lat = preferencesManager.getLocationCoordinates()?.first ?: 0.0
+            val lon = preferencesManager.getLocationCoordinates()?.second ?: 0.0
+            val locationData = LocationData(name = location, lat = lat, lon = lon)
             // Call actual API through ViewModel
-            viewModel.chatBot(messageText, location)
+            viewModel.chatBot(messageText, locationData)
         }
     }
 
@@ -173,7 +177,9 @@ class ChatBotActivity : BaseActivity() {
         lifecycleScope.launch {
             viewModel.response_jobs.collect { jobs ->
                 if (!jobs.isNullOrEmpty()) {
-                    addJobListMessage(jobs)
+                    // Get answer text for Job type response
+                    val answer = viewModel.response_answer.value ?: "Danh sách công việc"
+                    addJobListMessage(answer, jobs)
                 }
             }
         }
@@ -199,9 +205,9 @@ class ChatBotActivity : BaseActivity() {
         scrollToBottom()
     }
 
-    private fun addJobListMessage(jobs: List<com.project.job.data.source.remote.api.response.QueryJobs>) {
+    private fun addJobListMessage(answerText: String, jobs: List<com.project.job.data.source.remote.api.response.QueryJobs>) {
         val jobMessage = ChatMessage(
-            text = "Danh sách công việc",
+            text = answerText,
             isUser = false,
             timestamp = System.currentTimeMillis(),
             messageType = ChatMessageType.JOB_LIST,
@@ -236,12 +242,15 @@ class ChatBotActivity : BaseActivity() {
     private fun showWelcomeMessage() {
         Handler(Looper.getMainLooper()).postDelayed({
             val welcomeMessage = ChatMessage(
-                "👋 Xin chào! Mình là **Trợ lý việc làm AI** của bạn. Mình có thể giúp bạn với:\n\n" +
-                        "• Chiến lược tìm kiếm việc làm\n" +
-                        "• Tối ưu hóa CV / hồ sơ xin việc\n" +
-                        "• Mẹo phỏng vấn hiệu quả\n" +
-                        "• Định hướng và tư vấn nghề nghiệp\n\n" +
-                        "Hôm nay bạn muốn mình hỗ trợ về điều gì?",
+                """
+                👋 Xin chào! Mình là **Trợ lý việc làm AI** của bạn. Mình có thể giúp bạn với:
+                
+                - Chiến lược tìm kiếm việc làm
+                - Mẹo phỏng vấn hiệu quả
+                - Định hướng và tư vấn nghề nghiệp
+                
+                Hôm nay bạn muốn mình hỗ trợ về điều gì?
+                """.trimIndent(),
                 false,
                 System.currentTimeMillis()
             )

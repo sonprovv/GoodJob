@@ -57,16 +57,6 @@
                     android:textStyle="bold"
                     tools:text="16M Hem A33 ..." />
             </LinearLayout>
-
-
-            <ImageView
-                android:id="@+id/iv_info"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@android:color/transparent"
-                android:padding="8dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_info" />
         </LinearLayout>
 
         <LinearLayout

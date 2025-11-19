@@ -137,8 +137,8 @@ dependencies {
     implementation("com.mapbox.maps:android:10.16.0")
     implementation("com.mapbox.navigationcore:android:3.12.0-beta.1")
 
-    // json
-    implementation("org.json:json:20230227")
+    // markdown view
+    implementation("io.noties.markwon:core:4.6.2")
 
 
 }

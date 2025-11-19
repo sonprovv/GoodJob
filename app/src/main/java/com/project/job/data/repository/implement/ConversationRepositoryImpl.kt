@@ -46,40 +46,6 @@ class ConversationRepositoryImpl(context: Context) : ConversationRepository {
     }
 
     /**
-     * Fetch conversations from remote API and save to local database
-     * This will automatically trigger UI update via Flow
-     */
-    override suspend fun fetchAndSaveConversations(): NetworkResult<Unit> {
-        return try {
-            Log.d(TAG, "Fetching conversations from remote API")
-            val response = chatRemote.getConversations()
-            
-            when (response) {
-                is NetworkResult.Success -> {
-                    val conversations = response.data.conversations
-                    Log.d(TAG, "Fetched ${conversations.size} conversations from API")
-                    
-                    // Convert API response to Room entities
-                    val chatEntities = ChatMapper.toEntityList(conversations)
-                    
-                    // Save to local database
-                    chatDao.insertConversations(chatEntities)
-                    Log.d(TAG, "Saved ${chatEntities.size} conversations to local database")
-                    
-                    NetworkResult.Success(Unit)
-                }
-                is NetworkResult.Error -> {
-                    Log.e(TAG, "Error fetching conversations: ${response.message}")
-                    NetworkResult.Error(response.message)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Exception fetching conversations: ${e.message}", e)
-            NetworkResult.Error(e.message ?: "Unknown error")
-        }
-    }
-
-    /**
      * Mark conversation as read in local database
      */
     override suspend fun markConversationAsRead(conversationId: String) {

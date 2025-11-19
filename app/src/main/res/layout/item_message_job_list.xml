@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_marginStart="16dp"
     android:layout_marginEnd="64dp"
@@ -28,7 +29,7 @@
             android:layout_height="wrap_content"
             android:text="Trợ lý AI"
             android:textSize="12sp"
-            android:textColor="@color/gray_600" />
+            android:textColor="@color/black" />
 
     </LinearLayout>
 
@@ -42,6 +43,7 @@
         app:cardBackgroundColor="@color/gray_50">
 
         <LinearLayout
+            android:background="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -52,9 +54,9 @@
                 android:id="@+id/tvJobListHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tôi tìm thấy các công việc sau cho bạn:"
+                tools:text="Tôi tìm thấy các công việc sau cho bạn:"
                 android:textSize="14sp"
-                android:textColor="@color/gray_800"
+                android:textColor="@color/black"
                 android:layout_marginBottom="12dp" />
 
             <!-- Job List RecyclerView -->

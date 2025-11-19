@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -136,7 +138,10 @@ class MainActivity : BaseActivity() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == "com.project.job.SESSION_EXPIRED") {
                     Log.d("MainActivity", "Session expired broadcast received, showing dialog")
-                    showSessionExpiredDialog()
+                    // Use Handler to post dialog showing to avoid state loss
+                    Handler(Looper.getMainLooper()).post {
+                        showSessionExpiredDialog()
+                    }
                 }
             }
         }
@@ -151,6 +156,20 @@ class MainActivity : BaseActivity() {
     private fun showSessionExpiredDialog() {
         try {
             if (!isFinishing && !isDestroyed) {
+                // Check if state is saved to avoid IllegalStateException
+                if (supportFragmentManager.isStateSaved) {
+                    Log.w("MainActivity", "Cannot show dialog, state already saved")
+                    return
+                }
+                
+                // Remove any existing dialog first
+                val existingDialog = supportFragmentManager.findFragmentByTag("SessionExpiredBottomSheet")
+                if (existingDialog != null) {
+                    supportFragmentManager.beginTransaction()
+                        .remove(existingDialog)
+                        .commitAllowingStateLoss()
+                }
+                
                 val dialog = SessionExpiredBottomSheet()
                 dialog.show(supportFragmentManager, "SessionExpiredBottomSheet")
             }

@@ -1,6 +1,9 @@
 package com.project.job.ui.chat
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -10,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.project.job.base.BaseFragment
@@ -18,6 +22,7 @@ import com.project.job.databinding.FragmentChatBinding
 import com.project.job.ui.chat.detail.ChatDetailActivity
 import com.project.job.ui.chat.taskerfavorite.TaskerFavoriteActivity
 import com.project.job.ui.loading.LoadingDialog
+import com.project.job.utils.LogoutBroadcastManager
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -32,6 +37,16 @@ class ChatFragment : BaseFragment() {
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var adapter: ChatAdapter
     private lateinit var loadingDialog: LoadingDialog
+    
+    private val logoutReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == LogoutBroadcastManager.ACTION_USER_LOGOUT) {
+                Log.d("ChatFragment", "Logout broadcast received, clearing chat data")
+                viewModel.clearAllChatData()
+                updateEmptyState(true)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -63,9 +78,23 @@ class ChatFragment : BaseFragment() {
         // Observe ViewModel
         observeViewModel()
         
-        // Load conversations
-        viewModel.getConversations()
-
+        // Register logout broadcast receiver
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
+            logoutReceiver,
+            IntentFilter(LogoutBroadcastManager.ACTION_USER_LOGOUT)
+        )
+        
+        // Check if user is logged in before loading conversations
+        if (isUserLoggedIn()) {
+            viewModel.getConversations()
+        } else {
+            // Show empty state if not logged in
+            updateEmptyState(true)
+        }
+    }
+    
+    private fun isUserLoggedIn(): Boolean {
+        return preferencesManager.getAuthToken() != null
     }
 
     private fun setupRecyclerView() {
@@ -156,8 +185,36 @@ class ChatFragment : BaseFragment() {
             .show()
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Remove listener when fragment is paused to save resources
+        viewModel.removeConversationsListener()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reload conversations when fragment resumes
+        if (isUserLoggedIn()) {
+            viewModel.getConversations()
+        } else {
+            // Clear data if user logged out
+            viewModel.clearAllChatData()
+            updateEmptyState(true)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        // Remove Firebase listener to prevent memory leaks
+        viewModel.removeConversationsListener()
+        
+        // Unregister logout broadcast receiver
+        try {
+            LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(logoutReceiver)
+        } catch (e: Exception) {
+            Log.e("ChatFragment", "Error unregistering logout receiver", e)
+        }
+        
         _binding = null // Avoid memory leaks
     }
 }

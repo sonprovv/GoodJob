@@ -4,31 +4,7 @@ import com.project.job.data.network.ApiService
 import com.project.job.data.network.ChatApiService
 import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.ChatDataSource
-import com.project.job.data.source.remote.api.request.chat.SendMessageRequest
-import com.project.job.data.source.remote.api.request.chat.UpdateStatusRequest
-import com.project.job.data.source.remote.api.response.chat.ConversationResponse
-import com.project.job.data.source.remote.api.response.chat.MessageResponse
-import com.project.job.data.source.remote.api.response.chat.UserStatusResponse
-import com.project.job.data.source.remote.api.response.chat.ChatUserResponse
-import com.project.job.data.source.remote.api.response.chat.GetMessagesResponse
-
 class ChatRemote(private val api: ChatApiService) : ChatDataSource.Remote {
-
-    override suspend fun sendMessage(request: SendMessageRequest): NetworkResult<MessageResponse> {
-        return safeApiCall { api.chatSendMessage(request) }
-    }
-
-    override suspend fun getMessages(userId: String): NetworkResult<GetMessagesResponse> {
-        return safeApiCall { api.chatGetMessages(userId) }
-    }
-
-    override suspend fun getConversations(): NetworkResult<ConversationResponse> {
-        return safeApiCall { api.chatGetConversations() }
-    }
-
-    override suspend fun getAvailableUsers(): NetworkResult<BaseResponse<List<ChatUserResponse>>> {
-        return safeApiCall { api.chatGetAvailableUsers() }
-    }
 
     override suspend fun markAsRead(userId: String): NetworkResult<BaseResponse<Unit>> {
         return safeApiCall { api.chatMarkAsRead(userId) }
@@ -40,14 +16,6 @@ class ChatRemote(private val api: ChatApiService) : ChatDataSource.Remote {
 
     override suspend fun deleteConversation(userId: String): NetworkResult<BaseResponse<Unit>> {
         return safeApiCall { api.chatDeleteConversation(userId) }
-    }
-
-    override suspend fun getUserStatus(userId: String): NetworkResult<BaseResponse<UserStatusResponse>> {
-        return safeApiCall { api.chatGetUserStatus(userId) }
-    }
-
-    override suspend fun updateStatus(request: UpdateStatusRequest): NetworkResult<BaseResponse<UserStatusResponse>> {
-        return safeApiCall { api.chatUpdateStatus(request) }
     }
 
     companion object {

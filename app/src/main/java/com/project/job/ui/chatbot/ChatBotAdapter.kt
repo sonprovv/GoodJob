@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.project.job.R
 import com.project.job.data.model.ChatMessage
 import com.project.job.data.model.ChatMessageType
+import io.noties.markwon.Markwon
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -61,17 +62,24 @@ class ChatBotAdapter(private val messages: List<ChatMessage>) :
 
     class UserMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMessage: TextView = itemView.findViewById(R.id.tvMessage)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
+        private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
         fun bind(message: ChatMessage) {
             tvMessage.text = message.text
+            tvTimestamp.text = dateFormat.format(Date(message.timestamp))
         }
     }
 
     class AIMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvMessage: TextView = itemView.findViewById(R.id.tvMessage)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
+        private val markwon: Markwon = Markwon.create(itemView.context)
+        private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
         fun bind(message: ChatMessage) {
-            tvMessage.text = message.text
+            markwon.setMarkdown(tvMessage, message.text)
+            tvTimestamp.text = dateFormat.format(Date(message.timestamp))
         }
     }
 
@@ -82,11 +90,16 @@ class ChatBotAdapter(private val messages: List<ChatMessage>) :
     }
 
     class JobListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvJobListHeader: TextView = itemView.findViewById(R.id.tvJobListHeader)
         private val rvJobList: RecyclerView = itemView.findViewById(R.id.rvJobList)
         private val tvTimestamp: TextView = itemView.findViewById(R.id.tvTimestamp)
         private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        private val markwon: Markwon = Markwon.create(itemView.context)
 
         fun bind(message: ChatMessage) {
+            // Set header text with markdown support (answer from API)
+            markwon.setMarkdown(tvJobListHeader, message.text)
+            
             // Setup RecyclerView for job list
             message.jobList?.let { jobs ->
                 val jobAdapter = JobAdapter(jobs)

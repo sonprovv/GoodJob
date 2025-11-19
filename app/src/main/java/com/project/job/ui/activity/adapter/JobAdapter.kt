@@ -42,6 +42,10 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     
     var jobList: List<DataJobs> = emptyList()
         private set
+    
+    private var originalJobList: List<DataJobs> = emptyList()
+    private var currentStatusFilter: String? = null
+    private var currentSortOrder: SortOrder = SortOrder.NEWEST
 
     private var isSelected = false
 
@@ -56,10 +60,45 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     var maintenanceServices: List<MaintenanceData>? = null
         private set
 
+    enum class SortOrder {
+        NEWEST,  // Mới nhất
+        OLDEST   // Cũ nhất
+    }
+
     fun updateList(newList: List<DataJobs>, services: List<HealthcareService>? = null, maintenanceServices: List<MaintenanceData>? = null) {
-        jobList = newList
+        originalJobList = newList
         services?.let { healthcareServices = it }
         this.maintenanceServices = maintenanceServices
+        applyFilterAndSort()
+    }
+    
+    fun filterByStatus(status: String?) {
+        currentStatusFilter = status
+        applyFilterAndSort()
+    }
+    
+    fun sortByDate(sortOrder: SortOrder) {
+        currentSortOrder = sortOrder
+        applyFilterAndSort()
+    }
+    
+    private fun applyFilterAndSort() {
+        var filteredList = originalJobList
+        
+        // Apply status filter
+        currentStatusFilter?.let { status ->
+            if (status != "Tất cả") {
+                filteredList = filteredList.filter { it.status == status }
+            }
+        }
+        
+        // Apply sorting
+        filteredList = when (currentSortOrder) {
+            SortOrder.NEWEST -> filteredList.sortedByDescending { it.createdAt }
+            SortOrder.OLDEST -> filteredList.sortedBy { it.createdAt }
+        }
+        
+        jobList = filteredList
         notifyDataSetChanged()
     }
 
@@ -210,9 +249,8 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     private fun showCancelConfirmationDialog(context: android.content.Context, job: DataJobs, position: Int) {
         val message = "Bạn có chắc chắn muốn hủy bài đăng này?"
 
-
-        AlertDialog.Builder(context)
-            .setTitle("⚠️ Xác nhận hủy bài đăng")
+        val dialog = AlertDialog.Builder(context)
+            .setTitle("Xác nhận hủy bài đăng")
             .setMessage(message)
             .setPositiveButton("Hủy bài đăng") { dialog, _ ->
                 // User xác nhận hủy
@@ -231,7 +269,27 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
                 Log.d("JobAdapter", "Dialog cancelled, resetting item")
                 notifyItemChanged(position)
             }
-            .show()
+            .create()
+        
+        // Set white background
+        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        
+        dialog.show()
+        
+        // Customize title and message colors
+        val titleView = dialog.findViewById<TextView>(androidx.appcompat.R.id.alertTitle)
+        titleView?.setTextColor(ContextCompat.getColor(context, R.color.black))
+        
+        val messageView = dialog.findViewById<TextView>(android.R.id.message)
+        messageView?.setTextColor(ContextCompat.getColor(context, R.color.black))
+        
+        // Customize button colors
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(
+            ContextCompat.getColor(context, R.color.red)
+        )
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
+            ContextCompat.getColor(context, R.color.black)
+        )
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): viewHolder {

@@ -14,7 +14,6 @@ import com.project.job.data.mapper.ChatMapper
 import com.project.job.data.repository.ConversationRepository
 import com.project.job.data.repository.implement.ConversationRepositoryImpl
 import com.project.job.data.source.local.room.entity.ChatEntity
-import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.api.response.chat.ConversationData
 import com.project.job.data.source.remote.api.response.chat.SenderData
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +22,6 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val conversationRepository: ConversationRepository = ConversationRepositoryImpl.getInstance(application)
-
-    private val gson = Gson()
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
@@ -50,63 +47,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     val conversations: StateFlow<List<ConversationData>?> = _conversations
 
     /**
-     * Start observing local conversations from Room database
-     * This will automatically update UI when data changes
-     */
-    fun observeLocalConversations() {
-        viewModelScope.launch {
-            try {
-                Log.d("ChatViewModel", "Starting to observe local conversations")
-                conversationRepository.getAllConversationsLocal().collect { conversations ->
-                    Log.d("ChatViewModel", "Local conversations updated: ${conversations.size} conversations")
-                    _localConversations.value = conversations
-                    
-                    // Also update ConversationData flow for backward compatibility
-                    _conversations.value = ChatMapper.toConversationDataList(conversations)
-                }
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error observing local conversations: ${e.message}")
-            }
-        }
-    }
-
-    /**
-     * Fetch conversations from API and save to Room database
-     * This will trigger UI update automatically via Flow
-     */
-    fun refreshConversations() {
-        viewModelScope.launch {
-            _success.value = false
-            _loading.value = true
-            _error.value = null
-
-            try {
-                Log.d("ChatViewModel", "Fetching conversations from API")
-                val result = conversationRepository.fetchAndSaveConversations()
-
-                when(result) {
-                    is NetworkResult.Success -> {
-                        Log.d("ChatViewModel", "Conversations refreshed successfully")
-                        _success.value = true
-                    }
-                    is NetworkResult.Error -> {
-                        Log.e("ChatViewModel", "Error refreshing conversations: ${result.message}")
-                        _error.value = result.message
-                        _success.value = false
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Exception refreshing conversations: ${e.message}")
-                _error.value = e.message
-            } finally {
-                Log.d("ChatViewModel", "Refresh conversations finally")
-                _loading.value = false
-            }
-        }
-    }
-
-    /**
      * Legacy method for backward compatibility
      * Internally calls observeLocalConversations() and refreshConversations()
      */
@@ -114,21 +54,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         // Switched to Firebase Realtime Database for conversations
         observeRealtimeConversations()
     }
-
-    /**
-     * Mark conversation as read
-     */
-    fun markConversationAsRead(conversationId: String) {
-        viewModelScope.launch {
-            try {
-                Log.d("ChatViewModel", "Marking conversation as read: $conversationId")
-                conversationRepository.markConversationAsRead(conversationId)
-            } catch (e: Exception) {
-                Log.e("ChatViewModel", "Error marking conversation as read: ${e.message}")
-            }
-        }
-    }
-
     /**
      * Clear all local conversations (useful for logout)
      */
@@ -149,17 +74,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // Store the last known messages to avoid unnecessary updates
     private val lastKnownMessages = mutableMapOf<String, Pair<String, Long>>()
+    
+    // Store listener reference to remove it later
+    private var conversationsListener: ValueEventListener? = null
 
     fun observeRealtimeConversations() {
         val currentUid = firebaseAuth.currentUser?.uid
         if (currentUid.isNullOrEmpty()) {
             _error.value = "Bạn chưa đăng nhập"
+            _conversations.value = emptyList()
             return
         }
         _loading.value = true
         
+        // Remove old listener if exists
+        removeConversationsListener()
+        
         val roomsRef = firebaseDb.getReference("rooms")
-        roomsRef.addValueEventListener(object : ValueEventListener {
+        conversationsListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 try {
                     val list = mutableListOf<ConversationData>()
@@ -231,6 +163,43 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 _error.value = error.message
                 _loading.value = false
             }
-        })
+        }
+        
+        roomsRef.addValueEventListener(conversationsListener!!)
+    }
+    
+    /**
+     * Remove Firebase listener and clear conversations
+     * Call this when user logs out
+     */
+    fun removeConversationsListener() {
+        conversationsListener?.let { listener ->
+            try {
+                val roomsRef = firebaseDb.getReference("rooms")
+                roomsRef.removeEventListener(listener)
+                Log.d("ChatViewModel", "Removed conversations listener")
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error removing listener: ${e.message}")
+            }
+        }
+        conversationsListener = null
+        lastKnownMessages.clear()
+    }
+    
+    /**
+     * Clear all chat data (for logout)
+     * Removes Firebase listener and clears local data
+     */
+    fun clearAllChatData() {
+        removeConversationsListener()
+        _conversations.value = emptyList()
+        _localConversations.value = emptyList()
+        clearLocalConversations()
+        Log.d("ChatViewModel", "Cleared all chat data")
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        removeConversationsListener()
     }
 }

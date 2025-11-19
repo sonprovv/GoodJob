@@ -118,15 +118,35 @@ class ProfileFragment : BaseFragment(), LoginResultListener {
         updateUI()
 
         binding.llHelp.addFadeClickEffect {
-            val intent = Intent(requireContext(), ChatBotActivity::class.java)
-            startActivityWithAnimation(intent)
+            // Check if user is logged in
+            val isLoggedIn = preferencesManager.getAuthToken() != null
+            
+            if (isLoggedIn) {
+                val intent = Intent(requireContext(), ChatBotActivity::class.java)
+                startActivityWithAnimation(intent)
+            } else {
+                // Show login dialog
+                Toast.makeText(requireContext(), "Vui lòng đăng nhập để sử dụng tính năng này", Toast.LENGTH_SHORT).show()
+                val loginFragment = LoginFragment.newInstance()
+                loginFragment.setLoginResultListener(this)
+                loginFragment.show(parentFragmentManager, "LoginFragment")
+            }
         }
 
         binding.llPolicy.addFadeClickEffect {
-            // Open PaymentQrFragment
             val intent = Intent(requireContext(), PolicyActivity::class.java)
             startActivityWithAnimation(intent)
         }
+
+//        binding.llGpt.addFadeClickEffect {
+//            // Open ChatGPT in default browser (OpenAI blocks WebView access)
+//            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chat.openai.com/"))
+//            try {
+//                startActivity(intent)
+//            } catch (e: Exception) {
+//                Toast.makeText(requireContext(), "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
+//            }
+//        }
 
         binding.cardViewButtonLogin.addFadeClickEffect {
             // Open LoginFragment
@@ -136,20 +156,7 @@ class ProfileFragment : BaseFragment(), LoginResultListener {
         }
 
         binding.llLogout.addFadeClickEffect {
-            val fcmToken = preferencesManager.getFCMToken() ?: ""
-            // Sign out from Google
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-            
-            val googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
-            googleSignInClient.signOut().addOnCompleteListener {
-                // Clear local data and update UI
-                preferencesManager.clearAuthData()
-                updateUI()
-            }
-            viewModel.putFCMToken(fcmToken)
+            showLogoutConfirmationDialog()
         }
 
         binding.llChangePass.addFadeClickEffect{
@@ -173,6 +180,67 @@ class ProfileFragment : BaseFragment(), LoginResultListener {
         }
         observeViewModel()
     }
+    private fun showLogoutConfirmationDialog() {
+        val dialog = android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Xác nhận đăng xuất")
+            .setMessage("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?")
+            .setPositiveButton("Đăng xuất", null)
+            .setNegativeButton("Hủy", null)
+            .create()
+        
+        // Set white background
+        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        
+        dialog.show()
+        
+        // Set button click listeners after show
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE)?.apply {
+            setTextColor(resources.getColor(R.color.red, null))
+            setOnClickListener {
+                performLogout()
+                dialog.dismiss()
+            }
+        }
+        
+        dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE)?.apply {
+            setTextColor(resources.getColor(R.color.black, null))
+            setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+        
+        // Customize title and message colors
+        dialog.window?.decorView?.apply {
+            findViewById<android.widget.TextView>(
+                resources.getIdentifier("alertTitle", "id", "android")
+            )?.setTextColor(resources.getColor(R.color.black, null))
+            
+            findViewById<android.widget.TextView>(android.R.id.message)?.setTextColor(
+                resources.getColor(R.color.black, null)
+            )
+        }
+    }
+    
+    private fun performLogout() {
+        val fcmToken = preferencesManager.getFCMToken() ?: ""
+        // Sign out from Google
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        
+        val googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
+        googleSignInClient.signOut().addOnCompleteListener {
+            // Send logout broadcast to clear chat data
+            com.project.job.utils.LogoutBroadcastManager.sendLogoutBroadcast(requireContext())
+            
+            // Clear local data and update UI
+            preferencesManager.clearAuthData()
+            updateUI()
+        }
+        viewModel.putFCMToken(fcmToken)
+    }
+    
     private fun observeViewModel() {
         lifecycleScope.launch {
             // Collect loading

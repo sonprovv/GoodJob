@@ -30,7 +30,6 @@ import java.util.TimeZone
 class ChatDetailActivity : BaseActivity() {
 
     private lateinit var binding: ActivityChatDetailBinding
-    private val viewModel: ChatDetailViewModel by viewModels()
     private lateinit var adapter: ChatMessagesAdapter
     private lateinit var preferencesManager: PreferencesManager
     private var currentUserId: String = ""

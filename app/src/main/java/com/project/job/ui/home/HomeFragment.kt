@@ -11,8 +11,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager2.widget.ViewPager2
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import com.project.job.R
 import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
@@ -69,15 +72,21 @@ class HomeFragment : BaseFragment(), LoginResultListener {
     }
 
 
+    private lateinit var notificationViewModel: com.project.job.ui.notification.viewmodel.NotificationViewModel
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         preferencesManager = PreferencesManager(requireContext())
+        notificationViewModel = com.project.job.ui.notification.viewmodel.NotificationViewModel()
 
         binding.ivNotification.setOnClickListener {
             val intent = Intent(requireContext(), NotificationActivity::class.java)
             startActivityWithAnimation(intent)
         }
+        
+        // Check for unread notifications
+        checkUnreadNotifications()
 
         // Register broadcast receiver
         registerUserDataReceiver()
@@ -282,6 +291,24 @@ class HomeFragment : BaseFragment(), LoginResultListener {
         super.onResume()
         if (photoList.isNotEmpty()) {
             handler.postDelayed(runnable, 6000)
+        }
+        // Refresh notification badge when returning to fragment
+        checkUnreadNotifications()
+    }
+    
+    private fun checkUnreadNotifications() {
+        // Only check if user is logged in
+        if (preferencesManager.getAuthToken() != null) {
+            notificationViewModel.getNotifications()
+            
+            viewLifecycleOwner.lifecycleScope.launch {
+                notificationViewModel.notifications.collectLatest { notifications ->
+                    val hasUnread = notifications.any { !it.isRead }
+                    binding.viewNotificationBadge.visibility = if (hasUnread) View.VISIBLE else View.GONE
+                }
+            }
+        } else {
+            binding.viewNotificationBadge.visibility = View.GONE
         }
     }
 

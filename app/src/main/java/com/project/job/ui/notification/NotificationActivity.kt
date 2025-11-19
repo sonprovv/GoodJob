@@ -61,6 +61,12 @@ class NotificationActivity : BaseActivity() {
             finish()
         }
 
+        // Check login status first
+        if (!isUserLoggedIn()) {
+            showLoginRequired()
+            return
+        }
+
         // Setup SwipeRefreshLayout
         setupSwipeRefresh()
 
@@ -68,6 +74,31 @@ class NotificationActivity : BaseActivity() {
         loadData()
 
         observeViewModel()
+    }
+
+    private fun isUserLoggedIn(): Boolean {
+        return preferencesManager.getAuthToken() != null
+    }
+
+    private fun showLoginRequired() {
+        binding.llLoginRequired.visibility = android.view.View.VISIBLE
+        binding.swipeRefreshLayout.visibility = android.view.View.GONE
+
+        binding.btnLogin.setOnClickListener {
+            // Show login dialog
+            val loginFragment = com.project.job.ui.login.LoginFragment()
+            loginFragment.setLoginResultListener(object : com.project.job.ui.login.LoginResultListener {
+                override fun onLoginSuccess() {
+                    // Reload activity after successful login
+                    binding.llLoginRequired.visibility = android.view.View.GONE
+                    binding.swipeRefreshLayout.visibility = android.view.View.VISIBLE
+                    setupSwipeRefresh()
+                    loadData()
+                    observeViewModel()
+                }
+            })
+            loginFragment.show(supportFragmentManager, "LoginFragment")
+        }
     }
 
     private fun loadData() {

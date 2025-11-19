@@ -24,19 +24,29 @@ class WorkerOrderFragment : BaseFragment() {
     private lateinit var workerAdapter: WorkerAdapter
     private var jobId: String? = null
     private var jobQuantity: Int? = 1
+    private var serviceType: String? = null
     private lateinit var viewModel: JobDetailViewModel
-    private lateinit var choideWorkerViewModel: ChoiceWorkerViewModel
+    private lateinit var choiceWorkerViewModel: ChoiceWorkerViewModel
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var loadingDialog: LoadingDialog
+
+    // Public method để refresh data từ bên ngoài
+    fun refreshData() {
+        jobId?.let { id ->
+            viewModel.getListWorker(id)
+        }
+    }
     companion object {
         private const val ARG_JOB_ID = "job_id"
         private const val ARG_JOB_QUANTITY = "job_quantity"
+        private const val ARG_SERVICE_TYPE = "service_type"
         fun newInstance(dataJob: DataJobs): WorkerOrderFragment {
             val fragment = WorkerOrderFragment()
             val args = Bundle()
             val quantity = dataJob.workerQuantity ?: 1
             args.putString(ARG_JOB_ID, dataJob.uid)
             args.putString(ARG_JOB_QUANTITY, quantity.toString())
+            args.putString(ARG_SERVICE_TYPE, dataJob.serviceType)
             fragment.arguments = args
             return fragment
         }
@@ -47,6 +57,7 @@ class WorkerOrderFragment : BaseFragment() {
         arguments?.let {
             jobId = it.getString(ARG_JOB_ID)
             jobQuantity = it.getString(ARG_JOB_QUANTITY)?.toIntOrNull() ?: 1
+            serviceType = it.getString(ARG_SERVICE_TYPE)
         }
     }
 
@@ -64,10 +75,10 @@ class WorkerOrderFragment : BaseFragment() {
         preferencesManager = PreferencesManager(requireContext())
         val token = preferencesManager.getAuthToken() ?: ""
         viewModel = JobDetailViewModel()
-        choideWorkerViewModel = ChoiceWorkerViewModel()
+        choiceWorkerViewModel = ChoiceWorkerViewModel()
 
         workerAdapter = WorkerAdapter(
-            viewModel = choideWorkerViewModel,
+            viewModel = choiceWorkerViewModel,
             token = token,
             lifecycleOwner = this,
             onWorkerStatusChanged = {
@@ -80,7 +91,8 @@ class WorkerOrderFragment : BaseFragment() {
                 // Navigate to ReviewWorkerFragment
                 navigateToReviewWorkerFragment(worker)
             },
-            preferencesManager = preferencesManager
+            preferencesManager = preferencesManager,
+            serviceType = serviceType ?: ""
         )
         binding.rcvListWorker.adapter = workerAdapter
 
@@ -113,7 +125,7 @@ class WorkerOrderFragment : BaseFragment() {
 
             // Collect loading từ ChoideWorkerViewModel
             launch {
-                choideWorkerViewModel.loading.collectLatest { isLoading ->
+                choiceWorkerViewModel.loading.collectLatest { isLoading ->
                     if (isLoading) {
                         // Hiển thị loading khi đang xử lý choice worker
                         loadingDialog.show()
@@ -128,7 +140,7 @@ class WorkerOrderFragment : BaseFragment() {
 
             // Collect success state từ ChoideWorkerViewModel
             launch {
-                choideWorkerViewModel.success_change.collectLatest { success ->
+                choiceWorkerViewModel.success_change.collectLatest { success ->
                     success?.let {
                         if (it) {
                             // Refresh data sau khi thành công

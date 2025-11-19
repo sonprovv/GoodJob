@@ -17,12 +17,6 @@ interface ConversationRepository {
     fun getConversationsBySenderLocal(senderId: String): Flow<List<ChatEntity>>
 
     /**
-     * Fetch conversations from remote API and save to local database
-     * This will trigger UI update automatically via Flow
-     */
-    suspend fun fetchAndSaveConversations(): NetworkResult<Unit>
-
-    /**
      * Mark conversation as read in local database
      */
     suspend fun markConversationAsRead(conversationId: String)

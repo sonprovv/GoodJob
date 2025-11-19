@@ -123,14 +123,6 @@ class SelectServiceHealthCareActivity : BaseActivity() {
             finish()
         }
 
-        // Handle info button click
-        binding.ivInfo.addFadeClickEffect {
-            val intent = Intent(this, CleaningIntroActivity::class.java)
-            startActivity(intent)
-            // Thêm hiệu ứng chuyển màn
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-        }
-
         // Handle location header click
         binding.llContentHeader.addFadeClickEffect {
             val intent = Intent(this, MapActivity::class.java).apply {
@@ -358,7 +350,6 @@ class SelectServiceHealthCareActivity : BaseActivity() {
                     if (isLoading) {
                         // Hiển thị ProgressBar hoặc trạng thái loading
                         binding.ivBack.isEnabled = false
-                        binding.ivInfo.isEnabled = false
                         binding.llContentHeader.isEnabled = false
                         loadingDialog.show()
                         binding.cardViewJobDetail.isEnabled = false
@@ -366,7 +357,6 @@ class SelectServiceHealthCareActivity : BaseActivity() {
                     } else {
                         // Ẩn ProgressBar khi không còn loading
                         binding.ivBack.isEnabled = true
-                        binding.ivInfo.isEnabled = true
                         binding.llContentHeader.isEnabled = true
                         loadingDialog.hide()
                         binding.cardViewJobDetail.isEnabled = true

@@ -57,6 +57,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustPan" />
         <activity
+            android:name=".ui.chatgpt.ChatGPTWebViewActivity"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ui.reviewworker.ReviewerActivity"
             android:exported="false" />
         <activity

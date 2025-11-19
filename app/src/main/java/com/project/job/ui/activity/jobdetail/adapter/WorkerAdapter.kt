@@ -25,8 +25,17 @@ class WorkerAdapter (
     private val lifecycleOwner: LifecycleOwner,
     private val onWorkerStatusChanged: () -> Unit = {},
     private val onViewDetailClicked: (WorkerOrder) -> Unit = {},
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    private var serviceType: String = ""
 ) : RecyclerView.Adapter<WorkerAdapter.viewHolder>() {
+    
+    // Check if there's already an accepted worker for MAINTENANCE or CLEANING
+    private fun hasAcceptedWorker(): Boolean {
+        if (serviceType != "MAINTENANCE" && serviceType != "CLEANING") {
+            return false
+        }
+        return workerList.any { it.status == "Accepted" }
+    }
     inner class viewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvFullName = itemView.findViewById<TextView>(R.id.tv_full_name)
         private val tvPhone = itemView.findViewById<TextView>(R.id.tv_phone)
@@ -114,7 +123,13 @@ class WorkerAdapter (
             val llReview = itemView.findViewById<View>(R.id.ll_review)
             val llAction = itemView.findViewById<View>(R.id.ll_action)
             if(status == "Chờ xác nhận") {
-                cardViewAccept.visibility = View.VISIBLE
+                // Check if serviceType is MAINTENANCE or CLEANING and already has accepted worker
+                if ((serviceType == "MAINTENANCE" || serviceType == "CLEANING") && hasAcceptedWorker()) {
+                    // Hide accept button for other workers
+                    cardViewAccept.visibility = View.GONE
+                } else {
+                    cardViewAccept.visibility = View.VISIBLE
+                }
                 llReview.visibility = View.GONE
             }
             else {
@@ -245,6 +260,15 @@ class WorkerAdapter (
 
     fun submitList(newList: List<WorkerOrder>) {
         workerList = newList
+        // Update serviceType from first worker if available
+        if (newList.isNotEmpty()) {
+            serviceType = newList.first().serviceType
+        }
+        notifyDataSetChanged()
+    }
+    
+    fun updateServiceType(type: String) {
+        serviceType = type
         notifyDataSetChanged()
     }
 

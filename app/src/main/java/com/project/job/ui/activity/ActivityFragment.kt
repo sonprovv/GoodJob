@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.project.job.R
 import com.project.job.base.BaseFragment
 import com.project.job.data.mapper.JobEntityToDataJobsMapper
 import com.project.job.data.source.local.PreferencesManager
@@ -79,6 +80,12 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
         binding.rcvListJob.layoutManager = LinearLayoutManager(requireContext())
 
         jobAdapter.updateList(emptyList(), emptyList(), emptyList())
+        
+        // Setup status filter spinner
+        setupStatusFilter()
+        
+        // Setup sort button
+        setupSortButton()
 
         // Set listener để xử lý cancel job khi swipe
         jobAdapter.setOnJobCancelListener(object : OnJobCancelListener {
@@ -269,6 +276,70 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             viewModelMaintenance.getMaintenanceService()
             binding.llLoginSuccessNoData.visibility = View.VISIBLE
             binding.llNoLogin.visibility = View.GONE
+        }
+    }
+
+    private fun setupStatusFilter() {
+        val statusList = listOf(
+            "Tất cả",
+            "Not Payment",
+            "Hiring",
+            "Processing",
+            "Active",
+            "Completed",
+            "Closed",
+            "Cancel"
+        )
+        
+        val statusDisplayList = listOf(
+            "Tất cả",
+            "Chưa thanh toán",
+            "Đang tuyển",
+            "Đang xử lý",
+            "Đang hoạt động",
+            "Đã hoàn tất",
+            "Đã đóng",
+            "Đã hủy"
+        )
+        
+        val adapter = android.widget.ArrayAdapter(
+            requireContext(),
+            R.layout.spinner_item_status,
+            statusDisplayList
+        )
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_status)
+        binding.spinnerStatusFilter.adapter = adapter
+        binding.spinnerStatusFilter.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedStatus = if (position == 0) null else statusList[position]
+                jobAdapter.filterByStatus(selectedStatus)
+            }
+            
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {
+                jobAdapter.filterByStatus(null)
+            }
+        }
+    }
+    
+    private fun setupSortButton() {
+        var isNewest = true
+        
+        binding.btnSort.addFadeClickEffect {
+            isNewest = !isNewest
+            
+            // Animate icon rotation
+            binding.ivSortIcon.animate()
+                .rotation(if (isNewest) 0f else 180f)
+                .setDuration(200)
+                .start()
+            
+            if (isNewest) {
+                binding.tvSortLabel.text = "Mới nhất"
+                jobAdapter.sortByDate(JobAdapter.SortOrder.NEWEST)
+            } else {
+                binding.tvSortLabel.text = "Cũ nhất"
+                jobAdapter.sortByDate(JobAdapter.SortOrder.OLDEST)
+            }
         }
     }
 

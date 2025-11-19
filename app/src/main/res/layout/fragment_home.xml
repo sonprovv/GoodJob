@@ -37,15 +37,34 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:padding="4dp"
-            android:id="@+id/iv_notification"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:elevation="40dp"
-            android:src="@drawable/ic_bell_white"
+        <FrameLayout
+            android:id="@+id/fl_notification_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
             app:layout_constraintEnd_toEndOf="@id/card_view_login"
-            app:layout_constraintTop_toTopOf="@id/tv_header_text" />
+            app:layout_constraintTop_toTopOf="@id/tv_header_text">
+            
+            <ImageView
+                android:padding="4dp"
+                android:id="@+id/iv_notification"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:elevation="40dp"
+                android:src="@drawable/ic_bell_white" />
+            
+            <!-- Red Badge for unread notifications -->
+            <View
+                android:id="@+id/view_notification_badge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_notification_badge"
+                android:elevation="41dp"
+                android:visibility="visible" />
+        </FrameLayout>
         <androidx.cardview.widget.CardView
             android:id="@+id/card_view_login"
             android:layout_width="match_parent"
