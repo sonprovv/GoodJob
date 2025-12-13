@@ -38,7 +38,7 @@ class JobAdapter(private val jobs: List<QueryJobs>) :
         fun bind(job: QueryJobs) {
             // Service Type
             tvServiceType.text = job.serviceType
-            tvServiceType.setBackgroundColor(getServiceTypeColor(job.serviceType))
+            tvServiceType.setBackgroundColor(getServiceTypeColor(job.serviceType.toString()))
 
             // Status
 //            tvStatus.text = job.status
@@ -49,13 +49,13 @@ class JobAdapter(private val jobs: List<QueryJobs>) :
 
             // Price
             val formatter = NumberFormat.getNumberInstance(Locale("vi", "VN"))
-            tvPrice.text = "${formatter.format(job.price.toLong())} VND"
+            tvPrice.text = "${formatter.format(job.price?.toLong())} VND"
 
             // Start Time
             tvStartTime.text = job.startTime
 
             // Working Days
-            tvWorkingDays.text = job.listDays.joinToString(", ")
+            tvWorkingDays.text = job.listDays?.joinToString(", ")
 
             // Created At
             tvCreatedAt.text = "Tạo: ${job.createdAt}"

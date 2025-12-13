@@ -7,10 +7,12 @@ import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.UserResponse
+import com.project.job.utils.ErrorHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.project.job.data.source.remote.api.response.User
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
     private val userRepository = UserRemote.getInstance()
@@ -30,12 +32,12 @@ class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewMode
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
 
-    fun register(email: String, password: String, username: String, fcmToken: String = "") {
+    fun register(email: String, password: String, confirmPassword: String, fcmToken: String = "") {
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
             try {
-                val response = userRepository.register(email, password, username)
+                val response = userRepository.register(email=email, password=password, confirmPassword = confirmPassword)
                 Log.d("RegisterViewModel", "Register response: $response")
 
                 when (response) {
@@ -52,20 +54,25 @@ class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewMode
                             postFCMToken(fcmToken)
                             _registerResult.value = authResponse
                         } else {
-                            _error.value = authResponse?.message ?: "Register failed"
+                            // Handle specific register error messages from server
+                            val errorMessage = authResponse?.message
+                            _error.value = ErrorHandler.handleRegisterError(errorMessage)
                             _registerResult.value = null
+                            Log.e("RegisterViewModel", "Register failed: $errorMessage")
                         }
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message
+                        // Handle HTTP error codes and network errors
+                        _error.value = ErrorHandler.handleHttpError(response.message)
                         _registerResult.value = null
+                        Log.e("RegisterViewModel", "Network error: ${response.message}")
                     }
                 }
             } catch (e: Exception) {
-                _error.value = e.message ?: "An error occurred"
+                _error.value = ErrorHandler.handleException(e)
                 _registerResult.value = null
-                Log.e("RegisterViewModel", "Register error", e)
+                Log.e("RegisterViewModel", "Register exception: ${e.javaClass.simpleName} - ${e.message}")
             } finally {
                 _loading.value = false
             }

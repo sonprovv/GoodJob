@@ -9,12 +9,15 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.project.job.MainActivity
 import com.project.job.R
 import com.project.job.base.BaseActivity
@@ -25,6 +28,7 @@ import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.ui.login.viewmodel.RegisterViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.ErrorHandler
 import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -71,21 +75,20 @@ class RegisterActivity : BaseActivity() {
 
         binding.cardViewBtnRegister.setOnClickListener {
             // Xử lý sự kiện đăng ký
-            val username = binding.edtName.text.toString()
             val email = binding.edtEmail.text.toString()
             val password = binding.edtPassword.text.toString()
             val confirmPassword = binding.edtConfirmPassword.text.toString()
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 if(password != confirmPassword){
                     binding.edtConfirmPassword.error = getString(R.string.password_not_match)
                 }
-                binding.edtName.error = getString(R.string.empty_field)
+//                binding.edtName.error = getString(R.string.empty_field)
                 binding.edtEmail.error = getString(R.string.empty_field)
                 binding.edtPassword.error = getString(R.string.empty_field)
             }
             else {
                 val fcmToken = preferencesManager.getFCMToken() ?: ""
-                viewModel.register(email, password, username, fcmToken)
+                viewModel.register(email=email, password=password, confirmPassword=confirmPassword, fcmToken=fcmToken)
             }
         }
 
@@ -210,6 +213,107 @@ class RegisterActivity : BaseActivity() {
                     }
                 }
             }
+
+            // Collect error messages
+            launch {
+                viewModel.error.collectLatest { errorMessage ->
+                    if (!errorMessage.isNullOrEmpty()) {
+                        // Hiển thị error message
+                        showErrorMessage(errorMessage)
+                        Log.e("RegisterActivity", "Register error: $errorMessage")
+                    }
+                }
+            }
         }
+    }
+
+    private fun showErrorMessage(errorMessage: String) {
+        // Hiển thị error với Snackbar có retry action
+        val snackbar = Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+        
+        // Thêm action button dựa trên loại lỗi
+        when {
+            errorMessage.contains("Email này đã được đăng ký") -> {
+                snackbar.setAction("Đăng nhập") {
+                    // Navigate to login screen
+                    val intent = Intent(this, LoginActivity::class.java)
+                    // Pre-fill email if available
+                    val email = binding.edtEmail.text.toString().trim()
+                    if (email.isNotEmpty()) {
+                        intent.putExtra("prefill_email", email)
+                    }
+                    startActivity(intent)
+                    finish()
+                }
+            }
+            errorMessage.contains("kết nối") || errorMessage.contains("mạng") -> {
+                snackbar.setAction("Thử lại") {
+                    retryRegister()
+                }
+            }
+            errorMessage.contains("máy chủ") -> {
+                snackbar.setAction("Thử lại") {
+                    retryRegister()
+                }
+            }
+            errorMessage.contains("Mật khẩu xác nhận không khớp") -> {
+                snackbar.setAction("OK") {
+                    // Focus on confirm password field
+                    binding.edtConfirmPassword.requestFocus()
+                }
+            }
+            ErrorHandler.isAuthError(errorMessage) -> {
+                snackbar.setAction("OK") {
+                    // Just dismiss
+                }
+            }
+            else -> {
+                snackbar.setAction("Thử lại") {
+                    retryRegister()
+                }
+            }
+        }
+        
+        snackbar.show()
+        
+        // Nếu là lỗi email đã tồn tại, hiển thị dialog
+        if (errorMessage.contains("Email này đã được đăng ký")) {
+            showLoginSuggestionDialog()
+        }
+    }
+    
+    private fun retryRegister() {
+        val email = binding.edtEmail.text.toString().trim()
+        val password = binding.edtPassword.text.toString().trim()
+        val confirmPassword = binding.edtConfirmPassword.text.toString().trim()
+        
+        if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
+            val fcmToken = preferencesManager.getFCMToken() ?: ""
+            viewModel.register(email = email, password = password, confirmPassword = confirmPassword, fcmToken = fcmToken)
+        } else {
+            Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showLoginSuggestionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Email đã được đăng ký")
+            .setMessage("Email này đã có tài khoản. Bạn có muốn đăng nhập thay vì đăng ký không?")
+            .setPositiveButton("Đăng nhập") { _, _ ->
+                val intent = Intent(this, LoginActivity::class.java)
+                // Pre-fill email if available
+                val email = binding.edtEmail.text.toString().trim()
+                if (email.isNotEmpty()) {
+                    intent.putExtra("prefill_email", email)
+                }
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("Sử dụng email khác") { _, _ ->
+                // Clear email field and focus
+                binding.edtEmail.text.clear()
+                binding.edtEmail.requestFocus()
+            }
+            .show()
     }
 }

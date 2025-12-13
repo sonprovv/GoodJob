@@ -11,9 +11,12 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import com.project.job.MainActivity
 import com.project.job.R
 import com.project.job.base.BaseActivity
@@ -22,6 +25,7 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.utils.addFadeClickEffect
+import com.project.job.utils.ErrorHandler
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -59,6 +63,13 @@ class LoginActivity : BaseActivity() {
 
         binding.ivBack.addFadeClickEffect {
             onBackPressedDispatcher.onBackPressed()
+        }
+
+        // Check for prefilled email from register screen
+        val prefilledEmail = intent.getStringExtra("prefill_email")
+        if (!prefilledEmail.isNullOrEmpty()) {
+            binding.edtEmail.setText(prefilledEmail)
+            binding.edtPassword.requestFocus()
         }
 
         binding.cardViewBtnLogin.setOnClickListener {
@@ -190,6 +201,88 @@ class LoginActivity : BaseActivity() {
                     }
                 }
             }
+
+            // Collect error messages
+            launch {
+                viewModel.error.collectLatest { errorMessage ->
+                    if (!errorMessage.isNullOrEmpty()) {
+                        // Hiển thị error message
+                        showErrorMessage(errorMessage)
+                        Log.e("LoginActivity", "Login error: $errorMessage")
+                    }
+                }
+            }
         }
+    }
+
+    private fun showErrorMessage(errorMessage: String) {
+        // Hiển thị error với Snackbar có retry action
+        val snackbar = Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+        
+        // Thêm action button dựa trên loại lỗi
+        when {
+            errorMessage.contains("Tài khoản không tồn tại") -> {
+                snackbar.setAction("Đăng ký") {
+                    // Navigate to register screen
+                    val intent = android.content.Intent(this, RegisterActivity::class.java)
+                    startActivity(intent)
+                }
+            }
+            errorMessage.contains("kết nối") || errorMessage.contains("mạng") -> {
+                snackbar.setAction("Thử lại") {
+                    retryLogin()
+                }
+            }
+            errorMessage.contains("máy chủ") -> {
+                snackbar.setAction("Thử lại") {
+                    retryLogin()
+                }
+            }
+            ErrorHandler.isAuthError(errorMessage) -> {
+                snackbar.setAction("OK") {
+                    // Just dismiss
+                }
+            }
+            else -> {
+                snackbar.setAction("Thử lại") {
+                    retryLogin()
+                }
+            }
+        }
+        
+        snackbar.show()
+        
+        // Nếu là lỗi nghiêm trọng, hiển thị dialog
+        if (errorMessage.contains("Tài khoản không tồn tại")) {
+            showRegisterSuggestionDialog()
+        }
+    }
+    
+    private fun retryLogin() {
+        val email = binding.edtEmail.text.toString().trim()
+        val password = binding.edtPassword.text.toString().trim()
+        
+        if (email.isNotEmpty() && password.isNotEmpty()) {
+            viewModel.fetchLogin(email, password, preferencesManager.getFCMToken() ?: "")
+        } else {
+            Toast.makeText(this, "Vui lòng nhập email và mật khẩu", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showRegisterSuggestionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Tài khoản không tồn tại")
+            .setMessage("Tài khoản với email này chưa được đăng ký. Bạn có muốn tạo tài khoản mới không?")
+            .setPositiveButton("Đăng ký") { _, _ ->
+                val intent = android.content.Intent(this, RegisterActivity::class.java)
+                // Pre-fill email if available
+                val email = binding.edtEmail.text.toString().trim()
+                if (email.isNotEmpty()) {
+                    intent.putExtra("prefill_email", email)
+                }
+                startActivity(intent)
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 }

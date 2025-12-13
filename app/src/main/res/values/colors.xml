@@ -26,4 +26,9 @@
     <color name="gray_600">#4B5563</color>
     <color name="gray_700">#374151</color>
     <color name="gray_800">#1F2937</color>
+    
+    <!-- Theme colors -->
+    <color name="colorPrimary">@color/xanh</color>
+    <color name="colorPrimaryDark">#0E7A3D</color>
+    <color name="colorAccent">#4CAF50</color>
 </resources>

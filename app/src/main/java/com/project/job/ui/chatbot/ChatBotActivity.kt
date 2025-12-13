@@ -1,8 +1,12 @@
 package com.project.job.ui.chatbot
 
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -31,8 +35,23 @@ class ChatBotActivity : BaseActivity() {
         enableEdgeToEdge()
         binding = ActivityChatBotBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Thiết lập màu sắc cho status bar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            window.statusBarColor = Color.parseColor("#16B75A") // Màu nền status bar
+        }
+
+        // Đặt icon sáng/tối cho status bar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // Icon sáng cho nền tối
+            // Nếu muốn icon tối cho nền sáng, bỏ dòng trên hoặc dùng:
+            // window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        }
+
         preferencesManager = PreferencesManager(this)
-        setupWindowInsets()
         setupRecyclerView()
         setupClickListeners()
         setupObservers()
@@ -42,26 +61,6 @@ class ChatBotActivity : BaseActivity() {
         binding.inputLayout.post {
             android.util.Log.d("ChatBot", "Input layout height: ${binding.inputLayout.height}")
             android.util.Log.d("ChatBot", "Input layout visibility: ${binding.inputLayout.visibility}")
-        }
-    }
-
-    private fun setupWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            
-            // Adjust padding for system bars
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
-            
-            // Handle keyboard visibility
-            if (ime.bottom > 0) {
-                // Keyboard is visible - scroll to bottom to show latest message
-                binding.root.post {
-                    scrollToBottom()
-                }
-            }
-            
-            insets
         }
     }
 
@@ -130,8 +129,9 @@ class ChatBotActivity : BaseActivity() {
             val lat = preferencesManager.getLocationCoordinates()?.first ?: 0.0
             val lon = preferencesManager.getLocationCoordinates()?.second ?: 0.0
             val locationData = LocationData(name = location, lat = lat, lon = lon)
+            val uid = preferencesManager.getUserData()["user_id"] ?: ""
             // Call actual API through ViewModel
-            viewModel.chatBot(messageText, locationData)
+            viewModel.chatBot(messageText, locationData, uid)
         }
     }
 
@@ -219,8 +219,11 @@ class ChatBotActivity : BaseActivity() {
     }
 
     private fun addErrorMessage(error: String) {
+        // Use ErrorHandler to get user-friendly message
+        val friendlyError = com.project.job.utils.ErrorHandler.handleChatBotError(error)
+        
         val errorMessage = ChatMessage(
-            text = "Xin lỗi, đã có lỗi xảy ra: $error",
+            text = friendlyError,
             isUser = false,
             timestamp = System.currentTimeMillis(),
             messageType = ChatMessageType.TEXT
@@ -228,6 +231,10 @@ class ChatBotActivity : BaseActivity() {
         chatMessages.add(errorMessage)
         chatBotAdapter.notifyItemInserted(chatMessages.size - 1)
         scrollToBottom()
+        
+        // Log the original error for debugging
+        android.util.Log.e("ChatBotActivity", "Original error: $error")
+        android.util.Log.e("ChatBotActivity", "Friendly error: $friendlyError")
     }
 
 

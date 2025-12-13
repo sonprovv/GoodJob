@@ -71,6 +71,10 @@ class JobRepositoryImpl(context: Context) : JobRepository {
                     // Convert API response to Room entities
                     val jobEntities = JobMapper.toEntityList(jobs)
                     
+                    // Xóa tất cả jobs cũ của user trước khi insert jobs mới
+                    jobDao.deleteJobsByUser(userId)
+                    Log.d(TAG, "Deleted old jobs for user: $userId")
+                    
                     // Save to local database
                     jobDao.insertJobs(jobEntities)
                     Log.d(TAG, "Saved ${jobEntities.size} jobs to local database")

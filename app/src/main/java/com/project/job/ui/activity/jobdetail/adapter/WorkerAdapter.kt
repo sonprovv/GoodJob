@@ -122,25 +122,33 @@ class WorkerAdapter (
             // Show/hide rating section based on status
             val llReview = itemView.findViewById<View>(R.id.ll_review)
             val llAction = itemView.findViewById<View>(R.id.ll_action)
-            if(status == "Chờ xác nhận") {
-                // Check if serviceType is MAINTENANCE or CLEANING and already has accepted worker
-                if ((serviceType == "MAINTENANCE" || serviceType == "CLEANING") && hasAcceptedWorker()) {
-                    // Hide accept button for other workers
-                    cardViewAccept.visibility = View.GONE
-                } else {
-                    cardViewAccept.visibility = View.VISIBLE
+            
+            when(status) {
+                "Chờ xác nhận" -> {
+                    // Check if serviceType is MAINTENANCE or CLEANING and already has accepted worker
+                    if ((serviceType == "MAINTENANCE" || serviceType == "CLEANING") && hasAcceptedWorker()) {
+                        // Hide accept button for other workers
+                        cardViewAccept.visibility = View.GONE
+                    } else {
+                        cardViewAccept.visibility = View.VISIBLE
+                    }
+                    llReview.visibility = View.GONE
                 }
-                llReview.visibility = View.GONE
-            }
-            else {
-                if(status == "Đã xác nhận" || status == "Đang xử lý") {
+                "Đã xác nhận", "Đang xử lý" -> {
                     cardViewAccept.visibility = View.GONE
-                    // Show rating section only for completed work
+                    llReview.visibility = View.GONE
                 }
-                if(status == "Hoàn thành") {
+                "Hoàn thành" -> {
+                    cardViewAccept.visibility = View.GONE  // CRITICAL: Hide accept button for completed orders
                     llReview.visibility = View.VISIBLE
                     setupStarRating()
-                } else {
+                }
+                "Đã từ chối" -> {
+                    cardViewAccept.visibility = View.GONE
+                    llReview.visibility = View.GONE
+                }
+                else -> {
+                    cardViewAccept.visibility = View.GONE
                     llReview.visibility = View.GONE
                 }
             }

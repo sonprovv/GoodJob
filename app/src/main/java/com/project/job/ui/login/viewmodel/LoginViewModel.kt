@@ -7,6 +7,7 @@ import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.UserResponse
+import com.project.job.utils.ErrorHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -65,26 +66,24 @@ class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel()
                             tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
                             postFCMToken(fcmToken = fcmToken)
                         } else {
-                            _error.value = authResponse?.message ?: "Login failed"
+                            // Handle specific Google Sign-In errors
+                            val errorMessage = authResponse?.message
+                            _error.value = ErrorHandler.handleGoogleSignInError(errorMessage)
                             _googleSignInResult.value = null
+                            Log.e("LoginViewModel", "Google Sign-In failed: $errorMessage")
                         }
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "Login failed"
+                        // Handle HTTP error codes for Google Sign-In
+                        _error.value = ErrorHandler.handleHttpError(response.message)
                         _googleSignInResult.value = null
+                        Log.e("LoginViewModel", "Google Sign-In network error: ${response.message}")
                     }
                 }
             } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                        _error.value = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại."
-                    }
-                    else -> {
-                        _error.value = e.message ?: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
-                    }
-                }
-                Log.e("LoginViewModel", "Google Sign-In exception", e)
+                _error.value = ErrorHandler.handleException(e)
+                Log.e("LoginViewModel", "Google Sign-In exception: ${e.javaClass.simpleName} - ${e.message}")
             } finally {
                 _loading.value = false
             }
@@ -110,30 +109,27 @@ class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel()
                             tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
                             tokenRepository.saveFcmToken(fcmToken)
                         } else {
-                            _error.value = authResponse?.message ?: "Login failed"
+                            // Handle specific error messages from server
+                            val errorMessage = authResponse?.message
+                            _error.value = ErrorHandler.handleLoginError(errorMessage)
+                            Log.e("LoginViewModel", "Login failed: $errorMessage")
                         }
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "Login failed"
+                        // Handle HTTP error codes and network errors
+                        _error.value = ErrorHandler.handleHttpError(response.message)
+                        Log.e("LoginViewModel", "Network error: ${response.message}")
                     }
                 }
 
             } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                        _error.value = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại."
-                    }
-                    else -> {
-                        _error.value = e.message ?: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
-                    }
-                }
-                Log.e("LoginViewModel", "Login error: ${e.message}")
+                _error.value = ErrorHandler.handleException(e)
+                Log.e("LoginViewModel", "Login exception: ${e.javaClass.simpleName} - ${e.message}")
             } finally {
-                Log.e("LoginViewModel", "Login finally")
+                Log.d("LoginViewModel", "Login process completed")
                 _loading.value = false
             }
-
         }
     }
 

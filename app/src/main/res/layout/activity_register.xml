@@ -95,32 +95,32 @@
                         android:textColor="@color/black"
                         android:textSize="16sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="Họ và tên"
-                        android:textColor="@color/black"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="20dp"-->
+<!--                        android:text="Họ và tên"-->
+<!--                        android:textColor="@color/black"-->
+<!--                        android:textSize="20sp"-->
+<!--                        android:textStyle="bold" />-->
 
-                    <EditText
-                        android:id="@+id/edt_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_edt_white"
-                        android:drawablePadding="8dp"
-                        android:hint="Nguyễn Văn A"
-                        android:inputType="textPersonName"
-                        android:minHeight="48dp"
-                        android:paddingVertical="8dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:singleLine="true"
-                        android:textColor="@color/black"
-                        android:textColorHint="#EBEBEB"
-                        android:textSize="18sp" />
+<!--                    <EditText-->
+<!--                        android:id="@+id/edt_name"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="8dp"-->
+<!--                        android:background="@drawable/bg_edt_white"-->
+<!--                        android:drawablePadding="8dp"-->
+<!--                        android:hint="Nguyễn Văn A"-->
+<!--                        android:inputType="textPersonName"-->
+<!--                        android:minHeight="48dp"-->
+<!--                        android:paddingVertical="8dp"-->
+<!--                        android:paddingStart="16dp"-->
+<!--                        android:paddingEnd="16dp"-->
+<!--                        android:singleLine="true"-->
+<!--                        android:textColor="@color/black"-->
+<!--                        android:textColorHint="#EBEBEB"-->
+<!--                        android:textSize="18sp" />-->
 
                     <TextView
                         android:layout_width="wrap_content"

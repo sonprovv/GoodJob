@@ -137,6 +137,9 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             true
         }
 
+        // Setup SwipeRefreshLayout
+        setupSwipeRefresh()
+
         observeViewModel()
     }
 
@@ -146,10 +149,15 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             launch {
                 viewModel.loading.collectLatest { isLoading ->
                     if (isLoading) {
-                        loadingDialog.show()
+                        // Chỉ hiện loading dialog nếu không phải swipe refresh
+                        if (!binding.swipeRefresh.isRefreshing) {
+                            loadingDialog.show()
+                        }
                         binding.llListJob.visibility = View.GONE
                     } else {
                         loadingDialog.hide()
+                        // Tắt swipe refresh animation
+                        binding.swipeRefresh.isRefreshing = false
                         binding.llListJob.visibility = View.VISIBLE
                     }
                 }
@@ -339,6 +347,32 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             } else {
                 binding.tvSortLabel.text = "Cũ nhất"
                 jobAdapter.sortByDate(JobAdapter.SortOrder.OLDEST)
+            }
+        }
+    }
+
+    private fun setupSwipeRefresh() {
+        // Cấu hình màu sắc cho loading indicator
+        binding.swipeRefresh.setColorSchemeResources(
+            android.R.color.holo_green_light,
+            android.R.color.holo_orange_light,
+            android.R.color.holo_red_light
+        )
+        
+        // Xử lý sự kiện swipe to refresh
+        binding.swipeRefresh.setOnRefreshListener {
+            val token = preferencesManager.getAuthToken() ?: ""
+            val uid = preferencesManager.getUserData()["user_id"] ?: ""
+            
+            if (token.isNotEmpty()) {
+                Log.d("ActivityFragment", "Refreshing jobs via swipe")
+                viewModel.refreshJobs(uid)
+                viewModelHealthcare.getServiceHealthcare()
+                viewModelMaintenance.getMaintenanceService()
+            } else {
+                // Nếu chưa đăng nhập, dừng animation
+                binding.swipeRefresh.isRefreshing = false
+                Toast.makeText(requireContext(), "Vui lòng đăng nhập để tải dữ liệu", Toast.LENGTH_SHORT).show()
             }
         }
     }

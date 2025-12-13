@@ -37,11 +37,16 @@ suspend fun <T> safeApiCall(
             //parse để lấy message
             val errorMessage = res.errorBody()?.string() // res.errorBody() trả về nội dung phần body lỗi dưới dạng ResponseBody?
                 // chuyển thành String JSON dạng sau
-                // "{"code":401,"message":"Invalid credentials"}"
-                ?.let { body -> //là chuỗi JSON, ví dụ "{"message":"Invalid credentials"}"
+                // "{"code":401,"message":"Invalid credentials"}" hoặc "{"success":false,"error":"Mật khẩu không trùng khớp"}"
+                ?.let { body -> //là chuỗi JSON, ví dụ "{"message":"Invalid credentials"}" hoặc "{"error":"Mật khẩu không trùng khớp"}"
                     try { //Cố gắng phân tích chuỗi JSON thành JSONObject
                         val errorJson = JSONObject(body)
-                        errorJson.getString("message")
+                        // Thử lấy message trước, nếu không có thì lấy error
+                        when {
+                            errorJson.has("message") -> errorJson.getString("message")
+                            errorJson.has("error") -> errorJson.getString("error")
+                            else -> null
+                        }
                     }catch (e: JSONException){
                         null
                     }
