@@ -21,20 +21,3 @@ class ListStringConverter {
         return gson.toJson(list)
     }
 }
-
-class AnyTypeConverter {
-    private val gson = Gson()
-
-    @TypeConverter
-    fun fromString(value: String?): Any? {
-        if (value == null || value.isEmpty()) {
-            return null
-        }
-        return gson.fromJson(value, Any::class.java)
-    }
-
-    @TypeConverter
-    fun toString(value: Any?): String {
-        return gson.toJson(value)
-    }
-}

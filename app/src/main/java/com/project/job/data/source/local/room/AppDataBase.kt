@@ -34,8 +34,5 @@ abstract class AppDatabase: RoomDatabase() {
         )
             .fallbackToDestructiveMigration()
             .build()
-        private fun getDatabaseName(): String {
-            return "m_db"
-        }
     }
 }

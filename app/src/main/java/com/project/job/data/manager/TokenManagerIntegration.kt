@@ -10,7 +10,7 @@ import com.project.job.data.repository.TokenRepository
  * Quản lý API Access/Refresh Token từ backend
  */
 class TokenManagerIntegration(
-    private val tokenRepository: TokenRepository,
+    tokenRepository: TokenRepository,
     private val authenticationManager: AuthenticationManager
 ) {
     
@@ -67,13 +67,7 @@ class TokenManagerIntegration(
     suspend fun hasRefreshToken(): Boolean {
         return apiTokenManager.hasRefreshToken()
     }
-    
-    /**
-     * Kiểm tra xem có đang refresh token không
-     */
-    fun isRefreshingToken(): Boolean {
-        return apiTokenManager.isRefreshingToken()
-    }
+
     
     /**
      * Clear tất cả API tokens
@@ -83,46 +77,5 @@ class TokenManagerIntegration(
         apiTokenManager.clearAllTokens()
         Log.d(TAG, "All API tokens cleared successfully")
     }
-    
-    /**
-     * Kiểm tra trạng thái authentication
-     */
-    suspend fun getAuthenticationStatus(): AuthStatus {
-        val hasApiToken = getCurrentAccessToken() != null
-        val hasRefreshToken = hasRefreshToken()
-        
-        return AuthStatus(
-            hasApiAccessToken = hasApiToken,
-            hasApiRefreshToken = hasRefreshToken,
-            isAuthenticated = hasApiToken || hasRefreshToken
-        )
-    }
-    
-    /**
-     * Debug info cho API token manager
-     */
-    suspend fun getDebugInfo(): String {
-        val authStatus = getAuthenticationStatus()
-        val apiToken = getCurrentAccessToken()
-        
-        return """
-            API Token Manager Debug Info:
-            ============================
-            Has API Access Token: ${authStatus.hasApiAccessToken}
-            Has API Refresh Token: ${authStatus.hasApiRefreshToken}
-            Is Authenticated: ${authStatus.isAuthenticated}
-            Is Refreshing Token: ${isRefreshingToken()}
-            
-            API Token Length: ${apiToken?.length ?: 0}
-        """.trimIndent()
-    }
-}
 
-/**
- * Data class để represent trạng thái authentication
- */
-data class AuthStatus(
-    val hasApiAccessToken: Boolean,
-    val hasApiRefreshToken: Boolean,
-    val isAuthenticated: Boolean
-)
+}

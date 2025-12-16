@@ -77,7 +77,6 @@ object RetrofitClient {
                 ))
                 .authenticator(TokenAuthenticator(
                     apiService = _apiService,
-                    chatApiService = _chatApiService,
                     preferencesManager = preferencesManager,
                     context = context
                 ))
@@ -112,30 +111,6 @@ object RetrofitClient {
                 throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
             }
             return _apiService
-        }
-
-    val chatApiService: ChatApiService
-        get() {
-            if (!isInitialized) {
-                throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
-            }
-            return _chatApiService
-        }
-    
-    val authManager: AuthenticationManager
-        get() {
-            if (!isInitialized) {
-                throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
-            }
-            return authenticationManager
-        }
-    
-    val tokenManager: TokenManagerIntegration
-        get() {
-            if (!isInitialized) {
-                throw IllegalStateException("RetrofitClient must be initialized before use. Call initialize(context) first.")
-            }
-            return tokenManagerIntegration
         }
         
     fun isInitialized(): Boolean = isInitialized

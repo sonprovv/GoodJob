@@ -5,7 +5,6 @@ import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.NotificationDataSource
 import com.project.job.data.source.remote.api.response.GetNotificationResponse
 import com.project.job.data.source.remote.api.response.GetNotificationsResponse
-import com.project.job.data.source.remote.api.response.NotificationInfo
 
 class NotificationRemote(private val apiService: ApiService) : NotificationDataSource {
     override suspend fun getNotifications(): NetworkResult<GetNotificationsResponse> {

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.project.job.data.source.remote.api.response.User
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
 
 class RegisterViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
     private val userRepository = UserRemote.getInstance()

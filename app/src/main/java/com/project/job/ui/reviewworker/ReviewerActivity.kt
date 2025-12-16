@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.project.job.R
 import com.project.job.base.BaseActivity
@@ -106,15 +105,6 @@ class ReviewerActivity : BaseActivity() {
         val workerId = intent.getStringExtra(EXTRA_WORKER_ID) ?: ""
         val workerName = intent.getStringExtra(EXTRA_WORKER_NAME) ?: ""
         val serviceType = intent.getStringExtra(EXTRA_SERVICE_TYPE) ?: SERVICE_TYPE_HEALTHCARE
-        
-        // Lấy thông tin bổ sung
-        val workerAvatar = intent.getStringExtra(EXTRA_WORKER_AVATAR)
-        val workerPhone = intent.getStringExtra(EXTRA_WORKER_PHONE)
-        val workerLocation = intent.getStringExtra(EXTRA_WORKER_LOCATION)
-        val workerDescription = intent.getStringExtra(EXTRA_WORKER_DESCRIPTION)
-        val workerGender = intent.getStringExtra(EXTRA_WORKER_GENDER)
-        val workerBirthdate = intent.getStringExtra(EXTRA_WORKER_BIRTHDATE)
-        val workerEmail = intent.getStringExtra(EXTRA_WORKER_EMAIL)
         
         // Set the title in the toolbar
         binding.tvTitle.text = getString(R.string.reviews_for, workerName)

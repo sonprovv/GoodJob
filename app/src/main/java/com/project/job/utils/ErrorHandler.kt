@@ -1,7 +1,5 @@
 package com.project.job.utils
 
-import android.content.Context
-import com.project.job.R
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.net.ConnectException
@@ -192,19 +190,5 @@ object ErrorHandler {
         return errorMessage?.contains("HTTP 401") == true ||
                errorMessage?.contains("Token không hợp lệ") == true ||
                errorMessage?.contains("Phiên đăng nhập đã hết hạn") == true
-    }
-    
-    /**
-     * Lấy suggestion action dựa trên loại lỗi
-     */
-    fun getSuggestionAction(errorMessage: String?): String? {
-        return when {
-            isAuthError(errorMessage) -> "Vui lòng đăng nhập lại"
-            errorMessage?.contains("mạng") == true || errorMessage?.contains("kết nối") == true -> 
-                "Kiểm tra kết nối internet và thử lại"
-            errorMessage?.contains("máy chủ") == true -> 
-                "Thử lại sau ít phút"
-            else -> null
-        }
     }
 }

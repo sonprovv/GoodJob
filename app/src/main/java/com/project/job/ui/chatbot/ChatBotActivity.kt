@@ -10,9 +10,6 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.project.job.base.BaseActivity
@@ -21,6 +18,8 @@ import com.project.job.data.model.ChatMessageType
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.request.LocationData
 import com.project.job.databinding.ActivityChatBotBinding
+import com.project.job.ui.chatbot.adapter.ChatBotAdapter
+import com.project.job.ui.chatbot.viewmodel.ChatBotViewModel
 import kotlinx.coroutines.launch
 
 class ChatBotActivity : BaseActivity() {
@@ -129,9 +128,8 @@ class ChatBotActivity : BaseActivity() {
             val lat = preferencesManager.getLocationCoordinates()?.first ?: 0.0
             val lon = preferencesManager.getLocationCoordinates()?.second ?: 0.0
             val locationData = LocationData(name = location, lat = lat, lon = lon)
-            val uid = preferencesManager.getUserData()["user_id"] ?: ""
             // Call actual API through ViewModel
-            viewModel.chatBot(messageText, locationData, uid)
+            viewModel.chatBot(messageText, locationData)
         }
     }
 

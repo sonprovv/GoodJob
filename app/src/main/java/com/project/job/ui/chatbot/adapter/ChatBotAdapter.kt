@@ -1,4 +1,4 @@
-package com.project.job.ui.chatbot
+package com.project.job.ui.chatbot.adapter
 
 import android.view.LayoutInflater
 import android.view.View

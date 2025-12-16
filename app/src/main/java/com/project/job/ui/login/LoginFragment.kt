@@ -1,6 +1,5 @@
 package com.project.job.ui.login
 
-import android.app.Application
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -23,8 +22,6 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.project.job.JobApplication
-import com.project.job.MainActivity
 import com.project.job.R
 import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.local.PreferencesManager
@@ -37,10 +34,6 @@ import com.project.job.utils.UserDataBroadcastManager
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
 
 class LoginFragment : BottomSheetDialogFragment() {
     private var loginResultListener: LoginResultListener? = null
@@ -314,10 +307,6 @@ class LoginFragment : BottomSheetDialogFragment() {
      * - Backend sẽ verify Firebase token và tạo session riêng
      * - Hoặc backend exchange auth code với client secret (an toàn hơn)
      */
-    private fun exchangeAuthCodeForTokens_DEPRECATED(authCode: String): TokenResponse? {
-        // KHÔNG SỬ DỤNG - Chỉ để tham khảo
-        return null
-    }
 
     data class TokenResponse(
         val accessToken: String,
@@ -325,27 +314,6 @@ class LoginFragment : BottomSheetDialogFragment() {
         val expiresIn: Long
     )
 
-    private fun saveAuthData(authResponse: UserResponse) {
-        // Lưu token và thông tin người dùng vào SharedPreferences
-        preferencesManager.saveAuthToken(authResponse.data.token)
-        authResponse.data?.user?.let { user ->
-            // Lưu thông tin người dùng
-            preferencesManager.saveUser(user)
-
-            // Kiểm tra xem người dùng đã hoàn thiện hồ sơ chưa
-            // Chúng ta coi là hoàn thiện nếu có tên và email
-            val isProfileComplete = !user.username.isNullOrEmpty() && !user.email.isNullOrEmpty()
-            if (!isProfileComplete) {
-                // TODO: Chuyển đến màn hình cập nhật thông tin
-                showError("Vui lòng cập nhật thông tin cá nhân")
-            }
-        }
-    }
-
-    private fun showLoading(isLoading: Boolean) {
-        // TODO: Hiển thị/hủy hiển thị loading
-        // Ví dụ: progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
 
     private fun showError(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()

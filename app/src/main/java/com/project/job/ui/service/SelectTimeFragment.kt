@@ -35,8 +35,6 @@ class SelectTimeFragment : BaseFragment() {
     private var serviceType = ""
     private var numberOfPeople = 1
     private var extraServices = arrayListOf<String>()
-//    private var selectedRoomNames = arrayListOf<String>()
-//    private var selectedRoomCount = 0
     private var durationWorkingHour = 0
     private var durationFee = 0
     private var durationId = ""
@@ -93,7 +91,6 @@ class SelectTimeFragment : BaseFragment() {
         Log.d("SelectTimeFragment", "Selected maintenance quantities: ${arguments?.getIntegerArrayList("selectedMaintenanceQuantities")}")
 
         // Thử đọc bằng cách khác để debug
-//        Log.d("SelectTimeFragment", "All argument keys: $allKeys")
         tvSelectedDates = binding.tvSelectedDates
         tvMonthYear = binding.tvMonthYear
         // Lưu trữ dữ liệu maintenance vào biến instance để tránh mất dữ liệu
@@ -135,16 +132,6 @@ class SelectTimeFragment : BaseFragment() {
         Log.d("SelectTimeFragment", "📍 Coordinates: Lat=$jobLocationLatitude, Lng=$jobLocationLongitude")
         
         extraServices = arguments?.getStringArrayList("extraServices") ?: arrayListOf()
-//        selectedRoomNames = arguments?.getStringArrayList("selectedRoomNames") ?: arrayListOf()
-//        selectedRoomCount = arguments?.getInt("selectedRoomCount") ?: 0
-//        val selectedRooms = SelectedRoomManager.getSelectedRooms()
-//        for (room in selectedRooms) {
-//            Log.d("SelectTimeFragment", "Received room: $room")
-//        }
-
-        // Debug logging
-//        Log.d("SelectTimeFragment", "Received room count: $selectedRoomCount")
-//        Log.d("SelectTimeFragment", "Received room names: ${selectedRoomNames.joinToString(", ")}")
 
         val formattedPrice = java.text.NumberFormat.getNumberInstance(java.util.Locale("vi", "VN"))
             .format(totalFee)
@@ -183,13 +170,11 @@ class SelectTimeFragment : BaseFragment() {
         setupDayRecyclerView()
         updateTimeDisplay()
 
-//        setupNumberOfPeopleInput()
     }
 
     private fun setupToolbar() {
         binding.ivBack.setOnClickListener {
             // Use activity's onBackPressed instead of Navigation Component
-//            activity?.onBackPressed()
             navigateBackToActivity()
         }
     }
@@ -381,94 +366,6 @@ class SelectTimeFragment : BaseFragment() {
             requireActivity().onBackPressed()
         }
     }
-
-//    private fun setupNumberOfPeopleInput() {
-//        binding.edtNumberOfPeople.apply {
-//            // Set default value
-//            setText(numberOfPeople.toString())
-//
-//            // Handle focus change
-//            setOnFocusChangeListener { _, hasFocus ->
-//                if (!hasFocus) {
-//                    validateAndSetPeopleCount()
-//                } else {
-//                    // Clear error when user starts editing
-//                    (parent.parent as? TextInputLayout)?.error = null
-//                }
-//            }
-//
-//            // Handle text changes
-//            addTextChangedListener(object : TextWatcher {
-//                private var lastValid = "1"
-//
-//                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-//                    // Keep track of last valid input
-//                    if (s?.toString()?.toIntOrNull() in 1..10) {
-//                        lastValid = s.toString()
-//                    }
-//                }
-//
-//                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//                    s?.toString()?.let { input ->
-//                        if (input.isNotEmpty()) {
-//                            try {
-//                                val number = input.toInt()
-//                                if (number > 10) {
-//                                    (parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
-//                                    numberOfPeople = 10
-//                                } else if (number < 1) {
-//                                    (parent.parent as? TextInputLayout)?.error = "Tối thiểu 1 người"
-//                                    numberOfPeople = 1
-//                                } else {
-//                                    (parent.parent as? TextInputLayout)?.error = null
-//                                    numberOfPeople = number
-//                                }
-//                            } catch (e: NumberFormatException) {
-//                                (parent.parent as? TextInputLayout)?.error = "Vui lòng nhập số"
-//                                numberOfPeople = 1
-//                            }
-//                        } else {
-//                            (parent.parent as? TextInputLayout)?.error = null
-//                            numberOfPeople = 1
-//                        }
-//                    }
-//                }
-//
-//                override fun afterTextChanged(s: Editable?) {
-//                    // This will be handled by the focus change
-//                }
-//            })
-//        }
-//    }
-    
-//    private fun validateAndSetPeopleCount() {
-//        val input = binding.edtNumberOfPeople.text.toString().trim()
-//        val count = try {
-//            when {
-//                input.isEmpty() -> 1
-//                input.toInt() < 1 -> 1
-//                input.toInt() > 10 -> {
-//                    (binding.edtNumberOfPeople.parent.parent as? TextInputLayout)?.error = "Tối đa 10 người"
-//                    10
-//                }
-//                else -> input.toInt()
-//            }
-//        } catch (e: NumberFormatException) {
-//            1
-//        }
-//
-//        // Update the numberOfPeople variable regardless of whether it changed
-//        numberOfPeople = count
-//
-//        // Only update the UI if the displayed value is different
-//        if (input != count.toString()) {
-//            binding.edtNumberOfPeople.apply {
-//                removeTextChangedListener(null) // Remove all text watchers
-//                setText(count.toString())
-//                setSelection(text.length) // Move cursor to end
-//            }
-//        }
-//    }
 
     private fun updateMonthYearDisplay() {
         val calendar = Calendar.getInstance()

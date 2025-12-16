@@ -28,9 +28,6 @@ class DayAdapter(
             day.copy(isSelected = isSelected)
         })
 
-        // No default selection
-        
-
         notifyDataSetChanged()
     }
 

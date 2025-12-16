@@ -26,12 +26,6 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "FCM_DEBUG"
         private const val DEFAULT_NOTIFICATION_ID = 1001
-        const val MESSAGE_NOTIFICATION_ID = 1002
-
-        const val ACTION_REPLY = "com.client.appbinh.ACTION_REPLY"
-        const val ACTION_MARK_AS_READ = "com.client.appbinh.ACTION_MARK_AS_READ"
-        const val ACTION_INTERESTED = "com.client.appbinh.ACTION_INTERESTED"
-        const val ACTION_NOT_INTERESTED = "com.client.appbinh.ACTION_NOT_INTERESTED"
 
         const val KEY_MESSAGE = "message"
         const val KEY_SENDER_ID = "senderId"
@@ -318,10 +312,6 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         // Set dữ liệu cho expanded view
         expandedView.setTextViewText(R.id.notification_title, senderName)
         expandedView.setTextViewText(R.id.notification_message, displayMessage)
-
-        // Set click listeners cho các nút
-//        expandedView.setOnClickPendingIntent(R.id.btn_interested, interestedPendingIntent)
-//        expandedView.setOnClickPendingIntent(R.id.btn_not_interested, notInterestedPendingIntent)
 
         // Tạo notification builder
         val builder = NotificationCompat.Builder(context, channelId)

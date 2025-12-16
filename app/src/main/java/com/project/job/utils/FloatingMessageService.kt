@@ -120,18 +120,3 @@ class FloatingMessageService : Service() {
         removeFloatingView()
     }
 }
-
-// Helper extension function to show floating message
-fun showFloatingMessage(context: android.content.Context, senderName: String, message: String) {
-    val intent = Intent(context, FloatingMessageService::class.java).apply {
-        action = "SHOW_FLOATING_MESSAGE"
-        putExtra("senderName", senderName)
-        putExtra("message", message)
-    }
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.startForegroundService(intent)
-    } else {
-        context.startService(intent)
-    }
-}

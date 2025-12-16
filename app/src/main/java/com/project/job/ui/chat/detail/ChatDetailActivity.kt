@@ -239,15 +239,6 @@ class ChatDetailActivity : BaseActivity() {
         }
     }
 
-//    private fun setupViewModel() {
-//        // Use roomId if available, otherwise use receiverId
-//        if (!roomId.isNullOrEmpty()) {
-//            viewModel.setRoomId(roomId!!)
-//        } else {
-//            viewModel.setReceiverId(receiverId)
-//        }
-//    }
-
     private fun initRoomIfNeeded() {
         try {
             if (conversationId.isEmpty()) return
@@ -450,8 +441,6 @@ class ChatDetailActivity : BaseActivity() {
         val notifRoomId = intent.getStringExtra("roomId")
             ?: intent.getStringExtra("chat_room_id")
         val notifSenderId = intent.getStringExtra("senderId")
-        val notifSenderName = intent.getStringExtra("senderName")
-        val notifSenderAvatar = intent.getStringExtra("senderAvatar")
 
         if (!notifRoomId.isNullOrEmpty() && !notifSenderId.isNullOrEmpty()) {
             Log.d("ChatDetailActivity", "📱 Opened from notification!")
@@ -473,12 +462,6 @@ class ChatDetailActivity : BaseActivity() {
         const val EXTRA_PARTNER_NAME = "partnerName"
         const val EXTRA_PARTNER_AVATAR = "partnerAvatar"
         const val EXTRA_ROOM_ID = "roomId"
-
-        // ✅ THÊM các key từ notification
-        const val NOTIF_ROOM_ID = "chat_room_id"
-        const val NOTIF_SENDER_ID = "senderId"
-        const val NOTIF_SENDER_NAME = "senderName"
-        const val NOTIF_SENDER_AVATAR = "senderAvatar"
 
         fun newIntent(
             context: Context,

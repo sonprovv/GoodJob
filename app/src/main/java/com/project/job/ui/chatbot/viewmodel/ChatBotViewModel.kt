@@ -1,4 +1,4 @@
-package com.project.job.ui.chatbot
+package com.project.job.ui.chatbot.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -42,7 +42,7 @@ class ChatBotViewModel : ViewModel() {
     private val _response_type = MutableStateFlow<String?>(null)
     val response_type: StateFlow<String?> = _response_type
 
-    fun chatBot(request: String, locationData: LocationData, session_id: String) {
+    fun chatBot(request: String, locationData: LocationData) {
         viewModelScope.launch {
             _success.value = false
             _loading.value = true
@@ -163,6 +163,18 @@ class ChatBotViewModel : ViewModel() {
                                 else if (dataElement?.isJsonPrimitive == true) {
                                     _response_text.value = dataElement.asString
                                     Log.d("ChatBotViewModel", "Legacy format - General text: ${dataElement.asString}")
+                                }
+                            }
+                            "history", "History" -> {
+                                // New API format: context directly in response
+                                if (responseData.context != null) {
+                                    _response_text.value = responseData.context
+                                    Log.d("ChatBotViewModel", "New format - History text: ${responseData.context}")
+                                }
+                                // Legacy format: data is string
+                                else if (dataElement?.isJsonPrimitive == true) {
+                                    _response_text.value = dataElement.asString
+                                    Log.d("ChatBotViewModel", "Legacy format - History text: ${dataElement.asString}")
                                 }
                             }
                             else -> {

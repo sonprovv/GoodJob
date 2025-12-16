@@ -3,7 +3,6 @@ package com.project.job.ui.login
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import com.project.job.databinding.ActivityLoginBinding
 import android.graphics.Color
 import android.os.Build
@@ -14,7 +13,6 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.project.job.MainActivity

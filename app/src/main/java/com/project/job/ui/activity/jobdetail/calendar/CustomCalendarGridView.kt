@@ -22,7 +22,6 @@ class CustomCalendarGridView @JvmOverloads constructor(
     private var workingDates = mutableSetOf<String>()
     private val inputDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) // Format từ API
     private val internalDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Format nội bộ
-    private val displayFormat = SimpleDateFormat("d", Locale.getDefault())
     private var startDate: Calendar? = null
     private var endDate: Calendar? = null
     private var calendarAdapter: CalendarAdapter? = null
@@ -77,10 +76,6 @@ class CustomCalendarGridView @JvmOverloads constructor(
         calendarAdapter = CalendarAdapter()
         calendarAdapter?.generateCalendarDays() // Generate initial calendar
         adapter = calendarAdapter
-    }
-
-    fun setMonth(year: Int, month: Int) {
-        // This method is no longer needed as we display date range
     }
 
     private inner class CalendarAdapter : BaseAdapter() {

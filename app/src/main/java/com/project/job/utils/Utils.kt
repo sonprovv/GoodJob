@@ -28,38 +28,6 @@ fun View.addFadeClickEffect(
     }
 }
 
-class GridSpacingItemDecoration(
-    private val spanCount: Int,
-    private val spacing: Int,
-    private val includeEdge: Boolean
-) : RecyclerView.ItemDecoration() {
-
-    override fun getItemOffsets(
-        outRect: android.graphics.Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
-    ) {
-        val position = parent.getChildAdapterPosition(view) // vị trí item
-        val column = position % spanCount // cột của item
-
-        if (includeEdge) {
-            outRect.left = spacing - column * spacing / spanCount
-            outRect.right = (column + 1) * spacing / spanCount
-
-            if (position < spanCount) { // item ở hàng đầu
-                outRect.top = spacing
-            }
-            outRect.bottom = spacing
-        } else {
-            outRect.left = column * spacing / spanCount
-            outRect.right = spacing - (column + 1) * spacing / spanCount
-            if (position >= spanCount) {
-                outRect.top = spacing
-            }
-        }
-    }
-}
 
 fun getFCMToken(context: android.content.Context) {
     val preferencesManager = PreferencesManager(context)

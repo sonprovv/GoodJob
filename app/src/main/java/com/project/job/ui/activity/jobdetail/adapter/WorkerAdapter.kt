@@ -121,8 +121,7 @@ class WorkerAdapter (
             
             // Show/hide rating section based on status
             val llReview = itemView.findViewById<View>(R.id.ll_review)
-            val llAction = itemView.findViewById<View>(R.id.ll_action)
-            
+
             when(status) {
                 "Chờ xác nhận" -> {
                     // Check if serviceType is MAINTENANCE or CLEANING and already has accepted worker
@@ -259,11 +258,6 @@ class WorkerAdapter (
                 }
             }
         }
-        
-        private fun submitRatingAndComment(rating: Int, comment: String) {
-            // This method is no longer needed as API call is handled directly in click listener
-            // Keeping for backward compatibility but removing the reset logic
-        }
     }
 
     fun submitList(newList: List<WorkerOrder>) {
@@ -293,8 +287,5 @@ class WorkerAdapter (
 
     override fun onBindViewHolder(holder: viewHolder, position: Int) {
         holder.bind(workerList[position])
-//        holder.itemView.setOnClickListener {
-//            onViewDetailClicked(workerList[position])
-//        }
     }
 }

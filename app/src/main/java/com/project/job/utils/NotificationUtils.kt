@@ -41,10 +41,6 @@ object NotificationUtils {
         }
     }
 
-    fun areNotificationsEnabled(context: Context): Boolean {
-        return NotificationManagerCompat.from(context).areNotificationsEnabled()
-    }
-
     fun getNotificationBuilder(
         context: Context,
         title: String,

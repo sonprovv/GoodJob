@@ -29,13 +29,9 @@ import com.project.job.ui.service.maintenanceservice.viewmodel.MaintenanceViewMo
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.launch
 
-//// Type alias để rút ngắn tên
-//private typealias PowerItem = com.project.job.ui.service.maintenanceservice.adapter.PowerItem
-//private typealias ServicePowerItem = com.project.job.ui.service.maintenanceservice.adapter.ServicePowerItem
-
 interface OnPriceChangedListener {
     fun onPriceChanged(
-        selectedItems: List<com.project.job.ui.service.maintenanceservice.adapter.PowerItem>,
+        selectedItems: List<PowerItem>,
         currentServiceName: String
     )
 }
@@ -164,7 +160,6 @@ class SelectServiceMaintenanceActivity : BaseActivity(), OnPriceChangedListener 
         }
 
         val totalPrice = calculateTotalPrice()
-        val totalHours = calculateTotalHours()
 
         // Tạo danh sách tên services và mô tả (giữ nguyên để hiển thị trong extraServices)
         val serviceNames = selectedItemsData.map { it.serviceName }.distinct()
@@ -194,7 +189,6 @@ class SelectServiceMaintenanceActivity : BaseActivity(), OnPriceChangedListener 
         navigateToSelectTimeFragment(
             serviceNames = serviceNames,
             serviceDescriptions = serviceDescriptions,
-//            totalHours = totalHours,
             totalPrice = totalPrice,
             selectedItems = selectedItemsData,
             serviceUids = serviceUids,
@@ -274,7 +268,7 @@ class SelectServiceMaintenanceActivity : BaseActivity(), OnPriceChangedListener 
             // Xóa các tab cũ nếu có
             removeAllTabs()
         }
-        adapter = TabLayoutMaintenanceAdapter(this, services, this)
+        adapter = TabLayoutMaintenanceAdapter(this, services)
         binding.viewPagerMaintenance.adapter = adapter
 
         // VÔ HIỆU HÓA SWIPE GESTURE

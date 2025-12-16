@@ -70,7 +70,6 @@ class NotificationActivity : BaseActivity() {
                 handleMenuAction(notification, action)
             },
             onViewDetailClicked = { notification ->
-//                navigateToJobDetail(jobID)
                 navigateToNotificationDetail(notification)
             }
         )
@@ -100,8 +99,8 @@ class NotificationActivity : BaseActivity() {
     }
 
     private fun showLoginRequired() {
-        binding.llLoginRequired.visibility = android.view.View.VISIBLE
-        binding.swipeRefreshLayout.visibility = android.view.View.GONE
+        binding.llLoginRequired.visibility = View.VISIBLE
+        binding.swipeRefreshLayout.visibility = View.GONE
 
         binding.btnLogin.setOnClickListener {
             // Show login dialog
@@ -109,8 +108,8 @@ class NotificationActivity : BaseActivity() {
             loginFragment.setLoginResultListener(object : com.project.job.ui.login.LoginResultListener {
                 override fun onLoginSuccess() {
                     // Reload activity after successful login
-                    binding.llLoginRequired.visibility = android.view.View.GONE
-                    binding.swipeRefreshLayout.visibility = android.view.View.VISIBLE
+                    binding.llLoginRequired.visibility = View.GONE
+                    binding.swipeRefreshLayout.visibility = View.VISIBLE
                     setupSwipeRefresh()
                     loadData()
                     observeViewModel()
@@ -131,19 +130,6 @@ class NotificationActivity : BaseActivity() {
         activityViewModel.refreshJobs(uid)
         healthcareViewModel.getServiceHealthcare()
     }
-
-//    private fun navigateToJobDetail(jobID: String) {
-//        // Find the job by ID
-//        val job = jobList.find { it.uid == jobID }
-//        if (job != null) {
-//            val intent = Intent(this, JobDetailActivity::class.java)
-//            intent.putExtra("job", job)
-//            intent.putParcelableArrayListExtra("healthcareServiceList", ArrayList(healthcareServiceList))
-//            startActivity(intent)
-//        } else {
-//            Toast.makeText(this, "Không tìm thấy thông tin công việc", Toast.LENGTH_SHORT).show()
-//        }
-//    }
 
     private fun navigateToNotificationDetail(notification: NotificationInfo) {
         val intent = Intent(this, NotificationDetailActivity::class.java)
@@ -221,7 +207,6 @@ class NotificationActivity : BaseActivity() {
     }
 
     private fun handleMenuAction(notification: NotificationInfo, action: String) {
-        val token = preferencesManager.getAuthToken() ?: ""
         when (action) {
             "mark_read" -> {
                 // Call API to mark notification as read
@@ -231,18 +216,9 @@ class NotificationActivity : BaseActivity() {
             }
 
             "delete" -> {
-                // TODO: Call API to delete notification
-                // For now, just show a toast
                 Toast.makeText(this, "Xóa thông báo: ${notification.title}", Toast.LENGTH_SHORT)
                     .show()
-
-                // You can add API call here to delete the notification
-                // viewModel.deleteNotification(notification.uid)
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 }

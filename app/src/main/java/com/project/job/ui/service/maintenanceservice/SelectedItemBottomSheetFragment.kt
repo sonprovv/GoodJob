@@ -2,25 +2,20 @@ package com.project.job.ui.service.maintenanceservice
 
 import android.app.Dialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.project.job.R
 import com.project.job.databinding.FragmentSelectedItemBottomSheetBinding
 import com.project.job.ui.service.maintenanceservice.adapter.SelectedItemAdapter
+import com.project.job.ui.service.maintenanceservice.adapter.ServicePowerItem
 
-// Type alias để rút ngắn tên
-private typealias PowerItem = com.project.job.ui.service.maintenanceservice.adapter.PowerItem
-private typealias ServicePowerItem = com.project.job.ui.service.maintenanceservice.adapter.ServicePowerItem
 
 class SelectedItemBottomSheetFragment : BottomSheetDialogFragment() {
-    private var _binding : FragmentSelectedItemBottomSheetBinding ?= null
+    private var _binding: FragmentSelectedItemBottomSheetBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: SelectedItemAdapter
 
@@ -33,10 +28,6 @@ class SelectedItemBottomSheetFragment : BottomSheetDialogFragment() {
 
     fun setOnNextButtonClickListener(listener: OnNextButtonClickListener) {
         this.listener = listener
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
@@ -83,7 +74,7 @@ class SelectedItemBottomSheetFragment : BottomSheetDialogFragment() {
         loadSelectedItems()
 
         // Đóng bottom sheet khi nhấn vào header
-        binding.llBottomSheetDetail.setOnClickListener{
+        binding.llBottomSheetDetail.setOnClickListener {
             dismiss()
         }
 
@@ -123,18 +114,13 @@ class SelectedItemBottomSheetFragment : BottomSheetDialogFragment() {
     private fun updateTotalInfo() {
         val totalSelectedCount = arguments?.getInt("total_selected_count") ?: 0
         val totalPrice = arguments?.getInt("total_price") ?: 0
-//        val totalHours = arguments?.getInt("total_hours") ?: 0
 
         // Hiển thị số lượng items đã chọn
         binding.tvTotalSelectedItems.text = totalSelectedCount.toString()
 
         // Hiển thị tổng giá với thông tin thời gian
         if (totalPrice > 0) {
-//            if (totalHours > 0) {
-//                binding.tvPrice.text = "${String.format("%,d", totalPrice)}đ/${totalHours}h"
-//            } else {
-                binding.tvPrice.text = "${String.format("%,d", totalPrice)} VND"
-//            }
+            binding.tvPrice.text = "${String.format("%,d", totalPrice)} VND"
         } else {
             binding.tvPrice.text = "Chọn dịch vụ"
         }

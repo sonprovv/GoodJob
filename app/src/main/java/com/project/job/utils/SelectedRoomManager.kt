@@ -30,12 +30,4 @@ object SelectedRoomManager {
     fun clearAllRooms() {
         selectedRooms.clear()
     }
-    
-    fun isRoomSelected(originalUid: String): Boolean {
-        return selectedRooms.any { it.uid.startsWith("${originalUid}_") }
-    }
-    
-    fun getSelectedRoomNames(): String {
-        return selectedRooms.joinToString(", ") { it.serviceName }
-    }
 }

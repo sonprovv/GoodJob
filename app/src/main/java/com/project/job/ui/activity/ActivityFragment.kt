@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -293,9 +292,7 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             "Not Payment",
             "Hiring",
             "Processing",
-            "Active",
             "Completed",
-            "Closed",
             "Cancel"
         )
         
@@ -304,9 +301,7 @@ class ActivityFragment : BaseFragment(), LoginResultListener {
             "Chưa thanh toán",
             "Đang tuyển",
             "Đang xử lý",
-            "Đang hoạt động",
             "Đã hoàn tất",
-            "Đã đóng",
             "Đã hủy"
         )
         

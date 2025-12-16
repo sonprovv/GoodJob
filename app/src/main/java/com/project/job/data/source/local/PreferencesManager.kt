@@ -3,13 +3,11 @@ package com.project.job.data.source.local
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.google.gson.Gson
 import com.project.job.data.source.remote.api.response.User
 
 class PreferencesManager(context: Context) {
     internal val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-    private val gson = Gson()
 
     fun saveFCMToken(fcmToken: String) {
         sharedPreferences.edit().putString("fcm_token", fcmToken).apply()
@@ -21,10 +19,6 @@ class PreferencesManager(context: Context) {
     fun saveNameAndPhone(name: String, phone: String) {
         sharedPreferences.edit().putString(KEY_USER_NAME, name).apply()
         sharedPreferences.edit().putString(KEY_USER_PHONE, phone).apply()
-    }
-
-    fun saveAddress(address: String) {
-        sharedPreferences.edit().putString(KEY_USER_LOCATION, address).apply()
     }
 
     fun saveLocationCoordinates(latitude: Double, longitude: Double) {
@@ -126,10 +120,6 @@ class PreferencesManager(context: Context) {
         return sharedPreferences.getLong(KEY_TOKEN_EXPIRATION, 0L)
     }
 
-    // Lưu Google Access Token (từ OAuth)
-    fun saveGoogleAccessToken(accessToken: String) {
-        sharedPreferences.edit().putString(KEY_GOOGLE_ACCESS_TOKEN, accessToken).apply()
-    }
 
     // Lấy Google Access Token
     fun getGoogleAccessToken(): String? {
@@ -173,10 +163,6 @@ class PreferencesManager(context: Context) {
         Log.d("PreferencesManager", "All auth data cleared")
     }
 
-    // Kiểm tra đã đăng nhập chưa
-    fun isLoggedIn(): Boolean {
-        return !getAuthToken().isNullOrEmpty()
-    }
 
     // Lấy thông tin người dùng
     fun getUserData(): Map<String, String> {

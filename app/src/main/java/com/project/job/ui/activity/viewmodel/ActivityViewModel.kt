@@ -153,19 +153,4 @@ class ActivityViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /**
-     * Clear all local jobs (useful for logout)
-     */
-    fun clearLocalJobs() {
-        viewModelScope.launch {
-            try {
-                Log.d("ActivityViewModel", "Clearing local jobs")
-                jobRepository.clearLocalJobs()
-            } catch (e: Exception) {
-                Log.e("ActivityViewModel", "Error clearing local jobs: ${e.message}")
-            }
-        }
-    }
-
-
 }

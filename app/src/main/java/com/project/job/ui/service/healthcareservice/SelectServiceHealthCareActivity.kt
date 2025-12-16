@@ -18,7 +18,6 @@ import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.api.response.HealthcareService
 import com.project.job.data.source.remote.api.response.HealthcareShift
 import com.project.job.databinding.ActivitySelectServiceHealthCareBinding
-import com.project.job.ui.intro.CleaningIntroActivity
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.ui.map.MapActivity
 import com.project.job.ui.service.SelectTimeFragment
@@ -107,12 +106,6 @@ class SelectServiceHealthCareActivity : BaseActivity() {
                     location
                 }
             }
-
-//            location.contains(",") -> {
-//                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
-//                location.substringAfter(",").trim()
-//            }
-
             else -> location
         }
 

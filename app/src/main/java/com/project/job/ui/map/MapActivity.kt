@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.location.Location
@@ -21,7 +20,6 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -51,7 +49,6 @@ import com.project.job.databinding.ActivityMapBinding
 import com.project.job.ui.service.cleaningservice.SelectServiceActivity
 import com.project.job.ui.service.healthcareservice.SelectServiceHealthCareActivity
 import com.project.job.ui.service.maintenanceservice.SelectServiceMaintenanceActivity
-import com.project.job.utils.Constant
 import com.project.job.utils.addFadeClickEffect
 import okhttp3.Call
 import okhttp3.Callback
@@ -675,11 +672,6 @@ class MapActivity : ComponentActivity(), LocationListener {
         return selectedAddress
     }
 
-    // Hàm để lấy thông tin đầy đủ về vị trí đã chọn
-    fun getSelectedLocationInfo(): Pair<Point?, String?> {
-        return Pair(selectedLocation, selectedAddress)
-    }
-
     // Hàm để format tọa độ thành string đẹp
     private fun formatCoordinates(point: Point): String {
         return "Lat: ${String.format("%.6f", point.latitude())}, Lng: ${String.format("%.6f", point.longitude())}"
@@ -1111,12 +1103,5 @@ class MapActivity : ComponentActivity(), LocationListener {
         private const val TAG = "MapActivity"
         private const val MIN_TIME_BETWEEN_UPDATES = 5000L // 5 giây
         private const val MIN_DISTANCE_CHANGE_FOR_UPDATES = 10f // 10 mét
-
-        // Keys cho Intent extras
-        const val EXTRA_SELECTED_LATITUDE = "selected_latitude"
-        const val EXTRA_SELECTED_LONGITUDE = "selected_longitude"
-        const val EXTRA_SELECTED_ADDRESS = "selected_address"
-        const val EXTRA_LOCATION_SOURCE = "location_source"
-        const val EXTRA_TIMESTAMP = "timestamp"
     }
 }

@@ -84,55 +84,10 @@ class TokenManager(private val context: Context) {
     }
     
     /**
-     * Refresh token nếu cần thiết
-     */
-    suspend fun refreshTokenIfNeeded(): String? {
-        return if (isTokenExpiringSoon()) {
-            Log.d(TAG, "Token is expiring soon, refreshing...")
-            getCurrentFirebaseToken(forceRefresh = true)
-        } else {
-            Log.d(TAG, "Token is still valid")
-            preferencesManager.getAuthToken()
-        }
-    }
-    
-    /**
-     * Lấy token hợp lệ cho API calls
-     */
-    suspend fun getValidToken(): String? {
-        val currentToken = preferencesManager.getAuthToken()
-        
-        // Nếu không có token hoặc token sắp hết hạn, refresh
-        return if (currentToken.isNullOrEmpty() || isTokenExpiringSoon()) {
-            Log.d(TAG, "Getting fresh token...")
-            getCurrentFirebaseToken(forceRefresh = true)
-        } else {
-            Log.d(TAG, "Using existing valid token")
-            currentToken
-        }
-    }
-    
-    /**
      * Xóa tất cả token data
      */
     fun clearTokenData() {
         preferencesManager.clearAuthData()
         Log.d(TAG, "Token data cleared")
-    }
-    
-    /**
-     * Kiểm tra trạng thái đăng nhập Firebase
-     */
-    fun isFirebaseUserSignedIn(): Boolean {
-        return firebaseAuth.currentUser != null
-    }
-    
-    /**
-     * Đăng xuất Firebase
-     */
-    fun signOutFirebase() {
-        firebaseAuth.signOut()
-        clearTokenData()
-        Log.d(TAG, "Firebase user signed out")
     }
 }

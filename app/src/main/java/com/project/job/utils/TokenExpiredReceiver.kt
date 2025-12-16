@@ -65,15 +65,3 @@ class TokenExpiredReceiver(
         unregister()
     }
 }
-
-/**
- * Extension function để dễ dàng setup token expired listener trong Activity/Fragment
- */
-fun LifecycleOwner.setupTokenExpiredListener(
-    context: Context,
-    onTokenExpired: () -> Unit
-): TokenExpiredReceiver {
-    val receiver = TokenExpiredReceiver(onTokenExpired)
-    receiver.register(context, this)
-    return receiver
-}

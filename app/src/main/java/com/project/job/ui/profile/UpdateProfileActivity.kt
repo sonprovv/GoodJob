@@ -16,7 +16,6 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
@@ -328,12 +327,6 @@ class UpdateProfileActivity : BaseActivity() {
         val role = preferencesManager.getUserData()["user_role"] ?: ""
         val provider = preferencesManager.getUserData()["user_provider"] ?: ""
 
-        // Xử lý hiển thị địa chỉ - loại bỏ tọa độ và chỉ hiển thị địa chỉ
-//        val firstCommaIndex = location.indexOf(",")
-//        location = location.substring(firstCommaIndex + 1).trim()
-
-
-
 
         binding.edtFullname.setText(userName)
         binding.edtPhone.setText(phone)
@@ -608,9 +601,6 @@ class UpdateProfileActivity : BaseActivity() {
     private fun showDatePickerDialog() {
         // Get current date or use a default date
         val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
         // Parse existing date if available
         val currentDate = binding.tvDob.text.toString()

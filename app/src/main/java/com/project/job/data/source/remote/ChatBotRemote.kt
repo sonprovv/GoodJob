@@ -1,7 +1,6 @@
 package com.project.job.data.source.remote
 
 import com.project.job.data.network.ApiService
-import com.project.job.data.network.ChatApiService
 import com.project.job.data.network.RetrofitClient
 import com.project.job.data.source.ChatBotDataSource
 import com.project.job.data.source.remote.api.request.ChatBotRequest

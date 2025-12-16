@@ -26,10 +26,6 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var viewModel: UpdateProfileViewModel
     private lateinit var loadingDialog: LoadingDialog
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -209,6 +205,4 @@ class UpdateNameAndPhoneFragment : BottomSheetDialogFragment() {
             }
         }
     }
-
-
 }

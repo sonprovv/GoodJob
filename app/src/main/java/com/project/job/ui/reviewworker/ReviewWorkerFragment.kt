@@ -3,7 +3,6 @@ package com.project.job.ui.reviewworker
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.lifecycleScope
@@ -13,11 +12,9 @@ import com.bumptech.glide.request.RequestOptions
 import com.project.job.R
 import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
-import com.project.job.data.source.remote.api.response.ExtendedReview
 import com.project.job.databinding.FragmentReviewWorkerBinding
 import com.project.job.ui.activity.jobdetail.viewmodel.JobDetailViewModel
 import com.project.job.ui.chat.detail.ChatDetailActivity
-import com.project.job.ui.notification.NotificationActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -27,9 +24,6 @@ class ReviewWorkerFragment : BaseFragment() {
     private val binding get() = _binding!!
     private lateinit var viewModel: JobDetailViewModel
     private lateinit var preferencesManager: PreferencesManager
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,7 +46,6 @@ class ReviewWorkerFragment : BaseFragment() {
         val workerAvatar = arguments?.getString("worker_avatar")
         val workerDescription = arguments?.getString("worker_description")
         val workerGender = arguments?.getString("worker_gender")
-        val workerStatus = arguments?.getString("worker_status")
         val workerBirthdate = arguments?.getString("worker_birthdate")
         val workerEmail = arguments?.getString("worker_email")
 

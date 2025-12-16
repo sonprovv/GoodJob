@@ -19,36 +19,7 @@ import com.project.job.data.source.remote.api.response.UserPostJobsResponse
 import com.project.job.data.source.remote.api.response.WorkerOrderJobResponse
 
 interface ServiceDataSource {
-//    interface Local {
-//        // Cleaning service
-//        suspend fun saveCleaning(cleaningData: ServiceCleaningResponse.CleaningData?)
-//        suspend fun getCleaning(): ServiceCleaningResponse.CleaningData?
-//
-//        // Healthcare service
-//        suspend fun saveHealthcare(healthcareData: ServiceHealthcareResponse.HealthcareData?)
-//        suspend fun getHealthcare(): ServiceHealthcareResponse.HealthcareData?
-//
-//        // Maintenance service
-//        suspend fun saveMaintenance(maintenanceData: ServiceMaintenanceResponse.MaintenanceData?)
-//        suspend fun getMaintenance(): ServiceMaintenanceResponse.MaintenanceData?
-//
-//        // User jobs
-//        suspend fun saveUserJobs(jobs: List<UserPostJobsResponse.DataJobs>)
-//        suspend fun getUserJobs(): List<UserPostJobsResponse.DataJobs>
-//        suspend fun clearUserJobs()
-//
-//        // Worker orders
-//        suspend fun saveWorkerOrders(orders: List<WorkerOrderJobResponse.WorkerOrder>)
-//        suspend fun getWorkerOrders(): List<WorkerOrderJobResponse.WorkerOrder>
-//
-//        // Reviews
-//        suspend fun saveWorkerReviews(reviews: List<GetReviewWorkerResponse.Review>)
-//        suspend fun getWorkerReviews(): List<GetReviewWorkerResponse.Review>
-//    }
-
     interface Remote {
-
-
         suspend fun getServiceCleaning(): NetworkResult<ServiceCleaningResponse>
         suspend fun getServiceMaintenance(): NetworkResult<ServiceMaintenanceResponse>
         suspend fun getServiceHealthcare(): NetworkResult<ServiceHealthcareResponse>

@@ -1,10 +1,8 @@
 package com.project.job.ui.activity.jobdetail.viewmodel
 
-import android.app.Service
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.repository.ServiceRepository
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.ServiceRemote
 import kotlinx.coroutines.flow.MutableStateFlow

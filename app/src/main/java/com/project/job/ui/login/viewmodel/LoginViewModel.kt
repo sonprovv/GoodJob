@@ -11,7 +11,7 @@ import com.project.job.utils.ErrorHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
+
 class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
     private val userRepository = UserRemote.getInstance()
 

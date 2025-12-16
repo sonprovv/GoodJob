@@ -5,9 +5,7 @@ import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.project.job.data.network.RetrofitClient
-import com.project.job.data.source.local.PreferencesManager
 import com.project.job.utils.FirebaseInstanceIdService
-import com.project.job.utils.NotificationHelper
 import com.project.job.utils.NotificationUtils
 import com.project.job.utils.getFCMToken
 

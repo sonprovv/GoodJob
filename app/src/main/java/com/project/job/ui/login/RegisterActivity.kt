@@ -12,10 +12,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.project.job.MainActivity
@@ -29,7 +26,6 @@ import com.project.job.ui.login.viewmodel.LoginViewModel
 import com.project.job.ui.login.viewmodel.RegisterViewModel
 import com.project.job.utils.addFadeClickEffect
 import com.project.job.utils.ErrorHandler
-import com.project.job.utils.getFCMToken
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

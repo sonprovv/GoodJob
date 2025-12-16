@@ -28,7 +28,6 @@ class DetailServiceCleaningAdapter(private val tasks: List<String>) :
 
     inner class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textView: TextView = itemView.findViewById(R.id.tv_content_detail_job)
-        private val starImageView: ImageView = itemView.findViewById(R.id.iv_star_detail_job)
 
         fun bind(task: String) {
             textView.text = task

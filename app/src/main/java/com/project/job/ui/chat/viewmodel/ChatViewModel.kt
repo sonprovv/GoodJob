@@ -1,4 +1,4 @@
-package com.project.job.ui.chat
+package com.project.job.ui.chat.viewmodel
 
 import android.app.Application
 import android.util.Log
@@ -9,8 +9,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.gson.Gson
-import com.project.job.data.mapper.ChatMapper
 import com.project.job.data.repository.ConversationRepository
 import com.project.job.data.repository.implement.ConversationRepositoryImpl
 import com.project.job.data.source.local.room.entity.ChatEntity

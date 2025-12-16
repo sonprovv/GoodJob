@@ -32,6 +32,4 @@ class BannerAdapter(
     override fun getItemCount(): Int {
         return listimg.size
     }
-
-
 }

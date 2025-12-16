@@ -6,10 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.project.job.R
 import com.project.job.base.BaseActivity
 import com.project.job.databinding.ActivityNotificationDetailBinding
 import com.project.job.utils.addFadeClickEffect

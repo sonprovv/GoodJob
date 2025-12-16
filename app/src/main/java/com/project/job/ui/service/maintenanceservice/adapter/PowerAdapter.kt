@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
@@ -34,11 +33,6 @@ class PowerAdapter(
     private val onQuantityChanged: (List<PowerItem>) -> Unit
 ) : RecyclerView.Adapter<PowerAdapter.ViewHolder>() {
     private val items = mutableListOf<PowerItem>()
-
-    companion object {
-        // Expose PowerItem để có thể truy cập từ bên ngoài
-        val PowerItemType = PowerItem::class.java
-    }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvPowerName: TextView = itemView.findViewById(R.id.tv_power_name)
@@ -225,14 +219,5 @@ class PowerAdapter(
         })
         notifyDataSetChanged()
     }
-
-    fun submitListWithPrices(newItems: List<PowerItem>) {
-        items.clear()
-        items.addAll(newItems)
-        notifyDataSetChanged()
-    }
-
-    fun getSelectedItems(): List<PowerItem> = items.filter { it.quantity > 0 }
-
     fun getAllItems(): List<PowerItem> = items.toList()
 }

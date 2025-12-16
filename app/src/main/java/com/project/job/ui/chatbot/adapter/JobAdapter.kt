@@ -1,4 +1,4 @@
-package com.project.job.ui.chatbot
+package com.project.job.ui.chatbot.adapter
 
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -28,7 +28,6 @@ class JobAdapter(private val jobs: List<QueryJobs>) :
 
     class JobViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvServiceType: TextView = itemView.findViewById(R.id.tvServiceType)
-//        private val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
         private val tvLocation: TextView = itemView.findViewById(R.id.tvLocation)
         private val tvPrice: TextView = itemView.findViewById(R.id.tvPrice)
         private val tvStartTime: TextView = itemView.findViewById(R.id.tvStartTime)
@@ -39,10 +38,6 @@ class JobAdapter(private val jobs: List<QueryJobs>) :
             // Service Type
             tvServiceType.text = job.serviceType
             tvServiceType.setBackgroundColor(getServiceTypeColor(job.serviceType.toString()))
-
-            // Status
-//            tvStatus.text = job.status
-//            tvStatus.setTextColor(getStatusColor(job.status))
 
             // Location
             tvLocation.text = job.location

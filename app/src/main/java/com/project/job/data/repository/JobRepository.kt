@@ -7,19 +7,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface JobRepository {
     /**
-     * Get all jobs from local database as Flow (auto-update UI when data changes)
-     */
-    fun getAllJobsLocal(): Flow<List<JobEntity>>
-
-    /**
      * Get jobs by user ID from local database
      */
     fun getJobsByUserLocal(userId: String): Flow<List<JobEntity>>
-
-    /**
-     * Get jobs by status from local database
-     */
-    fun getJobsByStatusLocal(status: String): Flow<List<JobEntity>>
 
     /**
      * Fetch jobs from remote API and save to local database
@@ -41,14 +31,4 @@ interface JobRepository {
      * Delete all jobs from local database
      */
     suspend fun clearLocalJobs()
-
-    /**
-     * Insert jobs into local database
-     */
-    suspend fun insertJobs(jobs: List<JobEntity>)
-
-    /**
-     * Get a single job by ID
-     */
-    suspend fun getJobById(jobId: String): JobEntity?
 }

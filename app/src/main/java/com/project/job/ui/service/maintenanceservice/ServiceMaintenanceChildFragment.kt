@@ -36,17 +36,8 @@ class ServiceMaintenanceChildFragment : Fragment() {
         }
     }
 
-    // Method để set listener từ activity
-    fun setPriceChangedListener(listener: OnPriceChangedListener) {
-        this.priceChangedListener = listener
-    }
-
     // Lưu trữ tên service hiện tại để sử dụng trong callback
     private lateinit var serviceName: String
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

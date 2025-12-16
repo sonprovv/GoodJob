@@ -16,16 +16,6 @@ class ChatMessagesAdapter(
     private val currentUserId: String
 ) : ListAdapter<MessageData, RecyclerView.ViewHolder>(MessageDiffCallback()) {
 
-    // Removed: private var messages, using ListAdapter's getItem() instead
-
-    // ListAdapter provides submitList() automatically
-    
-    fun addMessage(message: MessageData) {
-        val currentList = currentList.toMutableList()
-        currentList.add(message)
-        submitList(currentList)
-    }
-
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
         if(message.senderId == currentUserId) {

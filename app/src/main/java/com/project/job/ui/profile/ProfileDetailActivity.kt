@@ -7,9 +7,6 @@ import android.view.View
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -73,8 +70,7 @@ class ProfileDetailActivity : BaseActivity() {
     private fun refreshUserData() {
         val userName = preferencesManager.getUserData()["user_name"] ?: "User"
         val urlImage = preferencesManager.getUserData()["user_avatar"] ?: ""
-        val location = preferencesManager.getUserData()["user_location"] ?: ""
-        
+
         binding.tvFullName.text = userName
         Glide.with(this)
             .load(urlImage)

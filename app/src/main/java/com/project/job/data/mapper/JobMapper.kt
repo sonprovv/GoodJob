@@ -39,46 +39,4 @@ object JobMapper {
     fun toEntityList(dataJobsList: List<DataJobs>): List<JobEntity> {
         return dataJobsList.map { toEntity(it) }
     }
-
-    /**
-     * Convert JobEntity back to DataJobs (if needed for UI)
-     * Note: This requires parsing JSON strings back to objects
-     */
-    fun toDataJobs(entity: JobEntity, user: com.project.job.data.source.remote.api.response.UserInfo): DataJobs {
-        return DataJobs(
-            uid = entity.uid,
-            startTime = entity.startTime,
-            serviceType = entity.serviceType,
-            workerQuantity = entity.workerQuantity,
-            price = entity.price,
-            listDays = entity.listDays,
-            status = entity.status,
-            location = entity.location,
-            isCooking = entity.isCooking,
-            isIroning = entity.isIroning,
-            createdAt = entity.createdAt,
-            user = user,
-            duration = entity.duration?.let { 
-                try {
-                    gson.fromJson(it, com.project.job.data.source.remote.api.response.CleaningDuration::class.java)
-                } catch (e: Exception) {
-                    null
-                }
-            },
-            services = entity.services?.let {
-                try {
-                    gson.fromJson(it, Array<com.project.job.data.source.remote.api.response.ServiceHealthcare>::class.java).toList()
-                } catch (e: Exception) {
-                    null
-                }
-            },
-            shift = entity.shift?.let {
-                try {
-                    gson.fromJson(it, com.project.job.data.source.remote.api.response.HealthcareShift::class.java)
-                } catch (e: Exception) {
-                    null
-                }
-            }
-        )
-    }
 }

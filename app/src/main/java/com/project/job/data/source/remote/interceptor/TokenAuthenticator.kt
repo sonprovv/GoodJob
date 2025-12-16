@@ -18,7 +18,6 @@ import okhttp3.Route
 
 class TokenAuthenticator(
     private val apiService: ApiService,
-    private val chatApiService: ChatApiService,
     private val preferencesManager: PreferencesManager,
     private val context: Context
 ) : Authenticator {

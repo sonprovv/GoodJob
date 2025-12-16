@@ -1,4 +1,4 @@
-package com.project.job.ui.chat
+package com.project.job.ui.chat.adapter
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -89,12 +89,6 @@ class ChatAdapter(
             itemView.setOnClickListener {
                 onConversationClick(conversation)
             }
-
-            // Optional: Show unread count badge
-            // TODO: Add badge view if needed
-            // if (conversation.unreadCount > 0) {
-            //     showUnreadBadge(conversation.unreadCount)
-            // }
         }
 
         private fun formatTimestamp(timestamp: Long): String {

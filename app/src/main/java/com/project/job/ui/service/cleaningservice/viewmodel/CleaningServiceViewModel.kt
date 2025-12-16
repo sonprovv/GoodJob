@@ -8,7 +8,6 @@ import com.project.job.data.source.remote.ServiceRemote
 import com.project.job.data.source.remote.api.response.CleaningDuration
 import com.project.job.data.source.remote.api.response.CleaningService
 import com.project.job.data.source.remote.api.response.NewJobCleaning
-import com.project.job.data.source.remote.api.response.NewJobHealthcare
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -92,7 +91,6 @@ class CleaningServiceViewModel : ViewModel() {
                     userID = userID,
                     serviceType = "CLEANING",
                     startTime = startTime,
-//                    workerQuantity = workerQuantity,
                     price = price,
                     listDays = listDays,
                     duration = duration,
@@ -101,7 +99,6 @@ class CleaningServiceViewModel : ViewModel() {
                     location = location,
                     lat = lat,
                     lon = lon
-//                    services = services
                 )
                 Log.d("CleaningServiceViewModel", "Raw response: $response")
 

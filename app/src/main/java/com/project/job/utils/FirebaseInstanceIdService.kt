@@ -32,12 +32,5 @@ class FirebaseInstanceIdService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d(TAG, "Refreshed FCM token: $token")
-        
-        // If you need to send the token to your server, you can do it here
-        // For example:
-        // sendTokenToServer(token)
-        
-        // Subscribe to topics if needed
-        // FirebaseMessaging.getInstance().subscribeToTopic("your_topic")
     }
 }

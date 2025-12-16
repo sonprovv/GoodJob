@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import android.view.LayoutInflater
 import android.view.View
@@ -19,8 +18,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.project.job.base.BaseFragment
 import com.project.job.data.source.local.PreferencesManager
 import com.project.job.databinding.FragmentChatBinding
+import com.project.job.ui.chat.adapter.ChatAdapter
 import com.project.job.ui.chat.detail.ChatDetailActivity
 import com.project.job.ui.chat.taskerfavorite.TaskerFavoriteActivity
+import com.project.job.ui.chat.viewmodel.ChatViewModel
 import com.project.job.ui.loading.LoadingDialog
 import com.project.job.utils.LogoutBroadcastManager
 import com.project.job.utils.addFadeClickEffect

@@ -29,14 +29,6 @@ class JobRepositoryImpl(context: Context) : JobRepository {
         }
     }
 
-    /**
-     * Get all jobs from local database as Flow
-     * UI will automatically update when data changes
-     */
-    override fun getAllJobsLocal(): Flow<List<JobEntity>> {
-        Log.d(TAG, "Getting all jobs from local database")
-        return jobDao.getAllJobs()
-    }
 
     /**
      * Get jobs by user ID from local database as Flow
@@ -46,13 +38,6 @@ class JobRepositoryImpl(context: Context) : JobRepository {
         return jobDao.getJobsByUser(userId)
     }
 
-    /**
-     * Get jobs by status from local database as Flow
-     */
-    override fun getJobsByStatusLocal(status: String): Flow<List<JobEntity>> {
-        Log.d(TAG, "Getting jobs with status: $status from local database")
-        return jobDao.getJobsByStatus(status)
-    }
 
     /**
      * Fetch jobs from remote API and save to local database
@@ -139,31 +124,6 @@ class JobRepositoryImpl(context: Context) : JobRepository {
             jobDao.deleteAllJobs()
         } catch (e: Exception) {
             Log.e(TAG, "Error clearing local jobs: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Insert jobs into local database
-     */
-    override suspend fun insertJobs(jobs: List<JobEntity>) {
-        try {
-            Log.d(TAG, "Inserting ${jobs.size} jobs into local database")
-            jobDao.insertJobs(jobs)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error inserting jobs: ${e.message}", e)
-        }
-    }
-
-    /**
-     * Get a single job by ID
-     */
-    override suspend fun getJobById(jobId: String): JobEntity? {
-        return try {
-            Log.d(TAG, "Getting job by ID: $jobId")
-            jobDao.getJobById(jobId)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting job by ID: ${e.message}", e)
-            null
         }
     }
 }

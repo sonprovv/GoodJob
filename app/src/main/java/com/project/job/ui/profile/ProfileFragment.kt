@@ -2,7 +2,6 @@ package com.project.job.ui.profile
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +15,6 @@ import com.project.job.R
 import com.project.job.data.source.local.PreferencesManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.project.job.MainActivity
 import com.project.job.base.BaseFragment
 import com.project.job.data.repository.TokenRepository
 import com.project.job.databinding.FragmentProfileBinding
@@ -26,7 +24,6 @@ import com.project.job.ui.login.ChangPasswordActivity
 import com.project.job.ui.login.LoginFragment
 import com.project.job.ui.login.LoginResultListener
 import com.project.job.ui.login.viewmodel.LoginViewModel
-import com.project.job.ui.payment.PaymentQrFragment
 import com.project.job.ui.policy.PolicyActivity
 import com.project.job.utils.addFadeClickEffect
 import kotlinx.coroutines.flow.collectLatest
@@ -137,16 +134,6 @@ class ProfileFragment : BaseFragment(), LoginResultListener {
             val intent = Intent(requireContext(), PolicyActivity::class.java)
             startActivityWithAnimation(intent)
         }
-
-//        binding.llGpt.addFadeClickEffect {
-//            // Open ChatGPT in default browser (OpenAI blocks WebView access)
-//            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://chat.openai.com/"))
-//            try {
-//                startActivity(intent)
-//            } catch (e: Exception) {
-//                Toast.makeText(requireContext(), "Không thể mở trình duyệt", Toast.LENGTH_SHORT).show()
-//            }
-//        }
 
         binding.cardViewButtonLogin.addFadeClickEffect {
             // Open LoginFragment

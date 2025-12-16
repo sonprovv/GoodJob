@@ -64,15 +64,6 @@ class AuthenticationManager(
     }
     
     /**
-     * Đánh dấu user đã đăng nhập thành công
-     */
-    fun onLoginSuccess() {
-        Log.d(TAG, "User logged in successfully")
-        _isAuthenticated.value = true
-        _tokenExpired.value = false
-    }
-    
-    /**
      * Xử lý khi token hết hạn
      * Tự động logout và chuyển về màn hình đăng nhập
      */
@@ -89,24 +80,7 @@ class AuthenticationManager(
         // Redirect to login screen
         redirectToLogin()
     }
-    
-    /**
-     * Logout thủ công
-     */
-    suspend fun logout() {
-        Log.d(TAG, "User logging out manually")
-        
-        // Clear tất cả tokens
-        tokenRepository.clearAuthTokens()
-        
-        // Update states
-        _isAuthenticated.value = false
-        _tokenExpired.value = false
-        
-        // Redirect to login screen
-        redirectToLogin()
-    }
-    
+
     /**
      * Chuyển hướng về màn hình đăng nhập
      */
@@ -146,41 +120,5 @@ class AuthenticationManager(
         } catch (e: Exception) {
             Log.e(TAG, "All redirect methods failed", e)
         }
-    }
-    
-    /**
-     * Kiểm tra xem user có đang đăng nhập không
-     */
-    suspend fun isUserAuthenticated(): Boolean {
-        val hasAccessToken = !tokenRepository.getAccessToken().isNullOrEmpty()
-        val hasRefreshToken = !tokenRepository.getRefreshToken().isNullOrEmpty()
-        
-        val isAuthenticated = hasAccessToken || hasRefreshToken
-        _isAuthenticated.value = isAuthenticated
-        
-        return isAuthenticated
-    }
-    
-    /**
-     * Reset token expired state
-     */
-    fun resetTokenExpiredState() {
-        _tokenExpired.value = false
-    }
-    
-    /**
-     * Get current authentication info for debugging
-     */
-    suspend fun getAuthInfo(): String {
-        val hasAccessToken = !tokenRepository.getAccessToken().isNullOrEmpty()
-        val hasRefreshToken = !tokenRepository.getRefreshToken().isNullOrEmpty()
-        
-        return """
-            Authentication Status:
-            - Is Authenticated: ${_isAuthenticated.value}
-            - Token Expired: ${_tokenExpired.value}
-            - Has Access Token: $hasAccessToken
-            - Has Refresh Token: $hasRefreshToken
-        """.trimIndent()
     }
 }

@@ -47,13 +47,6 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
     private var currentStatusFilter: String? = null
     private var currentSortOrder: SortOrder = SortOrder.NEWEST
 
-    private var isSelected = false
-
-    fun setSelected(selected: Boolean) {
-        isSelected = selected
-        notifyDataSetChanged()
-    }
-
     var healthcareServices: List<HealthcareService>? = null
         private set
 
@@ -107,24 +100,6 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
 
     fun setOnJobCancelListener(listener: OnJobCancelListener) {
         this.onJobCancelListener = listener
-    }
-
-    // Method to update job status without reloading entire list
-    fun updateJobStatus(jobId: String, newStatus: String) {
-        val position = jobList.indexOfFirst { it.uid == jobId }
-        if (position != -1) {
-            // Update the job status in the list
-            val updatedJob = jobList[position].copy(status = newStatus)
-            val mutableList = jobList.toMutableList()
-            mutableList[position] = updatedJob
-            jobList = mutableList
-            
-            // Only notify this specific item changed
-            notifyItemChanged(position)
-            Log.d("JobAdapter", "Updated job $jobId status to $newStatus at position $position")
-        } else {
-            Log.w("JobAdapter", "Job $jobId not found in list for status update")
-        }
     }
 
     // ItemTouchHelper for swipe functionality
@@ -413,14 +388,6 @@ class JobAdapter : RecyclerView.Adapter<JobAdapter.viewHolder>() {
             else if(job.status == "Completed"){
                 status = "Đã hoàn tất"
                 tvState.setTextColor(itemView.context.getColor(R.color.xanh))
-            }
-            else if(job.status == "Active"){
-                status = "Đang hoạt động"
-                tvState.setTextColor(itemView.context.getColor(R.color.xanh))
-            }
-            else if(job.status == "Closed") {
-                status = "Đã đóng"
-                tvState.setTextColor(itemView.context.getColor(R.color.red))
             }
             else if(job.status == "Hiring") {
                 status = "Đang tuyển"

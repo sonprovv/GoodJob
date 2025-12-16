@@ -1,7 +1,6 @@
 package com.project.job.ui.activity.jobdetail
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -208,6 +207,4 @@ class WorkerOrderFragment : BaseFragment() {
         super.onDestroyView()
         _binding = null
     }
-
-
 }

@@ -3,12 +3,9 @@ package com.project.job.ui.activity.history.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.job.data.repository.ServiceRepository
-import com.project.job.data.source.local.PreferencesManager
 import com.project.job.data.source.remote.NetworkResult
 import com.project.job.data.source.remote.PaymentRemote
 import com.project.job.data.source.remote.ServiceRemote
-import com.project.job.data.source.remote.api.response.DataJobs
 import com.project.job.data.source.remote.api.response.PaymentData
 import com.project.job.data.source.remote.getOrNull
 import kotlinx.coroutines.flow.MutableStateFlow

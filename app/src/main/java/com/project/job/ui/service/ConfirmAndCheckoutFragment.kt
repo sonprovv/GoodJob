@@ -53,11 +53,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -131,9 +126,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
         }
         Log.d("ConfirmCheckout", "=======================================================")
 
-        // Get selected services from SelectedServiceManager
-//        selectedServices = SelectedRoomManager.getSelectedRooms()
-
         // Format the selected dates
         val displayFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -184,9 +176,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
         }
         binding.tvTotalPrice.text = "$formattedPrice VND"
         binding.tvServiceExtras.text = serviceExtras
-
-        // Update room count from Bundle data instead of SelectedServiceManager
-//        binding.tvTotalRooms.text = "$selectedRoomCount phòng"
 
         // Debug logging for duration data
         Log.d("ConfirmCheckout", "Duration ID: $durationId")
@@ -268,9 +257,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
         }
 
 
-//        displaySelectedServices()
-
-
         binding.ivBack.setOnClickListener {
             navigateBackToActivity()
         }
@@ -325,16 +311,12 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                 description = durationDescription
             )
 
-//            val serviceSelect = selectedServices.map { service ->
-//                service.copy(uid = service.uid.split("_").first())
-//            }
             Log.d("ConfirmCheckout", "About to check service type conditions")
             if (serviceType == "cleaning") {
                 Log.d("ConfirmCheckout", "Cleaning service type detected")
                 viewModelCleaning.postServiceCleaning(
                     userID = uid,
                     startTime = selectedTime,
-//                workerQuantity = numberOfPeople,
                     price = totalFee * selectedDates.size,
                     listDays = selectedDates,
                     duration = duration,
@@ -343,7 +325,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                     location = jobLocationAddress ?: preferencesManager.getUserData()["user_location"] ?: "",
                     lat = lat,
                     lon = lon
-//                services = serviceSelect
                 )
             } else if (serviceType == "healthcare") {
                 Log.d("ConfirmCheckout", "Healthcare service type detected")
@@ -467,21 +448,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                         services.add(service)
                     }
                 }
-
-//                // Nếu không có dữ liệu chi tiết, tạo service mặc định (fallback)
-//                if (services.isEmpty()) {
-//                    val defaultService = ServicePowerInfo(
-//                        uid = durationId.ifEmpty { "maintenance_${System.currentTimeMillis()}" },
-//                        power = listOf(
-//                            PowersInfoQuantity(
-//                                uid = durationId.ifEmpty { "maintenance_${System.currentTimeMillis()}" },
-//                                quantity = totalHours,
-//                                quantityAction = 0
-//                            )
-//                        )
-//                    )
-//                    services.add(defaultService)
-//                }
 
                 Log.d("ConfirmCheckout", "Maintenance services: $services")
                 Log.d("ConfirmCheckout", "Service UIDs: ${selectedServiceUids.joinToString(", ")}")
@@ -707,12 +673,6 @@ class ConfirmAndCheckoutFragment : BaseFragment() {
                     location
                 }
             }
-
-//            location.contains(",") -> {
-//                // Nếu chỉ có dấu phẩy thông thường, lấy phần sau dấu phẩy đầu tiên
-//                location.substringAfter(",").trim()
-//            }
-
             else -> location
         }
         val fullName = userData["user_name"]
