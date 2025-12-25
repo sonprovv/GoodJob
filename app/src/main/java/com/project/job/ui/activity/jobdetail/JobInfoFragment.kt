@@ -186,8 +186,24 @@ class JobInfoFragment : Fragment() {
             binding.tvServiceType.text = typejob
             binding.tvFullName.text = job.user.username
             binding.tvPhone.text = job.user.tel
-            binding.tvStartDate.text = listDays.firstOrNull().toString()
-            binding.tvEndDate.text = listDays.lastOrNull().toString()
+            
+            // Sort listDays theo thứ tự thời gian (parse dd/MM/yyyy)
+            try {
+                val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                val sortedDays = listDays.sortedBy { dateString ->
+                    try {
+                        dateFormat.parse(dateString)?.time ?: Long.MAX_VALUE
+                    } catch (e: Exception) {
+                        Long.MAX_VALUE
+                    }
+                }
+                binding.tvStartDate.text = sortedDays.firstOrNull() ?: "N/A"
+                binding.tvEndDate.text = sortedDays.lastOrNull() ?: "N/A"
+            } catch (e: Exception) {
+                // Fallback nếu parsing thất bại
+                binding.tvStartDate.text = listDays.firstOrNull() ?: "N/A"
+                binding.tvEndDate.text = listDays.lastOrNull() ?: "N/A"
+            }
             binding.tvTotalDay.text = listDays.size.toString() + " ngày"
             // Setup calendar with highlighted days
             setupCalendarWithHighlightedDays(listDays)

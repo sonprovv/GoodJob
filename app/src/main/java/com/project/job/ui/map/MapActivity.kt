@@ -60,32 +60,54 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * MapActivity - Activity chính để chọn vị trí trên bản đồ
+ * 
+ * Chức năng chính:
+ * - Hiển thị bản đồ Mapbox với khả năng tương tác
+ * - Cho phép người dùng chọn vị trí bằng cách chạm vào bản đồ
+ * - Tìm kiếm địa điểm bằng text search (Nominatim API)
+ * - Lấy vị trí hiện tại của người dùng (GPS/Network)
+ * - Chuyển đổi tọa độ thành địa chỉ (reverse geocoding)
+ * - Trả kết quả về activity gọi hoặc chuyển sang service selection
+ */
 class MapActivity : ComponentActivity(), LocationListener {
 
+    // ==================== UI Components ====================
     private var binding: ActivityMapBinding? = null
     private lateinit var mapView: MapView
+    
+    // ==================== Location Components ====================
     private lateinit var navigationLocationProvider: NavigationLocationProvider
     private lateinit var locationManager: LocationManager
-    private var currentLocation: Point? = null
-    private lateinit var pointAnnotationManager: PointAnnotationManager
-    private var isLocationUpdatesActive = false
-    private lateinit var preferencesManager: PreferencesManager
-    private var hasMovedToCurrentLocation = false
-
-    // Biến lưu vị trí và địa chỉ được chọn bằng cách kéo thả/chạm
-    private var selectedLocation: Point? = null
-    private var selectedAddress: String? = null
-
-    // Search results adapter
-    private lateinit var searchResultsAdapter: SearchResultsAdapter
-    private val gson = Gson()
+    private var currentLocation: Point? = null // Vị trí hiện tại của người dùng
+    private var hasMovedToCurrentLocation = false // Flag để tránh auto-move nhiều lần
     
-    // Debounce search
+    // ==================== Map Components ====================
+    private lateinit var pointAnnotationManager: PointAnnotationManager // Quản lý marker trên map
+    private var isLocationUpdatesActive = false // Flag theo dõi trạng thái location updates
+    
+    // ==================== Data Management ====================
+    private lateinit var preferencesManager: PreferencesManager
+    
+    // Biến lưu vị trí và địa chỉ được chọn bằng cách kéo thả/chạm
+    private var selectedLocation: Point? = null // Tọa độ được chọn
+    private var selectedAddress: String? = null // Địa chỉ tương ứng với tọa độ
+    
+    // ==================== Search Components ====================
+    private lateinit var searchResultsAdapter: SearchResultsAdapter // Adapter cho danh sách kết quả tìm kiếm
+    private val gson = Gson() // JSON parser cho API responses
+    
+    // Debounce search - Tránh gọi API quá nhiều khi user đang gõ
     private val searchHandler = Handler(Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
     private val SEARCH_DELAY_MS = 500L // 500ms delay sau khi user dừng gõ
 
-    // Activity result launcher for location permissions
+    // ==================== Permission Handling ====================
+    /**
+     * Activity result launcher để xử lý kết quả yêu cầu quyền truy cập vị trí
+     * Sử dụng ActivityResultContracts.RequestMultiplePermissions() để yêu cầu nhiều quyền cùng lúc
+     */
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -93,7 +115,7 @@ class MapActivity : ComponentActivity(), LocationListener {
             permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                     permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
                 Log.d(TAG, "Location permissions granted")
-                initializeMapComponents()
+                initializeMapComponents() // Khởi tạo map khi có quyền
             }
             else -> {
                 Log.e(TAG, "Location permissions denied")
@@ -106,56 +128,78 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /**
+     * Khởi tạo Activity và thiết lập các thành phần cơ bản
+     * 
+     * Thực hiện:
+     * 1. Khởi tạo View Binding
+     * 2. Thiết lập giao diện status bar
+     * 3. Khởi tạo các service cần thiết
+     * 4. Thiết lập UI và kiểm tra quyền truy cập vị trí
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Khởi tạo View Binding
         binding = ActivityMapBinding.inflate(layoutInflater)
         binding?.root?.let { setContentView(it) } ?: run {
             Log.e(TAG, "Binding initialization failed")
             finish()
             return
         }
-        // Thiết lập màu sắc cho status bar
+        
+        // ==================== Thiết lập Status Bar ====================
+        // Thiết lập màu sắc cho status bar (Android 5.0+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            window.statusBarColor = Color.parseColor("#FFFFFF") // Màu nền status bar
+            window.statusBarColor = Color.parseColor("#FFFFFF") // Màu nền status bar trắng
         }
 
-        // Đặt icon sáng/tối cho status bar
+        // Đặt icon tối cho status bar (Android 6.0+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
-                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // Icon sáng cho nền tối
-            // Nếu muốn icon tối cho nền sáng, bỏ dòng trên hoặc dùng:
-            // window.decorView.systemUiVisibility = window.decorView.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR // Icon tối cho nền sáng
         }
 
+        // ==================== Khởi tạo Services ====================
         preferencesManager = PreferencesManager(this)
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        // Log thời gian khởi tạo và source parameter
+        // ==================== Logging & Debug ====================
         val dateFormat = SimpleDateFormat("hh:mm a zzz, EEEE, dd MMMM yyyy", Locale.getDefault())
         Log.d(TAG, "Started at: ${dateFormat.format(Date())}")
         
+        // Lấy source parameter để biết activity nào gọi MapActivity
         val source = intent.getStringExtra("source")
         Log.d(TAG, "onCreate - Received source parameter: '$source'")
 
-        // Khởi tạo LocationManager
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        setupUI()
-        checkLocationPermissions()
+        // ==================== Khởi tạo UI và Permissions ====================
+        setupUI() // Thiết lập giao diện người dùng
+        checkLocationPermissions() // Kiểm tra và yêu cầu quyền truy cập vị trí
     }
 
+    /**
+     * Thiết lập giao diện người dùng và các event listener
+     * 
+     * Bao gồm:
+     * - Nút back với hiệu ứng
+     * - RecyclerView cho kết quả tìm kiếm
+     * - Search bar với debouncing
+     * - Nút quay về vị trí hiện tại
+     * - Nút xác nhận chọn vị trí
+     */
     private fun setupUI() {
-        // Nút back
+        // ==================== Nút Back ====================
         binding?.ivBack?.addFadeClickEffect {
             finish()
             // Thêm hiệu ứng chuyển màn khi back
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
-        // Setup RecyclerView cho kết quả tìm kiếm
+        // ==================== Setup RecyclerView cho Search Results ====================
         searchResultsAdapter = SearchResultsAdapter { result ->
-            // Khi user click vào một kết quả
+            // Callback khi user click vào một kết quả tìm kiếm
             onSearchResultSelected(result)
         }
         binding?.rvSearchResults?.apply {
@@ -163,72 +207,96 @@ class MapActivity : ComponentActivity(), LocationListener {
             adapter = searchResultsAdapter
         }
 
-        // Xử lý sự kiện tìm kiếm real-time với debouncing
+        // ==================== Search Bar với Debouncing ====================
+        /**
+         * Xử lý sự kiện tìm kiếm real-time với debouncing
+         * Debouncing: Chờ 500ms sau khi user dừng gõ mới thực hiện search
+         * Tránh gọi API quá nhiều khi user đang gõ liên tục
+         */
         binding?.searchBar?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Not needed
+                // Không cần xử lý
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Cancel pending search
+                // Hủy search request đang chờ (nếu có)
                 searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 
                 val query = s?.toString()?.trim() ?: ""
                 
                 if (query.isEmpty()) {
-                    // Nếu search bar trống, ẩn results
+                    // Nếu search bar trống, ẩn kết quả tìm kiếm
                     hideSearchResults()
                 } else if (query.length >= 2) {
-                    // Chỉ search khi nhập >= 2 ký tự
+                    // Chỉ search khi nhập >= 2 ký tự để tránh kết quả quá rộng
                     // Tạo runnable mới để search sau SEARCH_DELAY_MS
                     searchRunnable = Runnable {
                         Log.d(TAG, "Auto-searching for: $query")
-                        searchLocation(query)
+                        searchLocation(query) // Gọi API tìm kiếm
                     }
                     searchHandler.postDelayed(searchRunnable!!, SEARCH_DELAY_MS)
                 }
             }
 
             override fun afterTextChanged(s: Editable?) {
-                // Not needed
+                // Không cần xử lý
             }
         })
         
-        // Vẫn giữ listener cho Enter key để search ngay lập tức
+        // ==================== Enter Key Listener ====================
+        /**
+         * Listener cho phím Enter để search ngay lập tức
+         * Bỏ qua debouncing khi user nhấn Enter
+         */
         binding?.searchBar?.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN) {
-                // Cancel debounce và search ngay
+                // Hủy debounce và search ngay lập tức
                 searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 
                 val query = binding?.searchBar?.text.toString().trim()
                 if (query.isNotEmpty()) {
                     Log.d(TAG, "Manual search (Enter pressed): $query")
-                    searchLocation(query)
+                    searchLocation(query) // Tìm kiếm ngay
                 } else {
                     Toast.makeText(this, "Vui lòng nhập địa điểm", Toast.LENGTH_SHORT).show()
                 }
-                true
+                true // Tiêu thụ event
             } else {
-                false
+                false // Không xử lý event khác
             }
         }
 
-        // Xử lý nút quay về vị trí hiện tại
+        // ==================== Nút Quay Về Vị Trí Hiện Tại ====================
+        /**
+         * Nút để di chuyển camera về vị trí hiện tại của người dùng
+         * Sử dụng GPS hoặc Network location
+         */
         binding?.returnToMyLocationButton?.addFadeClickEffect {
             Log.d(TAG, "Return to current location clicked")
-            moveToCurrentLocation()
+            moveToCurrentLocation() // Di chuyển camera về vị trí hiện tại
         }
 
-        // Xử lý nút xác nhận chọn vị trí - CHỨC NĂNG CHÍNH
+        // ==================== Nút Xác Nhận Chọn Vị Trí ====================
+        /**
+         * Nút chính để xác nhận vị trí đã chọn
+         * Sẽ xử lý logic dựa trên source parameter (từ activity nào gọi)
+         */
         binding?.cardViewButtonConfirm?.addFadeClickEffect {
-            confirmSelectedLocation()
+            confirmSelectedLocation() // Xác nhận và xử lý vị trí đã chọn
         }
 
-        // Ban đầu ẩn nút confirm
+        // Ban đầu ẩn nút confirm cho đến khi user chọn vị trí
         hideConfirmButton()
     }
 
-    // Xử lý xác nhận chọn vị trí
+    /**
+     * Xử lý xác nhận chọn vị trí
+     * 
+     * Kiểm tra:
+     * 1. Có vị trí được chọn không
+     * 2. Có địa chỉ cụ thể không (nếu không thì dùng tọa độ)
+     * 3. Gọi handleLocationSelection để xử lý tiếp
+     */
     private fun confirmSelectedLocation() {
         val location = getSelectedLocation()
         val address = getSelectedAddress()
@@ -239,47 +307,57 @@ class MapActivity : ComponentActivity(), LocationListener {
                 return
             }
             address.isNullOrEmpty() -> {
-                // Nếu không có địa chỉ cụ thể, sử dụng tọa độ
+                // Nếu không có địa chỉ cụ thể, sử dụng tọa độ làm fallback
                 val coords = formatCoordinates(location)
                 handleLocationSelection(location, coords)
             }
             else -> {
-                // Có địa chỉ cụ thể
+                // Có địa chỉ cụ thể từ reverse geocoding
                 handleLocationSelection(location, address)
             }
         }
     }
 
-    // Xử lý chọn vị trí dựa trên source
+    /**
+     * Xử lý chọn vị trí dựa trên source parameter
+     * 
+     * Source parameter cho biết activity nào đã gọi MapActivity:
+     * - "update_profile": Từ UpdateProfileActivity -> trả kết quả về
+     * - "healthcare_service": Từ healthcare flow -> chuyển sang SelectServiceHealthCareActivity
+     * - "cleaning_service": Từ cleaning flow -> chuyển sang SelectServiceActivity
+     * - "maintenance_service": Từ maintenance flow -> chuyển sang SelectServiceMaintenanceActivity
+     * - null/other: Mặc định chuyển sang cleaning service
+     */
     private fun handleLocationSelection(location: Point, addressInfo: String) {
         val source = intent.getStringExtra("source")
         Log.d(TAG, "handleLocationSelection - source: '$source'")
         
         when (source) {
             "update_profile" -> {
-                // Trả kết quả về UpdateProfileActivity
+                // Trả kết quả về UpdateProfileActivity để cập nhật profile
                 returnLocationToProfile(location, addressInfo)
             }
             "healthcare_service" -> {
-                // Chuyển về SelectServiceHealthCareActivity
+                // Chuyển về SelectServiceHealthCareActivity với thông tin vị trí
                 Log.d(TAG, "Matched healthcare_service case - calling proceedToHealthcareService")
                 proceedToHealthcareService(location, addressInfo)
             }
             "cleaning_service" -> {
-                // Chuyển về SelectServiceActivity
+                // Chuyển về SelectServiceActivity với thông tin vị trí
                 proceedToCleaningService(location, addressInfo)
             }
             "maintenance_service" -> {
+                // Chuyển về SelectServiceMaintenanceActivity với thông tin vị trí
                 proceedToMaintenanceService(location, addressInfo)
             }
             else -> {
-                // Mặc định chuyển sang SelectServiceActivity (cleaning)
+                // Mặc định chuyển sang SelectServiceActivity (cleaning service)
                 proceedToCleaningService(location, addressInfo)
             }
         }
     }
 
-    // Trả kết quả về UpdateProfileActivity
+    /** Trả kết quả vị trí về UpdateProfileActivity để cập nhật thông tin profile */
     private fun returnLocationToProfile(location: Point, addressInfo: String) {
         Log.d(TAG, "Returning location to UpdateProfileActivity: $addressInfo")
         
@@ -304,7 +382,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
-    // Chuyển sang SelectServiceActivity với thông tin vị trí (cleaning service)
+    /** Chuyển sang SelectServiceActivity với thông tin vị trí đã chọn (cleaning service) */
     private fun proceedToCleaningService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
@@ -342,7 +420,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
-    // Chuyển sang SelectServiceHealthCareActivity với thông tin vị trí (healthcare service)
+    /** Chuyển sang SelectServiceHealthCareActivity với thông tin vị trí đã chọn (healthcare service) */
     private fun proceedToHealthcareService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceHealthCareActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
@@ -380,7 +458,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
-    // Chuyển sang SelectServiceMaintenanceActivity với thông tin vị trí (maintenance service)
+    /** Chuyển sang SelectServiceMaintenanceActivity với thông tin vị trí đã chọn (maintenance service) */
     private fun proceedToMaintenanceService(location: Point, addressInfo: String) {
         Log.d(TAG, "Proceeding to SelectServiceMaintenanceActivity with: $addressInfo")
         // KHÔNG save vào user profile - chỉ truyền location cho job này
@@ -418,18 +496,19 @@ class MapActivity : ComponentActivity(), LocationListener {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
-    // Hiển thị nút confirm
+    /** Hiển thị nút xác nhận chọn vị trí */
     private fun showConfirmButton() {
         binding?.cardViewButtonConfirm?.visibility = View.VISIBLE
         Log.d(TAG, "Confirm button shown")
     }
 
-    // Ẩn nút confirm
+    /** Ẩn nút xác nhận chọn vị trí */
     private fun hideConfirmButton() {
         binding?.cardViewButtonConfirm?.visibility = View.GONE
         Log.d(TAG, "Confirm button hidden")
     }
 
+    /** Kiểm tra quyền truy cập vị trí và yêu cầu nếu chưa có */
     private fun checkLocationPermissions() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -453,6 +532,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Khởi tạo các thành phần của bản đồ Mapbox và location services */
     private fun initializeMapComponents() {
         try {
             Log.d(TAG, "Initializing map components")
@@ -495,7 +575,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    // Kiểm tra và mark saved location từ profile
+    /** Kiểm tra và đánh dấu vị trí đã lưu từ profile người dùng */
     private fun checkAndMarkSavedLocation() {
         val savedCoordinates = preferencesManager.getLocationCoordinates()
         
@@ -526,7 +606,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    // Thiết lập listener cho việc chạm vào map
+    /** Thiết lập listener để xử lý sự kiện chạm vào bản đồ */
     private fun setupMapClickListener() {
         mapView.mapboxMap.addOnMapClickListener(OnMapClickListener { point ->
             // Ẩn search results nếu đang hiển thị
@@ -551,7 +631,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         })
     }
 
-    // Chuyển đổi tọa độ thành địa chỉ (Reverse Geocoding) - Nominatim
+    /** Chuyển đổi tọa độ thành địa chỉ sử dụng Nominatim API (Reverse Geocoding) */
     private fun reverseGeocode(latitude: Double, longitude: Double) {
         Log.d(TAG, "Starting Nominatim reverse geocoding for: $latitude, $longitude")
 
@@ -607,7 +687,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         })
     }
 
-    // Hiển thị kết quả địa chỉ
+    /** Hiển thị kết quả địa chỉ đã tìm được từ reverse geocoding */
     private fun showAddressResult(latitude: Double, longitude: Double, address: String) {
         val message = """
             📍 Địa chỉ được chọn:
@@ -620,7 +700,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         Log.d(TAG, "Address found: $address")
     }
 
-    // Hiển thị thông tin dự phòng khi không tìm được địa chỉ
+    /** Hiển thị thông tin tọa độ khi không tìm được địa chỉ cụ thể */
     private fun showFallbackLocation(latitude: Double, longitude: Double) {
         selectedAddress = null // Clear địa chỉ
 
@@ -637,7 +717,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    // Thêm marker tại vị trí được chọn
+    /** Thêm marker (chỉ điểm) tại vị trí được chọn trên bản đồ */
     private fun addMarkerAtSelectedLocation(location: Point, title: String) {
         try {
             // Xóa các marker cũ
@@ -662,21 +742,22 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    // Hàm để lấy vị trí đã chọn
+    /** Getter để lấy vị trí đã chọn */
     fun getSelectedLocation(): Point? {
         return selectedLocation
     }
 
-    // Hàm để lấy địa chỉ đã chọn
+    /** Getter để lấy địa chỉ đã chọn */
     fun getSelectedAddress(): String? {
         return selectedAddress
     }
 
-    // Hàm để format tọa độ thành string đẹp
+    /** Format tọa độ thành chuỗi hiển thị đẹp */
     private fun formatCoordinates(point: Point): String {
         return "Lat: ${String.format("%.6f", point.latitude())}, Lng: ${String.format("%.6f", point.longitude())}"
     }
 
+    /** Bắt đầu theo dõi vị trí hiện tại của người dùng */
     private fun startLocationTracking() {
         if (!hasLocationPermission()) {
             Log.w(TAG, "Location permission not granted")
@@ -744,6 +825,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Dừng theo dõi vị trí để tiết kiệm pin */
     private fun stopLocationTracking() {
         if (isLocationUpdatesActive) {
             try {
@@ -756,6 +838,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Kiểm tra xem có quyền truy cập vị trí hay không */
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_FINE_LOCATION
@@ -765,6 +848,7 @@ class MapActivity : ComponentActivity(), LocationListener {
                 ) == PackageManager.PERMISSION_GRANTED
     }
 
+    /** Cập nhật vị trí hiện tại và hiển thị trên bản đồ */
     private fun updateLocation(location: Location) {
         currentLocation = Point.fromLngLat(location.longitude, location.latitude)
 
@@ -788,21 +872,24 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
-    // LocationListener implementation
+    /** Callback khi vị trí thay đổi (LocationListener interface) */
     override fun onLocationChanged(location: Location) {
         updateLocation(location)
     }
 
+    /** Callback khi location provider được bật */
     override fun onProviderEnabled(provider: String) {
         Log.d(TAG, "Provider enabled: $provider")
         Toast.makeText(this, "Đã bật $provider", Toast.LENGTH_SHORT).show()
     }
 
+    /** Callback khi location provider bị tắt */
     override fun onProviderDisabled(provider: String) {
         Log.d(TAG, "Provider disabled: $provider")
         Toast.makeText(this, "Đã tắt $provider", Toast.LENGTH_SHORT).show()
     }
 
+    /** Lấy vị trí khởi tạo cho camera bản đồ (từ profile hoặc mặc định Hà Nội) */
     private fun getInitialLocation(): Point {
         // Lấy tọa độ đã lưu từ preferences
         val savedCoordinates = preferencesManager.getLocationCoordinates()
@@ -824,6 +911,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         return Point.fromLngLat(105.8542, 21.0285)
     }
 
+    /** Tự động di chuyển camera đến vị trí hiện tại (chỉ 1 lần) */
     private fun moveToCurrentLocationAutomatically() {
         currentLocation?.let { location ->
             Log.d(TAG, "Auto-moving to current location: ${location.latitude()}, ${location.longitude()}")
@@ -841,6 +929,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Di chuyển camera đến vị trí hiện tại khi user nhấn nút */
     private fun moveToCurrentLocation() {
         Log.d(TAG, "Attempting to move to current location")
 
@@ -874,6 +963,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Yêu cầu cập nhật vị trí một lần khi vị trí hiện tại null */
     private fun requestSingleLocationUpdate() {
         if (!hasLocationPermission()) return
 
@@ -917,6 +1007,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Tìm kiếm địa điểm sử dụng Nominatim API (Forward Geocoding) */
     private fun searchLocation(query: String) {
         Log.d(TAG, "Starting Nominatim search for: $query")
 
@@ -979,21 +1070,21 @@ class MapActivity : ComponentActivity(), LocationListener {
         })
     }
 
-    // Show search results in RecyclerView
+    /** Hiển thị danh sách kết quả tìm kiếm trong RecyclerView */
     private fun showSearchResults(results: List<NominatimSearchResult>) {
         searchResultsAdapter.submitList(results)
         binding?.searchResultsContainer?.visibility = View.VISIBLE
         Log.d(TAG, "Showing ${results.size} search results")
     }
 
-    // Hide search results RecyclerView
+    /** Ẩn danh sách kết quả tìm kiếm */
     private fun hideSearchResults() {
         binding?.searchResultsContainer?.visibility = View.GONE
         searchResultsAdapter.clearResults()
         Log.d(TAG, "Search results hidden")
     }
 
-    // Handle when user selects a search result
+    /** Xử lý khi user chọn một kết quả từ danh sách tìm kiếm */
     private fun onSearchResultSelected(result: NominatimSearchResult) {
         Log.d(TAG, "Search result selected: ${result.displayName}")
         
@@ -1017,6 +1108,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         Toast.makeText(this, "Đã chọn: $address", Toast.LENGTH_SHORT).show()
     }
 
+    /** Hiển thị vị trí trên bản đồ với marker và di chuyển camera */
     private fun showLocationOnMap(location: Point, title: String) {
         // Di chuyển camera đến vị trí
         mapView.mapboxMap.setCamera(
@@ -1058,6 +1150,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Chuyển đổi vector drawable thành bitmap để sử dụng làm marker icon */
     private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap? {
         val drawable = ContextCompat.getDrawable(context, drawableId) ?: return null
         val bitmap = Bitmap.createBitmap(
@@ -1071,6 +1164,7 @@ class MapActivity : ComponentActivity(), LocationListener {
         return bitmap
     }
 
+    /** Khởi động lại location tracking khi activity resume */
     override fun onResume() {
         super.onResume()
         // Khởi động lại location tracking nếu cần thiết
@@ -1079,12 +1173,14 @@ class MapActivity : ComponentActivity(), LocationListener {
         }
     }
 
+    /** Tạm dừng location tracking khi activity pause để tiết kiệm pin */
     override fun onPause() {
         super.onPause()
         // Tạm dừng location tracking để tiết kiệm pin
         stopLocationTracking()
     }
 
+    /** Cleanup resources khi activity bị destroy */
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "Destroying MapActivity")
