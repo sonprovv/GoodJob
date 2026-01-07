@@ -27,30 +27,30 @@ class ChoiceWorkerViewModel : ViewModel() {
             _error.value = null
             try {
                 val response = serviceRepository.updateChoiceWorker(uid = uid, status = status)
-                Log.d("ChoideWorkerViewModel", "ChoideWorker response: $response")
-                Log.d("ChoideWorkerViewModel", "ChoideWorker response: $token, $uid, $status")
+                Log.d("ChoiceWorkerViewModel", "ChoiceWorker response: $response")
+                Log.d("ChoiceWorkerViewModel", "ChoiceWorker response: $token, $uid, $status")
 
                 when (response) {
                     is NetworkResult.Success -> {
                         val userResponse = response.data
-                        if (userResponse != null && userResponse.success) {
+                        if (userResponse.success) {
                             _error.value = null
-                            Log.d("ChoideWorkerViewModel", "ChoideWorker successful: $userResponse")
+                            Log.d("ChoiceWorkerViewModel", "ChoiceWorker successful: $userResponse")
                             _success.value = true
                         } else {
-                            _error.value = userResponse?.message ?: "ChoideWorker failed"
+                            _error.value = userResponse.message
                         }
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "ChoideWorker failed"
+                        _error.value = response.message
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ChoideWorkerViewModel", "ChoideWorker error: ${e.message}")
+                Log.e("ChoiceWorkerViewModel", "ChoiceWorker error: ${e.message}")
                 _error.value = e.message
             } finally {
-                Log.e("ChoideWorkerViewModel", "Activity finally")
+                Log.e("ChoiceWorkerViewModel", "Activity finally")
                 _loading.value = false
             }
         }
@@ -78,36 +78,36 @@ class ChoiceWorkerViewModel : ViewModel() {
                     comment = comment,
                     serviceType = serviceType
                 )
-                Log.d("ChoideWorkerViewModel", "postReviewWorker response: $response")
+                Log.d("ChoiceWorkerViewModel", "postReviewWorker response: $response")
                 Log.d(
-                    "ChoideWorkerViewModel",
+                    "ChoiceWorkerViewModel",
                     "postReviewWorker response: $token, $userID, $rating, $comment"
                 )
 
                 when (response) {
                     is NetworkResult.Success -> {
                         val userResponse = response.data
-                        if (userResponse != null && userResponse.success) {
+                        if (userResponse.success) {
                             _error.value = null
                             Log.d(
-                                "ChoideWorkerViewModel",
+                                "ChoiceWorkerViewModel",
                                 "postReviewWorker successful: $userResponse"
                             )
                             _success.value = true
                         } else {
-                            _error.value = userResponse?.message ?: "postReviewWorker failed"
+                            _error.value = userResponse.message
                         }
                     }
 
                     is NetworkResult.Error -> {
-                        _error.value = response.message ?: "postReviewWorker failed"
+                        _error.value = response.message
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ChoideWorkerViewModel", "postReviewWorker error: ${e.message}")
+                Log.e("ChoiceWorkerViewModel", "postReviewWorker error: ${e.message}")
                 _error.value = e.message
             } finally {
-                Log.e("ChoideWorkerViewModel", "postReviewWorker finally")
+                Log.e("ChoiceWorkerViewModel", "postReviewWorker finally")
                 _loading.value = false
             }
         }

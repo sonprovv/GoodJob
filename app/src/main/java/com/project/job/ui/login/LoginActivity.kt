@@ -11,8 +11,6 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.project.job.MainActivity
@@ -96,10 +94,16 @@ class LoginActivity : BaseActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupPasswordToggle(editText: EditText) {
         editText.apply {
+            // Sử dụng AppCompatResources để tự động áp dụng theme tint
+            val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+                context, 
+                R.drawable.ic_visibility_off
+            )
+            
             setCompoundDrawablesWithIntrinsicBounds(
                 null,
                 null,
-                ContextCompat.getDrawable(context, R.drawable.ic_visibility_off),
+                drawable,
                 null
             )
 
@@ -135,17 +139,22 @@ class LoginActivity : BaseActivity() {
         // Move cursor to the end
         editText.setSelection(selection)
 
-        // Toggle drawable
+        // Toggle drawable using AppCompatResources for automatic theme tinting
         val drawableRes = if (isPasswordVisible) {
             R.drawable.ic_visibility_off
         } else {
             R.drawable.ic_visibility
         }
 
+        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+            this, 
+            drawableRes
+        )
+
         editText.setCompoundDrawablesWithIntrinsicBounds(
             null,
             null,
-            ContextCompat.getDrawable(this, drawableRes),
+            drawable,
             null
         )
     }
@@ -204,8 +213,9 @@ class LoginActivity : BaseActivity() {
             launch {
                 viewModel.error.collectLatest { errorMessage ->
                     if (!errorMessage.isNullOrEmpty()) {
-                        // Hiển thị error message
-                        showErrorMessage(errorMessage)
+                        // Xử lý error message qua ErrorHandler
+                        val processedError = ErrorHandler.handleLoginError(errorMessage)
+                        showErrorMessage(processedError, errorMessage)
                         Log.e("LoginActivity", "Login error: $errorMessage")
                     }
                 }
@@ -213,30 +223,31 @@ class LoginActivity : BaseActivity() {
         }
     }
 
-    private fun showErrorMessage(errorMessage: String) {
+    private fun showErrorMessage(processedError: String, originalError: String = processedError) {
         // Hiển thị error với Snackbar có retry action
-        val snackbar = Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+        val snackbar = Snackbar.make(binding.root, processedError, Snackbar.LENGTH_LONG)
         
         // Thêm action button dựa trên loại lỗi
         when {
-            errorMessage.contains("Tài khoản không tồn tại") -> {
+            originalError.contains("Không tìm thấy thông tin người dùng") ||
+            processedError.contains("Tài khoản không tồn tại") -> {
                 snackbar.setAction("Đăng ký") {
                     // Navigate to register screen
                     val intent = android.content.Intent(this, RegisterActivity::class.java)
                     startActivity(intent)
                 }
             }
-            errorMessage.contains("kết nối") || errorMessage.contains("mạng") -> {
+            originalError.contains("kết nối") || originalError.contains("mạng") -> {
                 snackbar.setAction("Thử lại") {
                     retryLogin()
                 }
             }
-            errorMessage.contains("máy chủ") -> {
+            originalError.contains("máy chủ") -> {
                 snackbar.setAction("Thử lại") {
                     retryLogin()
                 }
             }
-            ErrorHandler.isAuthError(errorMessage) -> {
+            ErrorHandler.isAuthError(originalError) -> {
                 snackbar.setAction("OK") {
                     // Just dismiss
                 }
@@ -250,10 +261,8 @@ class LoginActivity : BaseActivity() {
         
         snackbar.show()
         
-        // Nếu là lỗi nghiêm trọng, hiển thị dialog
-        if (errorMessage.contains("Tài khoản không tồn tại")) {
-            showRegisterSuggestionDialog()
-        }
+        // Không hiển thị dialog cho lỗi "Không tìm thấy thông tin người dùng"
+        // Chỉ hiển thị Snackbar với action button "Đăng ký" là đủ
     }
     
     private fun retryLogin() {
@@ -265,22 +274,5 @@ class LoginActivity : BaseActivity() {
         } else {
             Toast.makeText(this, "Vui lòng nhập email và mật khẩu", Toast.LENGTH_SHORT).show()
         }
-    }
-    
-    private fun showRegisterSuggestionDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Tài khoản không tồn tại")
-            .setMessage("Tài khoản với email này chưa được đăng ký. Bạn có muốn tạo tài khoản mới không?")
-            .setPositiveButton("Đăng ký") { _, _ ->
-                val intent = android.content.Intent(this, RegisterActivity::class.java)
-                // Pre-fill email if available
-                val email = binding.edtEmail.text.toString().trim()
-                if (email.isNotEmpty()) {
-                    intent.putExtra("prefill_email", email)
-                }
-                startActivity(intent)
-            }
-            .setNegativeButton("Hủy", null)
-            .show()
     }
 }

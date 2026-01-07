@@ -3,6 +3,7 @@
     <style name="Base.Theme.GoodJob" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="android:windowLightStatusBar">true</item>
+        <item name="colorControlNormal">@color/gray_600</item>
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 

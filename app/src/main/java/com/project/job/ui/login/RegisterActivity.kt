@@ -64,6 +64,7 @@ class RegisterActivity : BaseActivity() {
 
 
         setupPasswordToggle(binding.edtPassword)
+        setupPasswordToggle(binding.edtConfirmPassword)
 
         binding.ivBack.addFadeClickEffect {
             onBackPressedDispatcher.onBackPressed()
@@ -107,10 +108,16 @@ class RegisterActivity : BaseActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupPasswordToggle(editText: EditText) {
         editText.apply {
+            // Sử dụng AppCompatResources để tự động áp dụng theme tint
+            val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+                context, 
+                R.drawable.ic_visibility_off
+            )
+            
             setCompoundDrawablesWithIntrinsicBounds(
                 null,
                 null,
-                ContextCompat.getDrawable(context, R.drawable.ic_visibility_off),
+                drawable,
                 null
             )
 
@@ -146,17 +153,22 @@ class RegisterActivity : BaseActivity() {
         // Move cursor to the end
         editText.setSelection(selection)
 
-        // Toggle drawable
+        // Toggle drawable using AppCompatResources for automatic theme tinting
         val drawableRes = if (isPasswordVisible) {
             R.drawable.ic_visibility_off
         } else {
             R.drawable.ic_visibility
         }
 
+        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+            this, 
+            drawableRes
+        )
+
         editText.setCompoundDrawablesWithIntrinsicBounds(
             null,
             null,
-            ContextCompat.getDrawable(this, drawableRes),
+            drawable,
             null
         )
     }
@@ -214,8 +226,9 @@ class RegisterActivity : BaseActivity() {
             launch {
                 viewModel.error.collectLatest { errorMessage ->
                     if (!errorMessage.isNullOrEmpty()) {
-                        // Hiển thị error message
-                        showErrorMessage(errorMessage)
+                        // Xử lý error message qua ErrorHandler
+                        val processedError = ErrorHandler.handleRegisterError(errorMessage)
+                        showErrorMessage(processedError, errorMessage)
                         Log.e("RegisterActivity", "Register error: $errorMessage")
                     }
                 }
@@ -223,13 +236,14 @@ class RegisterActivity : BaseActivity() {
         }
     }
 
-    private fun showErrorMessage(errorMessage: String) {
+    private fun showErrorMessage(processedError: String, originalError: String = processedError) {
         // Hiển thị error với Snackbar có retry action
-        val snackbar = Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
+        val snackbar = Snackbar.make(binding.root, processedError, Snackbar.LENGTH_LONG)
         
         // Thêm action button dựa trên loại lỗi
         when {
-            errorMessage.contains("Email này đã được đăng ký") -> {
+            originalError.contains("The email address is already in use by another account") ||
+            originalError.contains("Email đã được đăng ký") -> {
                 snackbar.setAction("Đăng nhập") {
                     // Navigate to login screen
                     val intent = Intent(this, LoginActivity::class.java)
@@ -242,23 +256,24 @@ class RegisterActivity : BaseActivity() {
                     finish()
                 }
             }
-            errorMessage.contains("kết nối") || errorMessage.contains("mạng") -> {
+            originalError.contains("kết nối") || originalError.contains("mạng") -> {
                 snackbar.setAction("Thử lại") {
                     retryRegister()
                 }
             }
-            errorMessage.contains("máy chủ") -> {
+            originalError.contains("máy chủ") -> {
                 snackbar.setAction("Thử lại") {
                     retryRegister()
                 }
             }
-            errorMessage.contains("Mật khẩu xác nhận không khớp") -> {
+            originalError.contains("Mật khẩu không trùng khớp") || 
+            processedError.contains("Mật khẩu xác nhận không khớp") -> {
                 snackbar.setAction("OK") {
                     // Focus on confirm password field
                     binding.edtConfirmPassword.requestFocus()
                 }
             }
-            ErrorHandler.isAuthError(errorMessage) -> {
+            ErrorHandler.isAuthError(originalError) -> {
                 snackbar.setAction("OK") {
                     // Just dismiss
                 }
@@ -271,11 +286,6 @@ class RegisterActivity : BaseActivity() {
         }
         
         snackbar.show()
-        
-        // Nếu là lỗi email đã tồn tại, hiển thị dialog
-        if (errorMessage.contains("Email này đã được đăng ký")) {
-            showLoginSuggestionDialog()
-        }
     }
     
     private fun retryRegister() {
@@ -289,27 +299,5 @@ class RegisterActivity : BaseActivity() {
         } else {
             Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show()
         }
-    }
-    
-    private fun showLoginSuggestionDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Email đã được đăng ký")
-            .setMessage("Email này đã có tài khoản. Bạn có muốn đăng nhập thay vì đăng ký không?")
-            .setPositiveButton("Đăng nhập") { _, _ ->
-                val intent = Intent(this, LoginActivity::class.java)
-                // Pre-fill email if available
-                val email = binding.edtEmail.text.toString().trim()
-                if (email.isNotEmpty()) {
-                    intent.putExtra("prefill_email", email)
-                }
-                startActivity(intent)
-                finish()
-            }
-            .setNegativeButton("Sử dụng email khác") { _, _ ->
-                // Clear email field and focus
-                binding.edtEmail.text.clear()
-                binding.edtEmail.requestFocus()
-            }
-            .show()
     }
 }

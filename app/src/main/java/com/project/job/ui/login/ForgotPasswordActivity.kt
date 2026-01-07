@@ -97,10 +97,16 @@ class ForgotPasswordActivity : BaseActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupPasswordToggle(editText: EditText) {
         editText.apply {
+            // Sử dụng AppCompatResources để tự động áp dụng theme tint
+            val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+                context, 
+                R.drawable.ic_visibility_off
+            )
+            
             setCompoundDrawablesWithIntrinsicBounds(
                 null,
                 null,
-                ContextCompat.getDrawable(context, R.drawable.ic_visibility_off),
+                drawable,
                 null
             )
 
@@ -136,17 +142,22 @@ class ForgotPasswordActivity : BaseActivity() {
         // Move cursor to the end
         editText.setSelection(selection)
 
-        // Toggle drawable
+        // Toggle drawable using AppCompatResources for automatic theme tinting
         val drawableRes = if (isPasswordVisible) {
             R.drawable.ic_visibility_off
         } else {
             R.drawable.ic_visibility
         }
 
+        val drawable = androidx.appcompat.content.res.AppCompatResources.getDrawable(
+            this, 
+            drawableRes
+        )
+
         editText.setCompoundDrawablesWithIntrinsicBounds(
             null,
             null,
-            ContextCompat.getDrawable(this, drawableRes),
+            drawable,
             null
         )
     }
