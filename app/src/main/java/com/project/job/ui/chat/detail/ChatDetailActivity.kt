@@ -241,42 +241,62 @@ class ChatDetailActivity : BaseActivity() {
 
     private fun initRoomIfNeeded() {
         try {
-            if (conversationId.isEmpty()) return
+            // 1. Tạo conversationId nếu chưa có
+            if (conversationId.isNullOrEmpty()) {
+                conversationId = if (currentUserId < receiverId) {
+                    "${currentUserId}_${receiverId}"
+                } else {
+                    "${receiverId}_${currentUserId}"
+                }
+            }
+
             val roomsRef = firebaseDb.getReference("rooms").child(conversationId)
-            // Nếu có conversationId rồi thì bỏ qua khởi tạo
-            if (roomsRef.key != null) return
 
-            Log.d("ChatDetailActivity", "Initializing room at rooms/$conversationId")
-            val usersMap = hashMapOf<String, Any>()
+            Log.d("ChatDetailActivity", "Using conversationId: $conversationId")
 
-            // Current user profile from Preferences
-            val myData = preferencesManager.getUserData()
-            val myName = myData["user_name"] ?: ""
-            val myAvatar = myData["user_avatar"] ?: ""
-            val me = hashMapOf<String, Any>()
-            if (myName.isNotEmpty()) me["username"] = myName
-            if (myAvatar.isNotEmpty()) me["avatar"] = myAvatar
+            // 2. Check room đã tồn tại chưa
+            roomsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        Log.d("ChatDetailActivity", "Room already exists")
+                        return
+                    }
 
-            // Partner profile from intent extras
-            val partner = hashMapOf<String, Any>()
-            (partnerName ?: "").takeIf { it.isNotEmpty() }?.let { partner["username"] = it }
-            (partnerAvatar ?: "").takeIf { it.isNotEmpty() }?.let { partner["avatar"] = it }
+                    // 3. Tạo room mới
+                    val usersMap = hashMapOf<String, Any>()
 
-            if (me.isNotEmpty()) usersMap[currentUserId] = me
-            if (partner.isNotEmpty()) usersMap[receiverId] = partner
+                    val myData = preferencesManager.getUserData()
+                    val me = hashMapOf<String, Any>()
+                    myData["user_name"]?.takeIf { it.isNotEmpty() }?.let { me["username"] = it }
+                    myData["user_avatar"]?.takeIf { it.isNotEmpty() }?.let { me["avatar"] = it }
 
-            val roomData = hashMapOf<String, Any>()
-            // Don't overwrite existing lastMessage/lastTimestamp if they exist; just ensure fields present on first create
-            roomData["lastMessage"] = ""
-            roomData["lastTimestamp"] = 0L
-            if (usersMap.isNotEmpty()) roomData["users"] = usersMap
+                    val partner = hashMapOf<String, Any>()
+                    partnerName?.takeIf { it.isNotEmpty() }?.let { partner["username"] = it }
+                    partnerAvatar?.takeIf { it.isNotEmpty() }?.let { partner["avatar"] = it }
 
-            roomsRef.updateChildren(roomData)
-            Log.d("ChatDetailActivity", "Room initialized/updated successfully")
+                    if (me.isNotEmpty()) usersMap[currentUserId] = me
+                    if (partner.isNotEmpty()) usersMap[receiverId] = partner
+
+                    val roomData = hashMapOf<String, Any>(
+                        "lastMessage" to "",
+                        "lastTimestamp" to 0L,
+                        "users" to usersMap
+                    )
+
+                    roomsRef.setValue(roomData)
+                    Log.d("ChatDetailActivity", "Room created successfully")
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ChatDetailActivity", "Firebase error: ${error.message}")
+                }
+            })
+
         } catch (e: Exception) {
             Log.e("ChatDetailActivity", "initRoomIfNeeded error: ${e.message}")
         }
     }
+
 
     private fun sendCurrentInput() {
         val text = binding.inputMessage.text?.toString()?.trim().orEmpty()
