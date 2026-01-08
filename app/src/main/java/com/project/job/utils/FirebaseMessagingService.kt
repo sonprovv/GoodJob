@@ -200,8 +200,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                 sendBroadcast(intent)
             } else {
                 Log.d(TAG, "App in background, showing notification")
-                showTikTokStyleNotification(
-                    title = senderName.ifEmpty { title },
+                showCustomStyleNotification(
                     message = message,
                     senderId = senderId,
                     senderName = senderName,
@@ -255,8 +254,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         notificationManager.notify(notificationId++, builder.build())
     }
 
-    private fun showTikTokStyleNotification(
-        title: String,
+    private fun showCustomStyleNotification(
         message: String,
         senderId: String,
         senderName: String,

@@ -5,12 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.job.data.repository.TokenRepository
 import com.project.job.data.source.remote.NetworkResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import com.project.job.data.source.remote.UserRemote
 import com.project.job.data.source.remote.api.response.UserResponse
 import com.project.job.utils.ErrorHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel() {
     private val userRepository = UserRemote.getInstance()
@@ -102,12 +106,23 @@ class LoginViewModel(private val tokenRepository: TokenRepository) : ViewModel()
                     is NetworkResult.Success -> {
                         val authResponse = response.data
                         if (authResponse != null && authResponse.success) {
-                            _error.value = null
-                            _token.value = authResponse.data.token
-                            _user.value = authResponse.data.user
-                            tokenRepository.saveAccessToken(authResponse.data.token)
-                            tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
-                            tokenRepository.saveFcmToken(fcmToken)
+                            // Sign in to Firebase with email and password
+                            try {
+                                FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).await()
+                                Log.d("LoginViewModel", "Firebase signInWithEmailAndPassword successful")
+                                
+                                // Only proceed if Firebase sign-in succeeded
+                                _error.value = null
+                                _token.value = authResponse.data.token
+                                _user.value = authResponse.data.user
+                                tokenRepository.saveAccessToken(authResponse.data.token)
+                                tokenRepository.saveRefreshToken(authResponse.data.refreshToken!!)
+                                tokenRepository.saveFcmToken(fcmToken)
+                                
+                            } catch (e: Exception) {
+                                Log.e("LoginViewModel", "Error signing in to Firebase", e)
+                                _error.value = "Lỗi đăng nhập chat (Firebase): ${e.message}"
+                            }
                         } else {
                             // Handle specific error messages from server
                             val errorMessage = authResponse?.message

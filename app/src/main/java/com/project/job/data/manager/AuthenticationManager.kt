@@ -73,6 +73,9 @@ class AuthenticationManager(
         // Clear tất cả tokens
         tokenRepository.clearAuthTokens()
         
+        // Sign out directly from Firebase
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+
         // Update states
         _isAuthenticated.value = false
         _tokenExpired.value = true

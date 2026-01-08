@@ -218,6 +218,9 @@ class ProfileFragment : BaseFragment(), LoginResultListener {
         
         val googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
         googleSignInClient.signOut().addOnCompleteListener {
+            // Sign out from Firebase
+            com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+
             // Send logout broadcast to clear chat data
             com.project.job.utils.LogoutBroadcastManager.sendLogoutBroadcast(requireContext())
             

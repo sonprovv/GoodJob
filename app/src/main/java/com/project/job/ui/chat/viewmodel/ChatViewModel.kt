@@ -76,19 +76,39 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     // Store listener reference to remove it later
     private var conversationsListener: ValueEventListener? = null
 
+    private var authListener: FirebaseAuth.AuthStateListener? = null
+
     fun observeRealtimeConversations() {
-        val currentUid = firebaseAuth.currentUser?.uid
-        if (currentUid.isNullOrEmpty()) {
-            _error.value = "Bạn chưa đăng nhập"
-            _conversations.value = emptyList()
-            return
-        }
         _loading.value = true
         
-        // Remove old listener if exists
+        // Remove old listeners if exists
         removeConversationsListener()
+        authListener?.let { firebaseAuth.removeAuthStateListener(it) }
         
+        authListener = FirebaseAuth.AuthStateListener { auth ->
+            val currentUid = auth.currentUser?.uid
+            Log.d("ChatViewModel", "AuthStateChanged: currentUid=$currentUid")
+            
+            if (!currentUid.isNullOrEmpty()) {
+                // User is logged in, attach database listener
+                attachDatabaseListener(currentUid)
+            } else {
+                Log.d("ChatViewModel", "User is null in AuthStateListener")
+                _loading.value = false
+                _error.value = "Bạn chưa đăng nhập"
+                _conversations.value = emptyList()
+            }
+        }
+        
+        firebaseAuth.addAuthStateListener(authListener!!)
+    }
+
+    private fun attachDatabaseListener(currentUid: String) {
         val roomsRef = firebaseDb.getReference("rooms")
+        
+        // Remove old listener if exists to avoid duplicates
+        conversationsListener?.let { roomsRef.removeEventListener(it) }
+        
         conversationsListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 try {
@@ -199,5 +219,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         removeConversationsListener()
+        authListener?.let { firebaseAuth.removeAuthStateListener(it) }
     }
 }
