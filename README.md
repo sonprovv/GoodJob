@@ -36,7 +36,7 @@ HELPO hỗ trợ các nhóm dịch vụ chính sau:
 
 Hệ thống được thiết kế với **ba thành phần chính**, tương ứng với **ba nhóm người dùng**:
 
-### 1. 📱 Ứng dụng Khách hàng
+### 1. 📱 Ứng dụng Khách hàng (Kotlin, XML)
 - Tìm kiếm và lựa chọn dịch vụ phù hợp
 - Đặt lịch và theo dõi tiến trình thực hiện
 - Thanh toán dịch vụ
@@ -44,11 +44,12 @@ Hệ thống được thiết kế với **ba thành phần chính**, tương �
 
 ---
 
-### 2. 👨‍🔧 Ứng dụng Người làm
+### 2. 👨‍🔧 Ứng dụng Người làm (Kotlin, Jetpack Compose)
 - Nhận và quản lý công việc
 - Chủ động sắp xếp lịch làm việc
 - Theo dõi thu nhập và lịch sử công việc
 
+<a src="https://github.com/noname1288/WorkerApp" />
 ---
 
 ### 3. 🖥️ Website Quản trị (Admin)
