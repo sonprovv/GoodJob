@@ -90,6 +90,7 @@ Hệ thống được thiết kế với **ba thành phần chính**, tương �
 - *(Tùy chọn mở rộng)*: **ARAG**
 - **Recommendation System** (hệ thống gợi ý dịch vụ)
 
+<a href="https://huggingface.co/spaces/sonpt2304/AI-DoAnTotNghiep">AI Repository</a>
 ---
 
 ## V. Mục tiêu của hệ thống
