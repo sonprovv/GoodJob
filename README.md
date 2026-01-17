@@ -15,11 +15,13 @@ Hệ thống cho phép người dùng **dễ dàng tìm kiếm, đặt lịch v�
 HELPO hỗ trợ các nhóm dịch vụ chính sau:
 
 - 🧹 **Dọn dẹp nhà cửa**  
-  - Tính theo số phòng hoặc diện tích cụ thể
+![Dọn dẹp nhà cửa](demo/cleaning.gif)
 
 - 🩺 **Chăm sóc sức khỏe tại gia**
+![Chăm sóc sức khỏe](demo/healthcare.gif)
 
 - 🧼 **Vệ sinh thiết bị gia đình**
+![Vệ sinh thiết bị](demo/maintenance.gif)
 
 ---
 
