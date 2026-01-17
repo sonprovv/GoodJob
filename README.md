@@ -16,17 +16,17 @@ HELPO hỗ trợ các nhóm dịch vụ chính sau:
 
 - 🧹 **Dọn dẹp nhà cửa**  
 <p align="center">
-  <img src="demo/cleaning.gif" width="300"/>
+  <img src="demo/cleaning.gif" width="200"/>
 </p>
 
 - 🩺 **Chăm sóc sức khỏe tại gia**
 <p align="center">
-  <img src="demo/healthcare.gif" width="300"/>
+  <img src="demo/healthcare.gif" width="200"/>
 </p>
 
 - 🧼 **Vệ sinh thiết bị gia đình**
 <p align="center">
-  <img src="demo/maintenance.gif" width="300"/>
+  <img src="demo/maintenance.gif" width="200"/>
 </p>
 
 
@@ -37,17 +37,25 @@ HELPO hỗ trợ các nhóm dịch vụ chính sau:
 Hệ thống được thiết kế với **ba thành phần chính**, tương ứng với **ba nhóm người dùng**:
 
 ### 1. 📱 Ứng dụng Khách hàng (Kotlin, XML)
-- Tìm kiếm và lựa chọn dịch vụ phù hợp
+- Đăng ký tài khoản bằng Email | Password
+- Đăng nhập bằng Google hoặc Email | Password
 - Đặt lịch và theo dõi tiến trình thực hiện
-- Thanh toán dịch vụ
 - Đánh giá chất lượng dịch vụ sau khi hoàn thành
+- Xem thông báo
+- Chat Realtime với Người làm
 
 ---
 
 ### 2. 👨‍🔧 Ứng dụng Người làm (Kotlin, Jetpack Compose)
-- Nhận và quản lý công việc
-- Chủ động sắp xếp lịch làm việc
-- Theo dõi thu nhập và lịch sử công việc
+- Đăng ký tài khoản: Đăng ký qua Admin hệ thống
+- Đăng nhập bằng Email | Password
+- Xem danh sách công việc
+- Ứng tuyển công việc và chờ duyệt
+- Có thể huỷ ứng tuyển
+- Nhận việc - Khi được chấp nhận, công việc sẽ được hiển thị trong "Lịch làm việc"
+- Xem đánh giá từ khách hàng 
+- Quản lý lịch làm việc: Lọc các công việc theo ngày cụ thể
+- Chat Realtime với khách hàng
 
 <a href="https://github.com/noname1288/WorkerApp">Worker App Repository</a>
 
