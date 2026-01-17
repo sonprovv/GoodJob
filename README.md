@@ -1,4 +1,4 @@
-# 🏠 Xây dựng ứng dụng **HELPO** tối ưu hóa kết nối khách hàng và người cung cấp dịch vụ chăm sóc tại gia
+# 🏠 Xây dựng ứng dụng **HELPO** tối ưu hóa kết nối khách hàng và người cung cấp dịch vụ chăm sóc tại gia (Xây dựng app phía khách hàng)
 
 ---
 
@@ -49,7 +49,8 @@ Hệ thống được thiết kế với **ba thành phần chính**, tương �
 - Chủ động sắp xếp lịch làm việc
 - Theo dõi thu nhập và lịch sử công việc
 
-<a src="https://github.com/noname1288/WorkerApp" />
+<a href="https://github.com/noname1288/WorkerApp">Worker App Repository</a>
+
 ---
 
 ### 3. 🖥️ Website Quản trị (Admin)
@@ -97,3 +98,9 @@ Hệ thống được thiết kế với **ba thành phần chính**, tương �
 - Nâng cao trải nghiệm người dùng thông qua cá nhân hóa và gợi ý thông minh
 - Tạo nền tảng minh bạch, an toàn và dễ mở rộng
 - Hỗ trợ người lao động có thêm cơ hội việc làm bền vững
+
+---
+
+## VI. 📄 Báo cáo
+
+- [Báo cáo đồ án (PDF)](report/Bao_cao_do_an_2025.pdf)
